@@ -139,12 +139,9 @@ class Handler(BaseHTTPRequestHandler):
                 rows = [row_to_recipe(r) for r in db.execute("SELECT * FROM recipes WHERE name LIKE ?", (f"%{q.get('search',[''])[0]}%",)).fetchall()]
                 diet = db.execute("SELECT diet FROM settings WHERE id=1").fetchone()["diet"]
                 excludes = [r["name"].lower() for r in db.execute("SELECT name FROM excluded_ingredients WHERE active=1").fetchall()]
-                disliked = {r["recipe_id"] for r in db.execute("SELECT recipe_id FROM dislikes").fetchall()}
                 favs = {r["recipe_id"] for r in db.execute("SELECT recipe_id FROM favorites").fetchall()}
 
                 def ok(r):
-                    if r["id"] in disliked:
-                        return False
                     if "category" in q and r["category"] != q["category"][0]:
                         return False
                     if "maxCalories" in q and r["calories"] >= int(q["maxCalories"][0]):
@@ -166,6 +163,43 @@ class Handler(BaseHTTPRequestHandler):
 
                 self.send_json([r for r in rows if ok(r)])
                 return
+
+        if p == "/api/swipe-recipes":
+            with conn() as db:
+                rows = [row_to_recipe(r) for r in db.execute("SELECT * FROM recipes WHERE name LIKE ?", (f"%{q.get('search',[''])[0]}%",)).fetchall()]
+                diet = db.execute("SELECT diet FROM settings WHERE id=1").fetchone()["diet"]
+                excludes = [r["name"].lower() for r in db.execute("SELECT name FROM excluded_ingredients WHERE active=1").fetchall()]
+                disliked = {r["recipe_id"] for r in db.execute("SELECT recipe_id FROM dislikes").fetchall()}
+                favs = {r["recipe_id"] for r in db.execute("SELECT recipe_id FROM favorites").fetchall()}
+
+                def ok(r):
+                    if r["id"] in disliked or r["id"] in favs:
+                        return False
+                    if "category" in q and r["category"] != q["category"][0]:
+                        return False
+                    if "maxCalories" in q and r["calories"] >= int(q["maxCalories"][0]):
+                        return False
+                    if "minProtein" in q and r["protein"] <= int(q["minProtein"][0]):
+                        return False
+                    if "maxDuration" in q and r["duration"] >= int(q["maxDuration"][0]):
+                        return False
+                    if diet != "Ich esse alles":
+                        d = diet.lower()
+                        if "vegetarisch" in d and "vegetarisch" not in r["diet_tags"]:
+                            return False
+                        if "vegan" in d and "vegan" not in r["diet_tags"]:
+                            return False
+                    ing = " ".join(r["ingredients"]).lower()
+                    return not any(e in ing for e in excludes)
+
+                self.send_json([r for r in rows if ok(r)])
+                return
+
+        if p == "/api/dislikes":
+            with conn() as db:
+                rows = [r["recipe_id"] for r in db.execute("SELECT recipe_id FROM dislikes").fetchall()]
+            self.send_json(rows)
+            return
 
         if p.startswith("/api/recipes/"):
             rid = int(p.split("/")[3])
@@ -233,6 +267,8 @@ class Handler(BaseHTTPRequestHandler):
                 db.execute("INSERT OR IGNORE INTO excluded_ingredients (name,active) VALUES (?,1)", (b.get("name"),)); self.send_json({"ok": True}); return
             if p == "/api/feedback":
                 db.execute("INSERT INTO feedback_messages (email,subject,message) VALUES (?,?,?)", (b.get("email"), b.get("subject"), b.get("message"))); self.send_json({"ok": True}); return
+            if p == "/api/dislikes/reset":
+                db.execute("DELETE FROM dislikes"); self.send_json({"ok": True}); return
         self.send_json({"error": "Unbekannt"}, 404)
 
     def do_PATCH(self):
