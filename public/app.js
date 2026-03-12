@@ -9,7 +9,9 @@ const state = {
   selectedRecipe: null,
   selectedList: null,
   swipedRecipeIds: new Set(),
-  swipeBusy: false
+  swipeBusy: false,
+  swipeRecipes: [],
+  dislikedRecipeIds: new Set()
 };
 
 async function request(url, options = {}) {
@@ -33,7 +35,7 @@ const api = {
 
 const app = document.getElementById('app');
 
-const getSwipeQueue = () => state.recipes.filter((recipe) => !state.swipedRecipeIds.has(recipe.id));
+const getSwipeQueue = () => state.swipeRecipes.filter((recipe) => !state.swipedRecipeIds.has(recipe.id));
 const currentSwipeRecipe = () => getSwipeQueue()[0];
 
 function nav() {
@@ -80,7 +82,12 @@ function renderSwipe() {
   const queue = getSwipeQueue();
   const r = queue[0];
   if (!r) {
-    return `${header('Menu-Swipe', `<button class="btn" id="openFilter">⏷ Filter</button>`)}<div class="empty-state"><h3>Keine Karten mehr im Swipe-Deck</h3><p>Auf „Entdecken“ findest du weiterhin alle Rezepte.</p></div>`;
+    return `${header('Menu-Swipe', `<button class="btn" id="openFilter">⏷ Filter</button>`)}
+      <div class="empty-state">
+        <h3>Keine Karten mehr im Swipe-Deck</h3>
+        <p>Auf „Entdecken“ findest du weiterhin alle Rezepte.</p>
+        <button class="btn" id="resetDislikes">Abgelehnte Rezepte neu laden</button>
+      </div>`;
   }
   return `${header('Menu-Swipe', `<button class="btn" id="openFilter">⏷ Filter</button>`)}
     <p class="small">${queue.length} Rezepte im Swipe-Deck</p>
@@ -191,7 +198,7 @@ function openRecipe(id) {
         <button class="btn" id="closeModal">← Zurück</button>
         <div class="row">
           <button class="btn recipe-like-btn ${isFavorite ? 'active' : ''}" id="likeRecipe" aria-label="Rezept liken">♥</button>
-          <button class="btn" id="dislikeRecipe">✕</button>
+          <button class="btn recipe-dislike-btn" id="dislikeRecipe" aria-label="Rezept ablehnen">✕</button>
         </div>
       </div>
       <div class="recipe-hero">
@@ -268,9 +275,10 @@ function openRecipe(id) {
     };
     document.getElementById('dislikeRecipe').onclick = async () => {
       await api.post(`/api/recipes/${r.id}/dislike`);
+      state.dislikedRecipeIds.add(r.id);
       state.swipedRecipeIds.add(r.id);
-      await reloadData(false);
-      draw();
+      closeModal();
+      await reloadData();
     };
     document.getElementById('addToList').onclick = () => openAddToList(r.ingredients);
   };
@@ -289,6 +297,10 @@ async function handleSwipeAction(action) {
   }
 
   if (action === 'like') await api.post(`/api/recipes/${recipe.id}/like`);
+  if (action === 'skip') {
+    await api.post(`/api/recipes/${recipe.id}/dislike`);
+    state.dislikedRecipeIds.add(recipe.id);
+  }
   state.swipedRecipeIds.add(recipe.id);
   state.swipeBusy = false;
   await reloadData();
@@ -300,6 +312,7 @@ function bindSwipeGestures() {
   let startX = 0;
   let currentX = 0;
   let dragging = false;
+  let moved = false;
 
   const setPos = (dx) => {
     const rotation = dx / 18;
@@ -314,6 +327,7 @@ function bindSwipeGestures() {
 
   card.onpointerdown = (e) => {
     dragging = true;
+    moved = false;
     startX = e.clientX;
     card.setPointerCapture(e.pointerId);
     card.style.transition = 'none';
@@ -322,6 +336,7 @@ function bindSwipeGestures() {
   card.onpointermove = (e) => {
     if (!dragging || state.swipeBusy) return;
     currentX = e.clientX - startX;
+    if (Math.abs(currentX) > 12) moved = true;
     setPos(currentX);
   };
 
@@ -338,8 +353,13 @@ function bindSwipeGestures() {
       const nope = card.querySelector('.swipe-badge-nope');
       if (like) like.style.opacity = '0';
       if (nope) nope.style.opacity = '0';
+      if (!moved) {
+        const recipe = currentSwipeRecipe();
+        if (recipe) openRecipe(recipe.id);
+      }
     }
     currentX = 0;
+    moved = false;
   };
 }
 
@@ -507,13 +527,17 @@ function bind() {
   document.querySelectorAll('.nav-btn').forEach((btn) => btn.onclick = async () => { state.tab = btn.dataset.tab; await reloadData(false); });
   const heroJump = document.querySelector('[data-tab-jump="swipe"]');
   if (heroJump) heroJump.onclick = async () => { state.tab = 'swipe'; await reloadData(false); };
-  document.querySelectorAll('[data-recipe]').forEach((el) => el.onclick = () => openRecipe(el.dataset.recipe));
+  document.querySelectorAll('[data-recipe]').forEach((el) => {
+    if (el.id === 'swipeCard') return;
+    el.onclick = () => openRecipe(el.dataset.recipe);
+  });
   const si = document.getElementById('searchInput');
   if (si) si.oninput = async (e) => { state.search = e.target.value; await reloadData(false); };
   const openFilterBtn = document.getElementById('openFilter'); if (openFilterBtn) openFilterBtn.onclick = openFilter;
   const sl = document.getElementById('swipeLike'); if (sl) sl.onclick = async () => handleSwipeAction('like');
   const sd = document.getElementById('swipeDislike'); if (sd) sd.onclick = async () => handleSwipeAction('skip');
   const sii = document.getElementById('swipeInfo'); if (sii) sii.onclick = () => currentSwipeRecipe() && openRecipe(currentSwipeRecipe().id);
+  const rd = document.getElementById('resetDislikes'); if (rd) rd.onclick = async () => { await api.post('/api/dislikes/reset'); state.swipedRecipeIds.clear(); state.dislikedRecipeIds.clear(); await reloadData(); };
   const ts = document.getElementById('toSwipe'); if (ts) ts.onclick = async () => { state.tab = 'swipe'; await reloadData(false); };
   document.querySelectorAll('[data-list]').forEach((el) => el.onclick = () => openListEditor(el.dataset.list));
   const nl = document.getElementById('newList'); if (nl) nl.onclick = openNewList;
@@ -530,7 +554,9 @@ async function reloadData(withRender = true) {
   try {
     const q = new URLSearchParams({ search: state.search, ...Object.fromEntries(Object.entries(state.filters).map(([k, v]) => [k, String(v)])) });
     state.recipes = await api.get(`/api/recipes?${q}`);
+    state.swipeRecipes = await api.get(`/api/swipe-recipes?${q}`);
     state.favorites = await api.get('/api/favorites');
+    state.dislikedRecipeIds = new Set(await api.get('/api/dislikes'));
     state.lists = await api.get('/api/lists');
     state.settings = await api.get('/api/settings');
     if (withRender) render(); else render();
