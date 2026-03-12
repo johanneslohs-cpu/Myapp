@@ -62,7 +62,7 @@ function renderDiscover() {
     <input class="search" placeholder="Rezept suchen" value="${state.search}" id="searchInput" />
     <div class="hero" data-tab-jump="swipe">
       <div class="hero-image"><h2 class="hero-title">Swipe dich zu deinem nächsten Lieblingsgericht</h2></div>
-      <div class="hero-sub">Wie Tinder für Rezepte – aber mit seriösen Infos zu Zutaten, Kalorien und Zubereitung.</div>
+      <div class="hero-sub">Entdecke täglich leckere und nährstoffreiche neue Rezepte</div>
     </div>
     <h2 class="section-title">Für dich ausgewählt</h2>
     <div class="grid">${state.recipes.map(recipeCard).join('')}</div>`;
@@ -118,7 +118,7 @@ function renderFavorites() {
 function renderLists() {
   return `${header('Einkaufsliste')}
     <div class="list-overview">
-      <button class="btn" id="newList">＋ Neue Liste erstellen</button>
+      <button class="btn new-list-button" id="newList">＋ Neue Liste erstellen</button>
     </div>
     ${state.lists.map((l) => `<div class="list-card" data-list="${l.id}">
       <div class="list-color" style="background:${l.color}"></div>
@@ -165,12 +165,13 @@ function openRecipe(id) {
   if (!r) return;
   state.selectedRecipe = r;
   let portions = 2;
+  let pickedIngredients = new Set();
   const draw = () => {
     modal(`<div class="recipe-detail">
       <div class="recipe-detail-top">
         <button class="btn" id="closeModal">← Zurück</button>
         <div class="row">
-          <button class="btn" id="likeRecipe">♥</button>
+          <button class="btn recipe-like-btn" id="likeRecipe" aria-label="Rezept liken">♥</button>
           <button class="btn" id="dislikeRecipe">✕</button>
         </div>
       </div>
@@ -202,7 +203,10 @@ function openRecipe(id) {
 
       <h2 class="recipe-section-title">Zutaten</h2>
       <div class="recipe-ingredients">
-        ${(r.ingredients || []).map((i) => `<div class="ingredient ingredient-card"><span class="ingredient-text">${i}</span><button class="ingredient-pick" title="Als gekauft markieren">○</button></div>`).join('')}
+        ${(r.ingredients || []).map((i, index) => {
+          const picked = pickedIngredients.has(index);
+          return `<div class="ingredient ingredient-card ${picked ? 'picked' : ''}"><span class="ingredient-text">${i}</span><button class="ingredient-pick ${picked ? 'picked' : ''}" data-ingredient-pick="${index}" title="Als gekauft markieren">${picked ? '✓' : '○'}</button></div>`;
+        }).join('')}
       </div>
 
       <div class="tip-banner">Zutaten dabei, die du nicht magst? Über "Das esse ich nicht" im Profil kannst du sie ausblenden.</div>
@@ -228,6 +232,14 @@ function openRecipe(id) {
     document.getElementById('jumpIngredients').onclick = () => document.getElementById('ingredients').scrollIntoView({ behavior: 'smooth' });
     document.getElementById('jumpSteps').onclick = () => document.getElementById('steps').scrollIntoView({ behavior: 'smooth' });
     document.getElementById('jumpNutrition').onclick = () => document.getElementById('nutrition').scrollIntoView({ behavior: 'smooth' });
+    document.querySelectorAll('[data-ingredient-pick]').forEach((button) => {
+      button.onclick = () => {
+        const index = Number(button.dataset.ingredientPick);
+        if (pickedIngredients.has(index)) pickedIngredients.delete(index);
+        else pickedIngredients.add(index);
+        draw();
+      };
+    });
     document.getElementById('likeRecipe').onclick = async () => { await api.post(`/api/recipes/${r.id}/like`); state.swipedRecipeIds.add(r.id); await reloadData(); closeModal(); };
     document.getElementById('dislikeRecipe').onclick = async () => { await api.post(`/api/recipes/${r.id}/dislike`); state.swipedRecipeIds.add(r.id); await reloadData(); closeModal(); };
     document.getElementById('addToList').onclick = () => openAddToList(r.ingredients);
@@ -315,8 +327,8 @@ function openFilter() {
   modal(`<div class="filter-modal">
       <div class="header"><button class="btn" id="closeModal">✕</button><h2>Filter</h2></div>
       <div class="filter-section"><h3>Kategorie</h3><div class="filter-options tags" id="catRow">${['Hauptgericht', 'Frühstück', 'Dinner', 'Nachtisch'].map((c) => `<button class="btn ${f.category === c ? 'active' : ''}" data-category="${c}">${c}</button>`).join('')}</div></div>
-      <div class="filter-section"><h3>Kalorien</h3><div class="filter-options tags"><button class="btn ${f.maxCalories === 300 ? 'active' : ''}" data-cal="300">unter 300</button><button class="btn ${f.maxCalories === 400 ? 'active' : ''}" data-cal="400">unter 400</button><button class="btn ${f.maxCalories === 500 ? 'active' : ''}" data-cal="500">unter 500</button></div></div>
-      <div class="filter-section"><h3>Eiweiß</h3><div class="filter-options tags"><button class="btn ${f.minProtein === 30 ? 'active' : ''}" data-pro="30">über 30</button><button class="btn ${f.minProtein === 50 ? 'active' : ''}" data-pro="50">über 50</button></div></div>
+      <div class="filter-section"><h3>Kalorien</h3><div class="filter-options tags"><button class="btn ${f.maxCalories === 300 ? 'active' : ''}" data-cal="300">unter 300</button><button class="btn ${f.maxCalories === 400 ? 'active' : ''}" data-cal="400">unter 400</button><button class="btn ${f.maxCalories === 500 ? 'active' : ''}" data-cal="500">unter 500</button><button class="btn ${f.maxCalories === 700 ? 'active' : ''}" data-cal="700">unter 700</button></div></div>
+      <div class="filter-section"><h3>Eiweiß</h3><div class="filter-options tags"><button class="btn ${f.minProtein === 30 ? 'active' : ''}" data-pro="30">über 30</button><button class="btn ${f.minProtein === 50 ? 'active' : ''}" data-pro="50">über 50</button><button class="btn ${f.minProtein === 70 ? 'active' : ''}" data-pro="70">über 70</button></div></div>
       <div class="filter-section"><h3>Dauer</h3><div class="filter-options tags"><button class="btn ${f.maxDuration === 15 ? 'active' : ''}" data-dur="15">&lt;15 Min</button><button class="btn ${f.maxDuration === 30 ? 'active' : ''}" data-dur="30">&lt;30 Min</button><button class="btn ${f.maxDuration === 60 ? 'active' : ''}" data-dur="60">&lt;1 Std</button></div></div>
       <div class="filter-actions">
         <button class="btn" id="resetFilter">Filter zurücksetzen</button>

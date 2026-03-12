@@ -161,7 +161,7 @@ textarea{min-height:100px}
   gap:12px;
 }
 
-.list-overview #newList{font-size:18px;padding:12px 18px}
+.new-list-button{width:100%;font-size:20px;padding:16px 20px;font-weight:700;display:block}
 
 .favorite-add-card{display:flex;flex-direction:column;justify-content:flex-start}
 .add-favorite-media{display:flex;align-items:center;justify-content:center}
@@ -187,6 +187,8 @@ textarea{min-height:100px}
 
 .recipe-detail{display:flex;flex-direction:column;gap:14px}
 .recipe-detail-top{display:flex;justify-content:space-between;align-items:center}
+.recipe-like-btn{font-size:30px;line-height:1;padding:8px 14px;color:var(--primary)}
+
 
 .recipe-hero{
   border:1px solid var(--line);
@@ -194,13 +196,14 @@ textarea{min-height:100px}
   border-radius:20px;
   padding:16px;
   display:flex;
-  gap:14px;
-  align-items:center;
+  gap:16px;
+  align-items:stretch;
 }
 
 .recipe-hero-media{
-  width:112px;height:112px;border-radius:18px;overflow:hidden;
-  border:1px solid var(--line);background:rgba(10,18,14,.35)
+  width:148px;height:148px;border-radius:18px;overflow:hidden;
+  border:1px solid var(--line);background:rgba(10,18,14,.35);
+  flex-shrink:0;
 }
 .detail-photo{width:100%;height:100%;object-fit:cover;display:block}
 
@@ -218,7 +221,9 @@ textarea{min-height:100px}
 .ingredient-card{border:1px solid var(--line);border-radius:14px;background:#152019;padding:12px 14px;display:flex;gap:10px;align-items:center;justify-content:space-between}
 .ingredient-card:last-child{border-bottom:1px solid var(--line)}
 .ingredient-text{line-height:1.4;flex:1}
-.ingredient-pick{border:1px solid var(--line);background:#1e2b23;color:#dce8dd;border-radius:999px;width:34px;height:34px;cursor:pointer}
+.ingredient-pick{border:1px solid var(--line);background:#1e2b23;color:#dce8dd;border-radius:999px;width:34px;height:34px;cursor:pointer;font-size:18px;line-height:1}
+.ingredient-pick.picked{background:rgba(87,216,144,.2);border-color:rgba(87,216,144,.7);color:var(--primary);font-weight:700}
+.ingredient-card.picked{border-color:rgba(87,216,144,.5)}
 
 .tip-banner{border:1px solid rgba(126,214,223,.28);background:linear-gradient(130deg,rgba(126,214,223,.2),rgba(87,216,144,.18));padding:14px;border-radius:16px;color:#e6f5ee;line-height:1.4}
 
