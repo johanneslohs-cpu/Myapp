@@ -27,10 +27,10 @@ const currentSwipeRecipe = () => getSwipeQueue()[0];
 
 function nav() {
   const tabs = [
-    ['discover', '🔎', 'Entdecken'],
-    ['swipe', '👆', 'Menu-Swipe'],
-    ['favorites', '⭐', 'Favoriten'],
-    ['lists', '🧺', 'Einkaufsliste'],
+    ['discover', '🌿', 'Entdecken'],
+    ['swipe', '🔥', 'Swipe'],
+    ['favorites', '💚', 'Favoriten'],
+    ['lists', '🛒', 'Listen'],
     ['profile', '👤', 'Profil']
   ];
   return `<div class="bottom-nav">${tabs.map(([id, icon, title]) => `<div class="nav-btn ${state.tab === id ? 'active' : ''}" data-tab="${id}">${icon}<br>${title}</div>`).join('')}</div>`;
@@ -39,15 +39,26 @@ function nav() {
 function header(title, right = '') { return `<div class="header"><h1>${title}</h1><div>${right}</div></div>`; }
 
 function renderDiscover() {
-  return `${header('Entdecken', `<button class="btn" id="openFilter">⏷ Filter</button>`)}
+  return `${header('Heute kochen', `<button class="btn" id="openFilter">⏷ Filter</button>`)}
     <input class="search" placeholder="Rezept suchen" value="${state.search}" id="searchInput" />
+    <div class="chip-row">
+      <div class="chip">🌱 Vegetarisch</div>
+      <div class="chip">⏱ Unter 20 Min</div>
+      <div class="chip">🔥 High Protein</div>
+      <div class="chip">🥗 Fresh Spring</div>
+    </div>
+    <div class="hero" data-tab-jump="swipe">
+      <div class="hero-image"><h2 class="hero-title">Swipe dich zu deinem nächsten Lieblingsgericht</h2></div>
+      <div class="hero-sub">Wie Tinder für Rezepte – aber mit seriösen Infos zu Zutaten, Kalorien und Zubereitung.</div>
+    </div>
+    <h2 class="section-title">Für dich ausgewählt</h2>
     <div class="grid">${state.recipes.map(recipeCard).join('')}</div>`;
 }
 
 function recipeCard(r) {
   return `<div class="card" data-recipe="${r.id}">
     <div class="recipe-img">${r.image}</div>
-    <div>${r.name}</div>
+    <div class="card-title">${r.name}</div>
     <div class="small">${r.duration} Min · ${r.ingredients_count} Zutaten</div>
   </div>`;
 }
@@ -64,9 +75,10 @@ function renderSwipe() {
       <div class="big-card" data-recipe="${r.id}" id="swipeCard">
         <div class="swipe-badge swipe-badge-like">LIKE</div>
         <div class="swipe-badge swipe-badge-nope">NOPE</div>
-        <div class="recipe-img" style="font-size:160px">${r.image}</div>
+        <div class="big-media"><div style="font-size:136px">${r.image}</div></div>
         <h2>${r.name}</h2>
-        <p class="small">⏱ ${r.duration} Min · 🧾 ${r.ingredients_count} Zutaten · 🍽 ${r.cuisine}</p>
+        <p class="big-meta">⏱ ${r.duration} Min · 🧾 ${r.ingredients_count} Zutaten · 🍽 ${r.cuisine}</p>
+        <p class="big-copy">Ausgewogen, schnell und alltagstauglich – mit klaren Nährwerten und Schritt-für-Schritt-Anleitung für ein professionelles Kocherlebnis.</p>
       </div>
     </div>
     <div class="actions">
@@ -77,7 +89,7 @@ function renderSwipe() {
 }
 
 function renderFavorites() {
-  return `${header('Favoriten', `<button class="btn" id="openFilter">⏷ Filter</button>`)}
+  return `${header('Deine Favoriten', `<button class="btn" id="openFilter">⏷ Filter</button>`)}
     <input class="search" placeholder="Rezept suchen" value="${state.search}" id="searchInput" />
     <div class="grid">${state.favorites.map(recipeCard).join('')}
       <div class="card" id="toSwipe"><div class="recipe-img">➕</div><div>Weitere Favoriten hinzufügen</div></div>
@@ -86,14 +98,25 @@ function renderFavorites() {
 
 function renderLists() {
   return `${header('Einkaufsliste')}
-    ${state.lists.map((l) => `<div class="list-item" data-list="${l.id}" style="border-left:8px solid ${l.color}"><div><div class="small">${new Date(l.updated_at).toLocaleDateString('de-DE')} aktualisiert</div><h3>${l.name}</h3></div><button class="btn">✎</button></div>`).join('')}
-    <div class="list-item" id="newList"><h3>Neue Liste erstellen</h3><div style="font-size:40px">＋</div></div>`;
+    <div class="list-overview">
+      <div class="list-overview-copy">Plane Mahlzeiten und hake Zutaten sauber Schritt für Schritt ab.</div>
+      <button class="btn" id="newList">＋ Neue Liste</button>
+    </div>
+    ${state.lists.map((l) => `<div class="list-card" data-list="${l.id}">
+      <div class="list-color" style="background:${l.color}"></div>
+      <div class="list-main">
+        <div class="small">${new Date(l.updated_at).toLocaleDateString('de-DE')} aktualisiert</div>
+        <h3>${l.name}</h3>
+      </div>
+      <button class="btn">Öffnen</button>
+    </div>`).join('')}
+    ${!state.lists.length ? '<div class="empty-state"><h3>Noch keine Einkaufslisten</h3><p>Lege deine erste Liste an und sammle Zutaten aus Rezepten.</p></div>' : ''}`;
 }
 
 function renderProfile() {
   const s = state.settings;
   return `${header('Profil', `<button class="btn" id="openSettings">⚙</button>`)}
-  <div class="profile"><div class="avatar" id="changeAvatar">${s.profile_image}</div><h2>${s.username}</h2></div>
+  <div class="profile"><div class="avatar" id="changeAvatar">${s.profile_image}</div><h2>${s.username}</h2><p class="small">Smart Meal Matching · Green Edition</p></div>
   <div class="stats"><div class="card"><h2>${state.favorites.length} ♥</h2><div>Favoriten</div></div><div class="card"><h2>${state.lists.length} 🛒</h2><div>Einkaufslisten</div></div></div>
   <div class="stats"><div class="card" id="openExcluded">Das esse ich nicht</div><div class="card" id="openDiet">${s.diet}</div></div>
   <div class="list-item" id="openFeedback">❓ Hilfe und Feedback</div>
@@ -125,28 +148,62 @@ function openRecipe(id) {
   state.selectedRecipe = r;
   let portions = 2;
   const draw = () => {
-    modal(`<button class="btn" id="closeModal">← Zurück</button>
-    <div class="recipe-img" style="font-size:180px">${r.image}</div>
-    <h1>${r.name}</h1>
-    <p>${r.duration} Min · ${r.cuisine}</p>
-    <div class="actions">
-      <button class="btn" id="likeRecipe">♥ Mag ich</button>
-      <button class="btn" id="dislikeRecipe">✕ Mag ich nicht</button>
-      <button class="btn" id="jumpSteps">Schritte</button>
-      <button class="btn" id="jumpNutrition">Nährwerte</button>
-    </div>
-    <h2>Portionen</h2><div class="row"><button class="btn" id="minusPortion">-</button><h2>${portions}</h2><button class="btn" id="plusPortion">+</button></div>
-    <h2>Zutaten</h2>
-    ${(r.ingredients || []).map((i) => `<div class="ingredient"><span>${i}</span></div>`).join('')}
-    <button class="btn" id="addToList">Zur Einkaufsliste hinzufügen</button>
-    <h2 id="nutrition">Nährwerte pro Portion</h2>
-    <p>${r.nutrition.kcal} kcal · KH ${r.nutrition.carbs}g · Eiweiß ${r.nutrition.protein}g · Fett ${r.nutrition.fat}g</p>
-    <h2 id="steps">Schritte</h2>
-    ${r.steps.map((s, i) => `<p><b>Schritt ${i + 1}</b><br>${s}</p>`).join('')}`);
+    modal(`<div class="recipe-detail">
+      <div class="recipe-detail-top">
+        <button class="btn" id="closeModal">← Zurück</button>
+        <div class="row">
+          <button class="btn" id="likeRecipe">♥</button>
+          <button class="btn" id="dislikeRecipe">✕</button>
+        </div>
+      </div>
+      <div class="recipe-hero">
+        <div class="recipe-hero-emoji">${r.image}</div>
+        <div>
+          <h1>${r.name}</h1>
+          <p class="small">${r.duration} Min · ${r.cuisine} · ${r.ingredients_count} Zutaten</p>
+        </div>
+      </div>
+
+      <div class="recipe-tabs">
+        <button class="btn" id="jumpIngredients">Zutaten</button>
+        <button class="btn" id="jumpNutrition">Nährwerte</button>
+        <button class="btn" id="jumpSteps">Zubereitung</button>
+      </div>
+
+      <div class="portion-panel" id="ingredients">
+        <div><span class="small">Portionen</span><h2>${portions}</h2></div>
+        <div class="row">
+          <button class="btn" id="minusPortion">−</button>
+          <button class="btn" id="plusPortion">＋</button>
+        </div>
+      </div>
+
+      <h2 class="recipe-section-title">Zutaten</h2>
+      <div class="recipe-ingredients">
+        ${(r.ingredients || []).map((i) => `<div class="ingredient ingredient-card"><span>${i}</span></div>`).join('')}
+      </div>
+
+      <div class="tip-banner">Zutaten dabei, die du nicht magst? Über "Das esse ich nicht" im Profil kannst du sie ausblenden.</div>
+      <button class="btn" id="addToList">Zur Einkaufsliste hinzufügen</button>
+
+      <h2 class="recipe-section-title" id="nutrition">Nährwerte pro Portion</h2>
+      <div class="nutrition-grid">
+        <div class="nutrition-item"><span>Kalorien</span><strong>${r.nutrition.kcal} kcal</strong></div>
+        <div class="nutrition-item"><span>Kohlenhydrate</span><strong>${r.nutrition.carbs} g</strong></div>
+        <div class="nutrition-item"><span>Eiweiß</span><strong>${r.nutrition.protein} g</strong></div>
+        <div class="nutrition-item"><span>Fett</span><strong>${r.nutrition.fat} g</strong></div>
+      </div>
+
+      <h2 class="recipe-section-title" id="steps">Zubereitung</h2>
+      <div class="steps-list">
+        ${r.steps.map((s, i) => `<div class="step-card"><h3>Schritt ${i + 1}</h3><p>${s}</p></div>`).join('')}
+      </div>
+    </div>`);
 
     document.getElementById('closeModal').onclick = closeModal;
     document.getElementById('plusPortion').onclick = () => { portions += 1; draw(); };
     document.getElementById('minusPortion').onclick = () => { portions = Math.max(1, portions - 1); draw(); };
+    document.getElementById('jumpIngredients').onclick = () => document.getElementById('ingredients').scrollIntoView({ behavior: 'smooth' });
     document.getElementById('jumpSteps').onclick = () => document.getElementById('steps').scrollIntoView({ behavior: 'smooth' });
     document.getElementById('jumpNutrition').onclick = () => document.getElementById('nutrition').scrollIntoView({ behavior: 'smooth' });
     document.getElementById('likeRecipe').onclick = async () => { await api.post(`/api/recipes/${r.id}/like`); state.swipedRecipeIds.add(r.id); await reloadData(); closeModal(); };
@@ -241,12 +298,28 @@ function openFilter() {
 async function openListEditor(id) {
   const list = await api.get(`/api/lists/${id}`);
   const draw = () => {
-    modal(`<button class="btn" id="closeModal">← Zurück</button><h2>${list.name}</h2><h3>Zutaten</h3>
-    ${list.items.map((item, i) => `<div class="ingredient"><label><input type="checkbox" data-check="${i}" ${item.checked ? 'checked' : ''}> ${item.name}</label><button class="btn" data-remove="${i}">✕</button></div>`).join('')}
-    <button class="btn" id="addItem">＋ Zutat hinzufügen</button>
-    <div style="height:20px"></div>
-    <button class="btn" id="saveList">Einkaufsliste speichern</button>
-    <button class="btn" id="deleteList">Einkaufsliste löschen</button>`);
+    modal(`<div class="list-editor">
+      <div class="header">
+        <button class="btn" id="closeModal">← Zurück</button>
+        <button class="btn" id="saveList">Speichern</button>
+      </div>
+      <h2>${list.name}</h2>
+      <p class="small">Tippe auf Kreise zum Abhaken, lösche einzelne Zutaten oder ergänze neue.</p>
+      <div class="shopping-items">
+        ${list.items.map((item, i) => `<div class="shopping-row">
+          <label class="shopping-check">
+            <input type="checkbox" data-check="${i}" ${item.checked ? 'checked' : ''}>
+            <span class="shopping-dot"></span>
+          </label>
+          <span class="shopping-name">${item.name}</span>
+          <button class="btn" data-remove="${i}">✕</button>
+        </div>`).join('')}
+      </div>
+      <div class="row">
+        <button class="btn" id="addItem">＋ Zutat hinzufügen</button>
+        <button class="btn" id="deleteList">Liste löschen</button>
+      </div>
+    </div>`);
     document.getElementById('closeModal').onclick = closeModal;
     document.querySelectorAll('[data-check]').forEach((c) => c.onchange = () => { list.items[c.dataset.check].checked = c.checked; });
     document.querySelectorAll('[data-remove]').forEach((b) => b.onclick = () => { list.items.splice(Number(b.dataset.remove), 1); draw(); });
@@ -259,11 +332,11 @@ async function openListEditor(id) {
 
 function openNewList() {
   modal(`<div class="header"><button class="btn" id="closeModal">✕</button><button class="btn" id="saveNewList">Speichern</button></div>
-    <h1>Neue Einkaufsliste erstellen</h1><label>Bezeichnung</label><input id="listName" />
-    <label>Farbe</label><div class="row">${['#7ed6df', '#f06262', '#81de91', '#cde94f', '#cd59d8'].map((c) => `<button class="circle" style="background:${c};width:46px;height:46px" data-color="${c}"></button>`).join('')}</div>`);
+    <h1>Neue Einkaufsliste erstellen</h1><label>Bezeichnung</label><input id="listName" placeholder="z.B. Wochenmarkt Samstag" />
+    <label>Farbcode</label><div class="row color-row">${['#7ed6df', '#f06262', '#81de91', '#cde94f', '#cd59d8'].map((c) => `<button class="color-pick" style="background:${c}" data-color="${c}"></button>`).join('')}</div>`);
   let chosen = '#7ed6df';
   document.getElementById('closeModal').onclick = closeModal;
-  document.querySelectorAll('[data-color]').forEach((b) => b.onclick = () => { chosen = b.dataset.color; });
+  document.querySelectorAll('[data-color]').forEach((b) => b.onclick = () => { chosen = b.dataset.color; document.querySelectorAll('[data-color]').forEach((x)=>x.classList.remove('active')); b.classList.add('active'); });
   document.getElementById('saveNewList').onclick = async () => {
     const name = document.getElementById('listName').value.trim();
     if (!name) return;
@@ -348,6 +421,8 @@ async function openAddToList(ingredients) {
 
 function bind() {
   document.querySelectorAll('.nav-btn').forEach((btn) => btn.onclick = async () => { state.tab = btn.dataset.tab; await reloadData(false); });
+  const heroJump = document.querySelector('[data-tab-jump="swipe"]');
+  if (heroJump) heroJump.onclick = async () => { state.tab = 'swipe'; await reloadData(false); };
   document.querySelectorAll('[data-recipe]').forEach((el) => el.onclick = () => openRecipe(el.dataset.recipe));
   const si = document.getElementById('searchInput');
   if (si) si.oninput = async (e) => { state.search = e.target.value; await reloadData(false); };
