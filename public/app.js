@@ -268,6 +268,8 @@ function openRecipe(id) {
     });
     document.getElementById('likeRecipe').onclick = async () => {
       const currentlyFavorite = state.favorites.some((recipe) => recipe.id === r.id);
+      if (currentlyFavorite) await api.delete(`/api/favorites/${r.id}`);
+      else await api.post(`/api/recipes/${r.id}/like`);
       if (currentlyFavorite) {
         await api.delete(`/api/favorites/${r.id}`);
         state.favorites = state.favorites.filter((recipe) => recipe.id !== r.id);
@@ -276,7 +278,7 @@ function openRecipe(id) {
         if (!state.favorites.some((recipe) => recipe.id === r.id)) state.favorites = [...state.favorites, r];
       }
       state.swipedRecipeIds.add(r.id);
-      await reloadData(false);
+      state.favorites = await api.get('/api/favorites');
       draw();
     };
     document.getElementById('dislikeRecipe').onclick = async () => {
