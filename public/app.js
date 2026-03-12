@@ -75,7 +75,7 @@ function renderSwipe() {
       <div class="big-card" data-recipe="${r.id}" id="swipeCard">
         <div class="swipe-badge swipe-badge-like">LIKE</div>
         <div class="swipe-badge swipe-badge-nope">NOPE</div>
-        <div class="big-media"><div style="font-size:136px">${r.image}</div><div class="chip">Match 92%</div></div>
+        <div class="big-media"><div style="font-size:136px">${r.image}</div></div>
         <h2>${r.name}</h2>
         <p class="big-meta">⏱ ${r.duration} Min · 🧾 ${r.ingredients_count} Zutaten · 🍽 ${r.cuisine}</p>
         <p class="big-copy">Ausgewogen, schnell und alltagstauglich – mit klaren Nährwerten und Schritt-für-Schritt-Anleitung für ein professionelles Kocherlebnis.</p>
@@ -107,6 +107,7 @@ function renderLists() {
       <div class="list-main">
         <div class="small">${new Date(l.updated_at).toLocaleDateString('de-DE')} aktualisiert</div>
         <h3>${l.name}</h3>
+        <div class="list-count">${l.items.length} Zutaten · ${l.items.filter((item) => item.checked).length} erledigt</div>
       </div>
       <button class="btn">Öffnen</button>
     </div>`).join('')}
@@ -158,9 +159,13 @@ function openRecipe(id) {
       </div>
       <div class="recipe-hero">
         <div class="recipe-hero-emoji">${r.image}</div>
-        <div>
+        <div class="recipe-hero-content">
           <h1>${r.name}</h1>
-          <p class="small">${r.duration} Min · ${r.cuisine} · ${r.ingredients_count} Zutaten</p>
+          <p class="small">${r.duration} Min · ${r.cuisine}</p>
+          <div class="recipe-meta-tags">
+            <span>${r.ingredients_count} Zutaten</span>
+            <span>${r.nutrition.kcal} kcal</span>
+          </div>
         </div>
       </div>
 
@@ -180,7 +185,7 @@ function openRecipe(id) {
 
       <h2 class="recipe-section-title">Zutaten</h2>
       <div class="recipe-ingredients">
-        ${(r.ingredients || []).map((i) => `<div class="ingredient ingredient-card"><span>${i}</span></div>`).join('')}
+        ${(r.ingredients || []).map((i) => `<div class="ingredient ingredient-card"><span class="ingredient-text">${i}</span><button class="ingredient-pick" title="Als gekauft markieren">○</button></div>`).join('')}
       </div>
 
       <div class="tip-banner">Zutaten dabei, die du nicht magst? Über "Das esse ich nicht" im Profil kannst du sie ausblenden.</div>
@@ -188,7 +193,7 @@ function openRecipe(id) {
 
       <h2 class="recipe-section-title" id="nutrition">Nährwerte pro Portion</h2>
       <div class="nutrition-grid">
-        <div class="nutrition-item"><span>Kalorien</span><strong>${r.nutrition.kcal} kcal</strong></div>
+        <div class="nutrition-item highlight"><span>Kalorien</span><strong>${r.nutrition.kcal} kcal</strong></div>
         <div class="nutrition-item"><span>Kohlenhydrate</span><strong>${r.nutrition.carbs} g</strong></div>
         <div class="nutrition-item"><span>Eiweiß</span><strong>${r.nutrition.protein} g</strong></div>
         <div class="nutrition-item"><span>Fett</span><strong>${r.nutrition.fat} g</strong></div>
@@ -196,7 +201,7 @@ function openRecipe(id) {
 
       <h2 class="recipe-section-title" id="steps">Zubereitung</h2>
       <div class="steps-list">
-        ${r.steps.map((s, i) => `<div class="step-card"><h3>Schritt ${i + 1}</h3><p>${s}</p></div>`).join('')}
+        ${r.steps.map((s, i) => `<div class="step-card"><div class="step-index">${String(i + 1).padStart(2, '0')}</div><div><h3>Schritt ${i + 1}</h3><p>${s}</p></div></div>`).join('')}
       </div>
     </div>`);
 
@@ -298,20 +303,21 @@ function openFilter() {
 async function openListEditor(id) {
   const list = await api.get(`/api/lists/${id}`);
   const draw = () => {
+    const doneCount = list.items.filter((item) => item.checked).length;
     modal(`<div class="list-editor">
       <div class="header">
         <button class="btn" id="closeModal">← Zurück</button>
         <button class="btn" id="saveList">Speichern</button>
       </div>
       <h2>${list.name}</h2>
-      <p class="small">Tippe auf Kreise zum Abhaken, lösche einzelne Zutaten oder ergänze neue.</p>
+      <p class="small">${doneCount} von ${list.items.length} Zutaten abgehakt · Tippe auf Kreise zum Abhaken.</p>
       <div class="shopping-items">
         ${list.items.map((item, i) => `<div class="shopping-row">
           <label class="shopping-check">
             <input type="checkbox" data-check="${i}" ${item.checked ? 'checked' : ''}>
             <span class="shopping-dot"></span>
           </label>
-          <span class="shopping-name">${item.name}</span>
+          <span class="shopping-name ${item.checked ? 'done' : ''}">${item.name}</span>
           <button class="btn" data-remove="${i}">✕</button>
         </div>`).join('')}
       </div>
