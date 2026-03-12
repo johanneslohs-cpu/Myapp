@@ -27,10 +27,10 @@ const currentSwipeRecipe = () => getSwipeQueue()[0];
 
 function nav() {
   const tabs = [
-    ['discover', '🔎', 'Entdecken'],
-    ['swipe', '👆', 'Menu-Swipe'],
-    ['favorites', '⭐', 'Favoriten'],
-    ['lists', '🧺', 'Einkaufsliste'],
+    ['discover', '🌿', 'Entdecken'],
+    ['swipe', '🔥', 'Swipe'],
+    ['favorites', '💚', 'Favoriten'],
+    ['lists', '🛒', 'Listen'],
     ['profile', '👤', 'Profil']
   ];
   return `<div class="bottom-nav">${tabs.map(([id, icon, title]) => `<div class="nav-btn ${state.tab === id ? 'active' : ''}" data-tab="${id}">${icon}<br>${title}</div>`).join('')}</div>`;
@@ -39,15 +39,26 @@ function nav() {
 function header(title, right = '') { return `<div class="header"><h1>${title}</h1><div>${right}</div></div>`; }
 
 function renderDiscover() {
-  return `${header('Entdecken', `<button class="btn" id="openFilter">⏷ Filter</button>`)}
+  return `${header('Heute kochen', `<button class="btn" id="openFilter">⏷ Filter</button>`)}
     <input class="search" placeholder="Rezept suchen" value="${state.search}" id="searchInput" />
+    <div class="chip-row">
+      <div class="chip">🌱 Vegetarisch</div>
+      <div class="chip">⏱ Unter 20 Min</div>
+      <div class="chip">🔥 High Protein</div>
+      <div class="chip">🥗 Fresh Spring</div>
+    </div>
+    <div class="hero" data-tab-jump="swipe">
+      <div class="hero-image"><h2 class="hero-title">Swipe dich zu deinem nächsten Lieblingsgericht</h2></div>
+      <div class="hero-sub">Wie Tinder für Rezepte – aber mit seriösen Infos zu Zutaten, Kalorien und Zubereitung.</div>
+    </div>
+    <h2 class="section-title">Für dich ausgewählt</h2>
     <div class="grid">${state.recipes.map(recipeCard).join('')}</div>`;
 }
 
 function recipeCard(r) {
   return `<div class="card" data-recipe="${r.id}">
     <div class="recipe-img">${r.image}</div>
-    <div>${r.name}</div>
+    <div class="card-title">${r.name}</div>
     <div class="small">${r.duration} Min · ${r.ingredients_count} Zutaten</div>
   </div>`;
 }
@@ -64,9 +75,10 @@ function renderSwipe() {
       <div class="big-card" data-recipe="${r.id}" id="swipeCard">
         <div class="swipe-badge swipe-badge-like">LIKE</div>
         <div class="swipe-badge swipe-badge-nope">NOPE</div>
-        <div class="recipe-img" style="font-size:160px">${r.image}</div>
+        <div class="big-media"><div style="font-size:136px">${r.image}</div><div class="chip">Match 92%</div></div>
         <h2>${r.name}</h2>
-        <p class="small">⏱ ${r.duration} Min · 🧾 ${r.ingredients_count} Zutaten · 🍽 ${r.cuisine}</p>
+        <p class="big-meta">⏱ ${r.duration} Min · 🧾 ${r.ingredients_count} Zutaten · 🍽 ${r.cuisine}</p>
+        <p class="big-copy">Ausgewogen, schnell und alltagstauglich – mit klaren Nährwerten und Schritt-für-Schritt-Anleitung für ein professionelles Kocherlebnis.</p>
       </div>
     </div>
     <div class="actions">
@@ -77,7 +89,7 @@ function renderSwipe() {
 }
 
 function renderFavorites() {
-  return `${header('Favoriten', `<button class="btn" id="openFilter">⏷ Filter</button>`)}
+  return `${header('Deine Favoriten', `<button class="btn" id="openFilter">⏷ Filter</button>`)}
     <input class="search" placeholder="Rezept suchen" value="${state.search}" id="searchInput" />
     <div class="grid">${state.favorites.map(recipeCard).join('')}
       <div class="card" id="toSwipe"><div class="recipe-img">➕</div><div>Weitere Favoriten hinzufügen</div></div>
@@ -93,7 +105,7 @@ function renderLists() {
 function renderProfile() {
   const s = state.settings;
   return `${header('Profil', `<button class="btn" id="openSettings">⚙</button>`)}
-  <div class="profile"><div class="avatar" id="changeAvatar">${s.profile_image}</div><h2>${s.username}</h2></div>
+  <div class="profile"><div class="avatar" id="changeAvatar">${s.profile_image}</div><h2>${s.username}</h2><p class="small">Smart Meal Matching · Green Edition</p></div>
   <div class="stats"><div class="card"><h2>${state.favorites.length} ♥</h2><div>Favoriten</div></div><div class="card"><h2>${state.lists.length} 🛒</h2><div>Einkaufslisten</div></div></div>
   <div class="stats"><div class="card" id="openExcluded">Das esse ich nicht</div><div class="card" id="openDiet">${s.diet}</div></div>
   <div class="list-item" id="openFeedback">❓ Hilfe und Feedback</div>
@@ -348,6 +360,8 @@ async function openAddToList(ingredients) {
 
 function bind() {
   document.querySelectorAll('.nav-btn').forEach((btn) => btn.onclick = async () => { state.tab = btn.dataset.tab; await reloadData(false); });
+  const heroJump = document.querySelector('[data-tab-jump="swipe"]');
+  if (heroJump) heroJump.onclick = async () => { state.tab = 'swipe'; await reloadData(false); };
   document.querySelectorAll('[data-recipe]').forEach((el) => el.onclick = () => openRecipe(el.dataset.recipe));
   const si = document.getElementById('searchInput');
   if (si) si.oninput = async (e) => { state.search = e.target.value; await reloadData(false); };
