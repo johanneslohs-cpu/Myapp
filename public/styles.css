@@ -54,7 +54,7 @@ h1,h2,h3,p{margin:0}
 
 .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 
-.chip-row{display:flex;gap:10px;overflow:auto;padding-bottom:6px;margin-bottom:14px}
+.chip-row{display:flex;gap:10px;flex-wrap:wrap;padding-bottom:0;margin-bottom:14px}
 .chip{
   border:1px solid var(--line);
   background:linear-gradient(180deg,#26362c,#1f2a23);
@@ -148,6 +148,95 @@ input,textarea,select{border:1px solid var(--line);padding:10px;background:#111a
 textarea{min-height:100px}
 .empty-state{background:linear-gradient(180deg,#1c2b22,#18231c);border:1px solid var(--line);padding:22px;border-radius:20px;box-shadow:var(--glow)}
 .hidden{display:none}
+
+.list-overview{
+  border:1px solid var(--line);
+  background:linear-gradient(160deg,#24362c,#1d2c23);
+  border-radius:20px;
+  padding:16px;
+  margin-bottom:14px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+}
+
+.list-overview-copy{color:#d3e3d6;line-height:1.45}
+
+.list-card{
+  border:1px solid var(--line);
+  border-radius:20px;
+  background:linear-gradient(180deg,#1f2b23,#17211b);
+  display:grid;
+  grid-template-columns:8px 1fr auto;
+  gap:12px;
+  padding:14px;
+  margin-bottom:12px;
+  align-items:center;
+}
+
+.list-color{width:8px;height:100%;border-radius:999px}
+.list-main h3{font-size:20px;margin-top:2px}
+.list-count{font-size:13px;color:#bdd0c2;margin-top:6px}
+
+.recipe-detail{display:flex;flex-direction:column;gap:14px}
+.recipe-detail-top{display:flex;justify-content:space-between;align-items:center}
+
+.recipe-hero{
+  border:1px solid var(--line);
+  background:linear-gradient(140deg,#2c4336,#1b2a22);
+  border-radius:20px;
+  padding:16px;
+  display:flex;
+  gap:14px;
+  align-items:center;
+}
+
+.recipe-hero-emoji{
+  width:96px;height:96px;border-radius:20px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:62px;background:rgba(10,18,14,.35)
+}
+
+.recipe-hero-content h1{font-size:30px;line-height:1.1}
+.recipe-meta-tags{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.recipe-meta-tags span{font-size:12px;padding:6px 10px;border-radius:999px;background:#213129;border:1px solid var(--line);color:#dbe9dd}
+
+.recipe-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.recipe-tabs .btn{padding:10px 8px;text-align:center}
+
+.portion-panel{display:flex;justify-content:space-between;align-items:center;padding:14px;border-radius:18px;border:1px solid var(--line);background:#1a251e}
+
+.recipe-section-title{font-size:30px;line-height:1.1}
+.recipe-ingredients{display:flex;flex-direction:column;gap:8px}
+.ingredient-card{border:1px solid var(--line);border-radius:14px;background:#152019;padding:12px 14px;display:flex;gap:10px;align-items:center;justify-content:space-between}
+.ingredient-card:last-child{border-bottom:1px solid var(--line)}
+.ingredient-text{line-height:1.4;flex:1}
+.ingredient-pick{border:1px solid var(--line);background:#1e2b23;color:#dce8dd;border-radius:999px;width:34px;height:34px;cursor:pointer}
+
+.tip-banner{border:1px solid rgba(126,214,223,.28);background:linear-gradient(130deg,rgba(126,214,223,.2),rgba(87,216,144,.18));padding:14px;border-radius:16px;color:#e6f5ee;line-height:1.4}
+
+.nutrition-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.nutrition-item{border:1px solid var(--line);background:#16221b;border-radius:16px;padding:12px;display:flex;flex-direction:column;gap:6px}
+.nutrition-item span{color:#b8c9bc;font-size:13px}
+.nutrition-item strong{font-size:24px}
+.nutrition-item.highlight{background:linear-gradient(145deg,rgba(87,216,144,.2),rgba(217,255,110,.14));border-color:rgba(126,225,165,.45)}
+
+.steps-list{display:flex;flex-direction:column;gap:10px}
+.step-card{border:1px solid var(--line);border-radius:18px;padding:14px;background:#151f19;display:flex;gap:12px;align-items:flex-start}
+.step-card h3{font-size:24px;margin-bottom:8px}
+.step-card p{color:#d2dfd4;line-height:1.5}
+.step-index{min-width:42px;height:42px;border-radius:999px;background:#1f2f26;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-weight:700;color:#bcd0c1}
+
+.shopping-items{display:flex;flex-direction:column;gap:10px;margin:12px 0}
+.shopping-row{border:1px solid var(--line);border-radius:16px;padding:12px;background:#161f1a;display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center}
+.shopping-name{line-height:1.35}
+.shopping-name.done{text-decoration:line-through;color:#8ea194}
+.shopping-check{display:flex;align-items:center}
+.shopping-check input{display:none}
+.shopping-dot{width:24px;height:24px;border-radius:999px;border:2px solid #9eb3a4;display:inline-block;position:relative}
+.shopping-check input:checked + .shopping-dot{border-color:var(--primary);background:rgba(87,216,144,.15)}
+.shopping-check input:checked + .shopping-dot::after{content:'✓';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--primary);font-size:14px}
 
 @media (max-width:440px){
   .phone,.bottom-nav,.modal-content{width:100%}
