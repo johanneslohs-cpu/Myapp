@@ -80,7 +80,7 @@ function renderSwipe() {
   const queue = getSwipeQueue();
   const r = queue[0];
   if (!r) {
-    return `${header('Menu-Swipe')}<div class="empty-state"><h3>Keine Karten mehr im Swipe-Deck</h3><p>Auf „Entdecken“ findest du weiterhin alle Rezepte.</p></div>`;
+    return `${header('Menu-Swipe', `<button class="btn" id="openFilter">⏷ Filter</button>`)}<div class="empty-state"><h3>Keine Karten mehr im Swipe-Deck</h3><p>Auf „Entdecken“ findest du weiterhin alle Rezepte.</p></div>`;
   }
   return `${header('Menu-Swipe', `<button class="btn" id="openFilter">⏷ Filter</button>`)}
     <p class="small">${queue.length} Rezepte im Swipe-Deck</p>
@@ -107,10 +107,28 @@ function renderSwipe() {
     </div>`;
 }
 
+function recipeMatchesSearchAndFilter(recipe) {
+  const searchValue = state.search.trim().toLowerCase();
+  if (searchValue && !recipe.name.toLowerCase().includes(searchValue)) return false;
+
+  const f = state.filters;
+  if (f.category && recipe.category !== f.category) return false;
+  if (f.maxCalories && recipe.calories >= f.maxCalories) return false;
+  if (f.minProtein && recipe.protein <= f.minProtein) return false;
+  if (f.maxDuration && recipe.duration >= f.maxDuration) return false;
+
+  return true;
+}
+
+function filteredFavorites() {
+  return state.favorites.filter(recipeMatchesSearchAndFilter);
+}
+
 function renderFavorites() {
+  const favorites = filteredFavorites();
   return `${header('Deine Favoriten', `<button class="btn" id="openFilter">⏷ Filter</button>`)}
     <input class="search" placeholder="Rezept suchen" value="${state.search}" id="searchInput" />
-    <div class="grid">${state.favorites.map(recipeCard).join('')}
+    <div class="grid">${favorites.map(recipeCard).join('')}
       <div class="card favorite-add-card" id="toSwipe"><div class="recipe-img add-favorite-media"><span class="add-favorite-plus">＋</span></div><div>Weitere Favoriten hinzufügen</div></div>
     </div>`;
 }
@@ -167,11 +185,12 @@ function openRecipe(id) {
   let portions = 2;
   let pickedIngredients = new Set();
   const draw = () => {
+    const isFavorite = state.favorites.some((recipe) => recipe.id === r.id);
     modal(`<div class="recipe-detail">
       <div class="recipe-detail-top">
         <button class="btn" id="closeModal">← Zurück</button>
         <div class="row">
-          <button class="btn recipe-like-btn" id="likeRecipe" aria-label="Rezept liken">♥</button>
+          <button class="btn recipe-like-btn ${isFavorite ? 'active' : ''}" id="likeRecipe" aria-label="Rezept liken">♥</button>
           <button class="btn" id="dislikeRecipe">✕</button>
         </div>
       </div>
@@ -240,8 +259,19 @@ function openRecipe(id) {
         draw();
       };
     });
-    document.getElementById('likeRecipe').onclick = async () => { await api.post(`/api/recipes/${r.id}/like`); state.swipedRecipeIds.add(r.id); await reloadData(); closeModal(); };
-    document.getElementById('dislikeRecipe').onclick = async () => { await api.post(`/api/recipes/${r.id}/dislike`); state.swipedRecipeIds.add(r.id); await reloadData(); closeModal(); };
+    document.getElementById('likeRecipe').onclick = async () => {
+      if (isFavorite) await api.delete(`/api/favorites/${r.id}`);
+      else await api.post(`/api/recipes/${r.id}/like`);
+      state.swipedRecipeIds.add(r.id);
+      await reloadData(false);
+      draw();
+    };
+    document.getElementById('dislikeRecipe').onclick = async () => {
+      await api.post(`/api/recipes/${r.id}/dislike`);
+      state.swipedRecipeIds.add(r.id);
+      await reloadData(false);
+      draw();
+    };
     document.getElementById('addToList').onclick = () => openAddToList(r.ingredients);
   };
   draw();

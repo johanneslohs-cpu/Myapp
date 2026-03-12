@@ -187,7 +187,8 @@ textarea{min-height:100px}
 
 .recipe-detail{display:flex;flex-direction:column;gap:14px}
 .recipe-detail-top{display:flex;justify-content:space-between;align-items:center}
-.recipe-like-btn{font-size:30px;line-height:1;padding:8px 14px;color:var(--primary)}
+.recipe-like-btn{font-size:30px;line-height:1;padding:8px 14px;color:#fff}
+.recipe-like-btn.active{color:var(--primary)}
 
 
 .recipe-hero{
