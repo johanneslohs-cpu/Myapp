@@ -111,15 +111,14 @@ function renderFavorites() {
   return `${header('Deine Favoriten', `<button class="btn" id="openFilter">⏷ Filter</button>`)}
     <input class="search" placeholder="Rezept suchen" value="${state.search}" id="searchInput" />
     <div class="grid">${state.favorites.map(recipeCard).join('')}
-      <div class="card" id="toSwipe"><div class="recipe-img">➕</div><div>Weitere Favoriten hinzufügen</div></div>
+      <div class="card favorite-add-card" id="toSwipe"><div class="recipe-img add-favorite-media"><span class="add-favorite-plus">＋</span></div><div>Weitere Favoriten hinzufügen</div></div>
     </div>`;
 }
 
 function renderLists() {
   return `${header('Einkaufsliste')}
     <div class="list-overview">
-      <div class="list-overview-copy">Plane Mahlzeiten und hake Zutaten sauber Schritt für Schritt ab.</div>
-      <button class="btn" id="newList">＋ Neue Liste</button>
+      <button class="btn" id="newList">＋ Neue Liste erstellen</button>
     </div>
     ${state.lists.map((l) => `<div class="list-card" data-list="${l.id}">
       <div class="list-color" style="background:${l.color}"></div>
