@@ -12,12 +12,23 @@ const state = {
   swipeBusy: false
 };
 
+async function request(url, options = {}) {
+  const response = await fetch(url, options);
+  const raw = await response.text();
+  const data = raw ? JSON.parse(raw) : {};
+  if (!response.ok) {
+    const message = data.error || `HTTP ${response.status}`;
+    throw new Error(message);
+  }
+  return data;
+}
+
 const api = {
-  get: (u) => fetch(u).then((r) => r.json()),
-  post: (u, b) => fetch(u, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(b || {}) }).then((r) => r.json()),
-  put: (u, b) => fetch(u, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(b || {}) }).then((r) => r.json()),
-  patch: (u, b) => fetch(u, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(b || {}) }).then((r) => r.json()),
-  delete: (u) => fetch(u, { method: 'DELETE' }).then((r) => r.json())
+  get: (u) => request(u),
+  post: (u, b) => request(u, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(b || {}) }),
+  put: (u, b) => request(u, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(b || {}) }),
+  patch: (u, b) => request(u, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(b || {}) }),
+  delete: (u) => request(u, { method: 'DELETE' })
 };
 
 const app = document.getElementById('app');
@@ -41,12 +52,6 @@ function header(title, right = '') { return `<div class="header"><h1>${title}</h
 function renderDiscover() {
   return `${header('Heute kochen', `<button class="btn" id="openFilter">⏷ Filter</button>`)}
     <input class="search" placeholder="Rezept suchen" value="${state.search}" id="searchInput" />
-    <div class="chip-row">
-      <div class="chip">🌱 Vegetarisch</div>
-      <div class="chip">⏱ Unter 20 Min</div>
-      <div class="chip">🔥 High Protein</div>
-      <div class="chip">🥗 Fresh Spring</div>
-    </div>
     <div class="hero" data-tab-jump="swipe">
       <div class="hero-image"><h2 class="hero-title">Swipe dich zu deinem nächsten Lieblingsgericht</h2></div>
       <div class="hero-sub">Wie Tinder für Rezepte – aber mit seriösen Infos zu Zutaten, Kalorien und Zubereitung.</div>
@@ -105,9 +110,9 @@ function renderLists() {
     ${state.lists.map((l) => `<div class="list-card" data-list="${l.id}">
       <div class="list-color" style="background:${l.color}"></div>
       <div class="list-main">
-        <div class="small">${new Date(l.updated_at).toLocaleDateString('de-DE')} aktualisiert</div>
+        <div class="small">${l.updated_at ? new Date(l.updated_at).toLocaleDateString('de-DE') : 'Unbekannt'} aktualisiert</div>
         <h3>${l.name}</h3>
-        <div class="list-count">${l.items.length} Zutaten · ${l.items.filter((item) => item.checked).length} erledigt</div>
+        <div class="list-count">${(l.items || []).length} Zutaten · ${(l.items || []).filter((item) => item.checked).length} erledigt</div>
       </div>
       <button class="btn">Öffnen</button>
     </div>`).join('')}
@@ -286,17 +291,32 @@ function bindSwipeGestures() {
 
 function openFilter() {
   const f = state.filters;
-  modal(`<div class="header"><button class="btn" id="closeModal">✕</button><h2>Filter</h2></div>
-    <h3>Kategorie</h3><div class="row tags" id="catRow">${['Hauptgericht', 'Frühstück', 'Dinner', 'Nachtisch'].map((c) => `<button class="btn ${f.category === c ? 'active' : ''}" data-category="${c}">${c}</button>`).join('')}</div>
-    <h3>Kalorien</h3><div class="row tags"><button class="btn ${f.maxCalories === 300 ? 'active' : ''}" data-cal="300">unter 300</button><button class="btn ${f.maxCalories === 400 ? 'active' : ''}" data-cal="400">unter 400</button><button class="btn ${f.maxCalories === 500 ? 'active' : ''}" data-cal="500">unter 500</button></div>
-    <h3>Eiweiß</h3><div class="row tags"><button class="btn ${f.minProtein === 30 ? 'active' : ''}" data-pro="30">über 30</button><button class="btn ${f.minProtein === 50 ? 'active' : ''}" data-pro="50">über 50</button></div>
-    <h3>Dauer</h3><div class="row tags"><button class="btn ${f.maxDuration === 15 ? 'active' : ''}" data-dur="15">&lt;15 Min</button><button class="btn ${f.maxDuration === 30 ? 'active' : ''}" data-dur="30">&lt;30 Min</button><button class="btn ${f.maxDuration === 60 ? 'active' : ''}" data-dur="60">&lt;1 Std</button></div>
-    <button class="btn" id="applyFilter">Filter anwenden</button>`);
+  const toggleFilter = (key, value) => {
+    if (state.filters[key] === value) {
+      delete state.filters[key];
+    } else {
+      state.filters[key] = value;
+    }
+    openFilter();
+  };
+
+  modal(`<div class="filter-modal">
+      <div class="header"><button class="btn" id="closeModal">✕</button><h2>Filter</h2></div>
+      <div class="filter-section"><h3>Kategorie</h3><div class="filter-options tags" id="catRow">${['Hauptgericht', 'Frühstück', 'Dinner', 'Nachtisch'].map((c) => `<button class="btn ${f.category === c ? 'active' : ''}" data-category="${c}">${c}</button>`).join('')}</div></div>
+      <div class="filter-section"><h3>Kalorien</h3><div class="filter-options tags"><button class="btn ${f.maxCalories === 300 ? 'active' : ''}" data-cal="300">unter 300</button><button class="btn ${f.maxCalories === 400 ? 'active' : ''}" data-cal="400">unter 400</button><button class="btn ${f.maxCalories === 500 ? 'active' : ''}" data-cal="500">unter 500</button></div></div>
+      <div class="filter-section"><h3>Eiweiß</h3><div class="filter-options tags"><button class="btn ${f.minProtein === 30 ? 'active' : ''}" data-pro="30">über 30</button><button class="btn ${f.minProtein === 50 ? 'active' : ''}" data-pro="50">über 50</button></div></div>
+      <div class="filter-section"><h3>Dauer</h3><div class="filter-options tags"><button class="btn ${f.maxDuration === 15 ? 'active' : ''}" data-dur="15">&lt;15 Min</button><button class="btn ${f.maxDuration === 30 ? 'active' : ''}" data-dur="30">&lt;30 Min</button><button class="btn ${f.maxDuration === 60 ? 'active' : ''}" data-dur="60">&lt;1 Std</button></div></div>
+      <div class="filter-actions">
+        <button class="btn" id="resetFilter">Filter zurücksetzen</button>
+        <button class="btn" id="applyFilter">Filter anwenden</button>
+      </div>
+    </div>`);
   document.getElementById('closeModal').onclick = closeModal;
-  document.querySelectorAll('[data-category]').forEach((b) => b.onclick = () => { state.filters.category = b.dataset.category; openFilter(); });
-  document.querySelectorAll('[data-cal]').forEach((b) => b.onclick = () => { state.filters.maxCalories = Number(b.dataset.cal); openFilter(); });
-  document.querySelectorAll('[data-pro]').forEach((b) => b.onclick = () => { state.filters.minProtein = Number(b.dataset.pro); openFilter(); });
-  document.querySelectorAll('[data-dur]').forEach((b) => b.onclick = () => { state.filters.maxDuration = Number(b.dataset.dur); openFilter(); });
+  document.querySelectorAll('[data-category]').forEach((b) => b.onclick = () => toggleFilter('category', b.dataset.category));
+  document.querySelectorAll('[data-cal]').forEach((b) => b.onclick = () => toggleFilter('maxCalories', Number(b.dataset.cal)));
+  document.querySelectorAll('[data-pro]').forEach((b) => b.onclick = () => toggleFilter('minProtein', Number(b.dataset.pro)));
+  document.querySelectorAll('[data-dur]').forEach((b) => b.onclick = () => toggleFilter('maxDuration', Number(b.dataset.dur)));
+  document.getElementById('resetFilter').onclick = () => { state.filters = {}; openFilter(); };
   document.getElementById('applyFilter').onclick = async () => { await reloadData(); closeModal(); };
 }
 
@@ -449,12 +469,17 @@ function bind() {
 }
 
 async function reloadData(withRender = true) {
-  const q = new URLSearchParams({ search: state.search, ...Object.fromEntries(Object.entries(state.filters).map(([k, v]) => [k, String(v)])) });
-  state.recipes = await api.get(`/api/recipes?${q}`);
-  state.favorites = await api.get('/api/favorites');
-  state.lists = await api.get('/api/lists');
-  state.settings = await api.get('/api/settings');
-  if (withRender) render(); else render();
+  try {
+    const q = new URLSearchParams({ search: state.search, ...Object.fromEntries(Object.entries(state.filters).map(([k, v]) => [k, String(v)])) });
+    state.recipes = await api.get(`/api/recipes?${q}`);
+    state.favorites = await api.get('/api/favorites');
+    state.lists = await api.get('/api/lists');
+    state.settings = await api.get('/api/settings');
+    if (withRender) render(); else render();
+  } catch (error) {
+    console.error('Fehler beim Laden der Daten:', error);
+    alert(`Daten konnten nicht geladen werden: ${error.message}`);
+  }
 }
 
 reloadData();

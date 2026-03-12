@@ -89,7 +89,10 @@ class Handler(BaseHTTPRequestHandler):
         length = int(self.headers.get("Content-Length", "0"))
         if length == 0:
             return {}
-        return json.loads(self.rfile.read(length).decode())
+        try:
+            return json.loads(self.rfile.read(length).decode())
+        except json.JSONDecodeError:
+            return {}
 
     def do_OPTIONS(self):
         self.send_response(204)
@@ -151,7 +154,12 @@ class Handler(BaseHTTPRequestHandler):
 
         if p == "/api/lists":
             with conn() as db:
-                rows = [dict(r) for r in db.execute("SELECT * FROM shopping_lists ORDER BY updated_at DESC").fetchall()]
+                rows = []
+                for row in db.execute("SELECT * FROM shopping_lists ORDER BY updated_at DESC").fetchall():
+                    data = dict(row)
+                    items = [dict(i) for i in db.execute("SELECT * FROM shopping_items WHERE list_id=?", (data["id"],)).fetchall()]
+                    data["items"] = items
+                    rows.append(data)
             self.send_json(rows)
             return
 
