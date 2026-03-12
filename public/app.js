@@ -49,6 +49,14 @@ function nav() {
 
 function header(title, right = '') { return `<div class="header"><h1>${title}</h1><div>${right}</div></div>`; }
 
+function recipeImageMarkup(recipe, className = 'recipe-photo') {
+  const image = recipe.image || '';
+  if (/^https?:\/\//.test(image)) {
+    return `<img class="${className}" src="${image}" alt="${recipe.name}" loading="lazy">`;
+  }
+  return `<div class="recipe-emoji">${image}</div>`;
+}
+
 function renderDiscover() {
   return `${header('Heute kochen', `<button class="btn" id="openFilter">⏷ Filter</button>`)}
     <input class="search" placeholder="Rezept suchen" value="${state.search}" id="searchInput" />
@@ -62,7 +70,7 @@ function renderDiscover() {
 
 function recipeCard(r) {
   return `<div class="card" data-recipe="${r.id}">
-    <div class="recipe-img">${r.image}</div>
+    <div class="recipe-img">${recipeImageMarkup(r)}</div>
     <div class="card-title">${r.name}</div>
     <div class="small">${r.duration} Min · ${r.ingredients_count} Zutaten</div>
   </div>`;
@@ -80,9 +88,15 @@ function renderSwipe() {
       <div class="big-card" data-recipe="${r.id}" id="swipeCard">
         <div class="swipe-badge swipe-badge-like">LIKE</div>
         <div class="swipe-badge swipe-badge-nope">NOPE</div>
-        <div class="big-media"><div style="font-size:136px">${r.image}</div></div>
-        <h2>${r.name}</h2>
-        <p class="big-meta">⏱ ${r.duration} Min · 🧾 ${r.ingredients_count} Zutaten · 🍽 ${r.cuisine}</p>
+        <div class="big-media">${recipeImageMarkup(r, 'swipe-photo')}</div>
+        <div class="swipe-body">
+          <h2>${r.name}</h2>
+          <div class="big-meta">
+            <span>⏱ ${r.duration} Min</span>
+            <span>🧾 ${r.ingredients_count} Zutaten</span>
+            <span>🍽 ${r.cuisine}</span>
+          </div>
+        </div>
         <p class="big-copy">Ausgewogen, schnell und alltagstauglich – mit klaren Nährwerten und Schritt-für-Schritt-Anleitung für ein professionelles Kocherlebnis.</p>
       </div>
     </div>
@@ -114,7 +128,6 @@ function renderLists() {
         <h3>${l.name}</h3>
         <div class="list-count">${(l.items || []).length} Zutaten · ${(l.items || []).filter((item) => item.checked).length} erledigt</div>
       </div>
-      <button class="btn">Öffnen</button>
     </div>`).join('')}
     ${!state.lists.length ? '<div class="empty-state"><h3>Noch keine Einkaufslisten</h3><p>Lege deine erste Liste an und sammle Zutaten aus Rezepten.</p></div>' : ''}`;
 }
@@ -163,7 +176,7 @@ function openRecipe(id) {
         </div>
       </div>
       <div class="recipe-hero">
-        <div class="recipe-hero-emoji">${r.image}</div>
+        <div class="recipe-hero-media">${recipeImageMarkup(r, 'detail-photo')}</div>
         <div class="recipe-hero-content">
           <h1>${r.name}</h1>
           <p class="small">${r.duration} Min · ${r.cuisine}</p>
@@ -357,9 +370,13 @@ async function openListEditor(id) {
 }
 
 function openNewList() {
-  modal(`<div class="header"><button class="btn" id="closeModal">✕</button><button class="btn" id="saveNewList">Speichern</button></div>
-    <h1>Neue Einkaufsliste erstellen</h1><label>Bezeichnung</label><input id="listName" placeholder="z.B. Wochenmarkt Samstag" />
-    <label>Farbcode</label><div class="row color-row">${['#7ed6df', '#f06262', '#81de91', '#cde94f', '#cd59d8'].map((c) => `<button class="color-pick" style="background:${c}" data-color="${c}"></button>`).join('')}</div>`);
+  modal(`<div class="list-form">
+    <div class="header"><button class="btn" id="closeModal">✕</button><button class="btn" id="saveNewList">Speichern</button></div>
+    <h1>Neue Einkaufsliste erstellen</h1>
+    <p class="small">Gib deiner Liste einen Namen und wähle eine Farbe, damit du sie schnell wiederfindest.</p>
+    <div class="form-group"><label for="listName">Bezeichnung</label><input id="listName" placeholder="z.B. Wochenmarkt Samstag" /></div>
+    <div class="form-group"><label>Farbcode</label><div class="row color-row">${['#7ed6df', '#f06262', '#81de91', '#cde94f', '#cd59d8'].map((c) => `<button class="color-pick ${c === '#7ed6df' ? 'active' : ''}" style="background:${c}" data-color="${c}" aria-label="Farbe ${c}"></button>`).join('')}</div></div>
+  </div>`);
   let chosen = '#7ed6df';
   document.getElementById('closeModal').onclick = closeModal;
   document.querySelectorAll('[data-color]').forEach((b) => b.onclick = () => { chosen = b.dataset.color; document.querySelectorAll('[data-color]').forEach((x)=>x.classList.remove('active')); b.classList.add('active'); });

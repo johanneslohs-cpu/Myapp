@@ -48,11 +48,11 @@ def init_db():
         c = db.execute("SELECT COUNT(*) FROM recipes").fetchone()[0]
         if c == 0:
             recipes = [
-                ("Spaghetti Bolognese mit Tomatensauce", "Hauptgericht", 20, 16, "Pasta", 473, 28, "🍝", "Klassische, herzhafte Pasta.", ["300g Spaghettinudeln", "200g Tomatensauce", "2 Zwiebeln", "4 Knoblauchzehen", "300g Hackfleisch"], ["Nudeln kochen.", "Zwiebeln und Knoblauch anschwitzen.", "Hackfleisch anbraten.", "Tomatensauce dazugeben und köcheln.", "Mit Nudeln servieren."], {"kcal": 473, "carbs": 52, "protein": 28, "fat": 17}, ["high-protein"]),
-                ("Pizza Margherita", "Dinner", 30, 8, "Italienisch", 420, 16, "🍕", "Klassische Pizza.", ["Pizzateig", "Tomatensauce", "Mozzarella", "Basilikum"], ["Teig ausrollen.", "Backen."], {"kcal": 420, "carbs": 48, "protein": 16, "fat": 18}, ["vegetarisch"]),
-                ("Omelette nach mediterraner Art", "Frühstück", 15, 7, "Mediterran", 310, 22, "🍳", "Schnell.", ["3 Eier", "Tomaten", "Spinat", "Feta"], ["Verquirlen.", "Braten."], {"kcal": 310, "carbs": 9, "protein": 22, "fat": 20}, ["vegetarisch", "low-carb", "high-protein"]),
-                ("Brokkoli-Auflauf", "Hauptgericht", 40, 10, "Ofengericht", 390, 21, "🥦", "Cremig.", ["Brokkoli", "Sahne", "Käse", "Kartoffeln"], ["Vorgaren.", "Überbacken."], {"kcal": 390, "carbs": 28, "protein": 21, "fat": 22}, ["vegetarisch"]),
-                ("Currywurst mit Pommes", "Dinner", 25, 6, "Deutsch", 610, 19, "🍟", "Streetfood.", ["Wurst", "Pommes", "Currysauce"], ["Zubereiten."], {"kcal": 610, "carbs": 45, "protein": 19, "fat": 34}, []),
+                ("Spaghetti Bolognese mit Tomatensauce", "Hauptgericht", 20, 16, "Pasta", 473, 28, "https://images.unsplash.com/photo-1621996346565-e3dbc646d9a9?auto=format&fit=crop&w=1200&q=80", "Klassische, herzhafte Pasta.", ["300g Spaghettinudeln", "200g Tomatensauce", "2 Zwiebeln", "4 Knoblauchzehen", "300g Hackfleisch"], ["Nudeln kochen.", "Zwiebeln und Knoblauch anschwitzen.", "Hackfleisch anbraten.", "Tomatensauce dazugeben und köcheln.", "Mit Nudeln servieren."], {"kcal": 473, "carbs": 52, "protein": 28, "fat": 17}, ["high-protein"]),
+                ("Pizza Margherita", "Dinner", 30, 8, "Italienisch", 420, 16, "https://images.unsplash.com/photo-1604382355076-af4b0eb60143?auto=format&fit=crop&w=1200&q=80", "Klassische Pizza.", ["Pizzateig", "Tomatensauce", "Mozzarella", "Basilikum"], ["Teig ausrollen.", "Backen."], {"kcal": 420, "carbs": 48, "protein": 16, "fat": 18}, ["vegetarisch"]),
+                ("Omelette nach mediterraner Art", "Frühstück", 15, 7, "Mediterran", 310, 22, "https://images.unsplash.com/photo-1510693206972-df098062cb71?auto=format&fit=crop&w=1200&q=80", "Schnell.", ["3 Eier", "Tomaten", "Spinat", "Feta"], ["Verquirlen.", "Braten."], {"kcal": 310, "carbs": 9, "protein": 22, "fat": 20}, ["vegetarisch", "low-carb", "high-protein"]),
+                ("Brokkoli-Auflauf", "Hauptgericht", 40, 10, "Ofengericht", 390, 21, "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=1200&q=80", "Cremig.", ["Brokkoli", "Sahne", "Käse", "Kartoffeln"], ["Vorgaren.", "Überbacken."], {"kcal": 390, "carbs": 28, "protein": 21, "fat": 22}, ["vegetarisch"]),
+                ("Currywurst mit Pommes", "Dinner", 25, 6, "Deutsch", 610, 19, "https://images.unsplash.com/photo-1633321702518-7feccafb94d5?auto=format&fit=crop&w=1200&q=80", "Streetfood.", ["Wurst", "Pommes", "Currysauce"], ["Zubereiten."], {"kcal": 610, "carbs": 45, "protein": 19, "fat": 34}, []),
             ]
             for r in recipes:
                 db.execute(
@@ -60,6 +60,16 @@ def init_db():
                     VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)""",
                     (r[0], r[1], r[2], r[3], r[4], r[5], r[6], r[7], r[8], json.dumps(r[9]), json.dumps(r[10]), json.dumps(r[11]), json.dumps(r[12])),
                 )
+        image_updates = {
+            "🍝": "https://images.unsplash.com/photo-1621996346565-e3dbc646d9a9?auto=format&fit=crop&w=1200&q=80",
+            "🍕": "https://images.unsplash.com/photo-1604382355076-af4b0eb60143?auto=format&fit=crop&w=1200&q=80",
+            "🍳": "https://images.unsplash.com/photo-1510693206972-df098062cb71?auto=format&fit=crop&w=1200&q=80",
+            "🥦": "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=1200&q=80",
+            "🍟": "https://images.unsplash.com/photo-1633321702518-7feccafb94d5?auto=format&fit=crop&w=1200&q=80",
+        }
+        for old_image, new_image in image_updates.items():
+            db.execute("UPDATE recipes SET image=? WHERE image=?", (new_image, old_image))
+
         db.execute("INSERT OR IGNORE INTO settings (id,username,profile_image,diet,manage_subscription_note) VALUES (1,'Johannes','👤','Ich esse alles','Noch keine Abos verfügbar.')")
         if db.execute("SELECT COUNT(*) FROM shopping_lists").fetchone()[0] == 0:
             db.execute("INSERT INTO shopping_lists (name,color,updated_at) VALUES (?,?,?)", ("Liste vom 22.01.", "#7ed6df", datetime.utcnow().isoformat()))
