@@ -1,0 +1,7 @@
+{
+  "name": "myapp-rezepte",
+  "private": true,
+  "scripts": {
+    "start": "python3 app.py"
+  }
+}
