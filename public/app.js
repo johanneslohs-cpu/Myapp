@@ -75,7 +75,7 @@ function renderSwipe() {
       <div class="big-card" data-recipe="${r.id}" id="swipeCard">
         <div class="swipe-badge swipe-badge-like">LIKE</div>
         <div class="swipe-badge swipe-badge-nope">NOPE</div>
-        <div class="big-media"><div style="font-size:136px">${r.image}</div></div>
+        <div class="big-media"><div style="font-size:136px">${r.image}</div><div class="chip">Match 92%</div></div>
         <h2>${r.name}</h2>
         <p class="big-meta">⏱ ${r.duration} Min · 🧾 ${r.ingredients_count} Zutaten · 🍽 ${r.cuisine}</p>
         <p class="big-copy">Ausgewogen, schnell und alltagstauglich – mit klaren Nährwerten und Schritt-für-Schritt-Anleitung für ein professionelles Kocherlebnis.</p>
