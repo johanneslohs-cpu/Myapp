@@ -98,8 +98,19 @@ function renderFavorites() {
 
 function renderLists() {
   return `${header('Einkaufsliste')}
-    ${state.lists.map((l) => `<div class="list-item" data-list="${l.id}" style="border-left:8px solid ${l.color}"><div><div class="small">${new Date(l.updated_at).toLocaleDateString('de-DE')} aktualisiert</div><h3>${l.name}</h3></div><button class="btn">✎</button></div>`).join('')}
-    <div class="list-item" id="newList"><h3>Neue Liste erstellen</h3><div style="font-size:40px">＋</div></div>`;
+    <div class="list-overview">
+      <div class="list-overview-copy">Plane Mahlzeiten und hake Zutaten sauber Schritt für Schritt ab.</div>
+      <button class="btn" id="newList">＋ Neue Liste</button>
+    </div>
+    ${state.lists.map((l) => `<div class="list-card" data-list="${l.id}">
+      <div class="list-color" style="background:${l.color}"></div>
+      <div class="list-main">
+        <div class="small">${new Date(l.updated_at).toLocaleDateString('de-DE')} aktualisiert</div>
+        <h3>${l.name}</h3>
+      </div>
+      <button class="btn">Öffnen</button>
+    </div>`).join('')}
+    ${!state.lists.length ? '<div class="empty-state"><h3>Noch keine Einkaufslisten</h3><p>Lege deine erste Liste an und sammle Zutaten aus Rezepten.</p></div>' : ''}`;
 }
 
 function renderProfile() {
@@ -137,28 +148,62 @@ function openRecipe(id) {
   state.selectedRecipe = r;
   let portions = 2;
   const draw = () => {
-    modal(`<button class="btn" id="closeModal">← Zurück</button>
-    <div class="recipe-img" style="font-size:180px">${r.image}</div>
-    <h1>${r.name}</h1>
-    <p>${r.duration} Min · ${r.cuisine}</p>
-    <div class="actions">
-      <button class="btn" id="likeRecipe">♥ Mag ich</button>
-      <button class="btn" id="dislikeRecipe">✕ Mag ich nicht</button>
-      <button class="btn" id="jumpSteps">Schritte</button>
-      <button class="btn" id="jumpNutrition">Nährwerte</button>
-    </div>
-    <h2>Portionen</h2><div class="row"><button class="btn" id="minusPortion">-</button><h2>${portions}</h2><button class="btn" id="plusPortion">+</button></div>
-    <h2>Zutaten</h2>
-    ${(r.ingredients || []).map((i) => `<div class="ingredient"><span>${i}</span></div>`).join('')}
-    <button class="btn" id="addToList">Zur Einkaufsliste hinzufügen</button>
-    <h2 id="nutrition">Nährwerte pro Portion</h2>
-    <p>${r.nutrition.kcal} kcal · KH ${r.nutrition.carbs}g · Eiweiß ${r.nutrition.protein}g · Fett ${r.nutrition.fat}g</p>
-    <h2 id="steps">Schritte</h2>
-    ${r.steps.map((s, i) => `<p><b>Schritt ${i + 1}</b><br>${s}</p>`).join('')}`);
+    modal(`<div class="recipe-detail">
+      <div class="recipe-detail-top">
+        <button class="btn" id="closeModal">← Zurück</button>
+        <div class="row">
+          <button class="btn" id="likeRecipe">♥</button>
+          <button class="btn" id="dislikeRecipe">✕</button>
+        </div>
+      </div>
+      <div class="recipe-hero">
+        <div class="recipe-hero-emoji">${r.image}</div>
+        <div>
+          <h1>${r.name}</h1>
+          <p class="small">${r.duration} Min · ${r.cuisine} · ${r.ingredients_count} Zutaten</p>
+        </div>
+      </div>
+
+      <div class="recipe-tabs">
+        <button class="btn" id="jumpIngredients">Zutaten</button>
+        <button class="btn" id="jumpNutrition">Nährwerte</button>
+        <button class="btn" id="jumpSteps">Zubereitung</button>
+      </div>
+
+      <div class="portion-panel" id="ingredients">
+        <div><span class="small">Portionen</span><h2>${portions}</h2></div>
+        <div class="row">
+          <button class="btn" id="minusPortion">−</button>
+          <button class="btn" id="plusPortion">＋</button>
+        </div>
+      </div>
+
+      <h2 class="recipe-section-title">Zutaten</h2>
+      <div class="recipe-ingredients">
+        ${(r.ingredients || []).map((i) => `<div class="ingredient ingredient-card"><span>${i}</span></div>`).join('')}
+      </div>
+
+      <div class="tip-banner">Zutaten dabei, die du nicht magst? Über "Das esse ich nicht" im Profil kannst du sie ausblenden.</div>
+      <button class="btn" id="addToList">Zur Einkaufsliste hinzufügen</button>
+
+      <h2 class="recipe-section-title" id="nutrition">Nährwerte pro Portion</h2>
+      <div class="nutrition-grid">
+        <div class="nutrition-item"><span>Kalorien</span><strong>${r.nutrition.kcal} kcal</strong></div>
+        <div class="nutrition-item"><span>Kohlenhydrate</span><strong>${r.nutrition.carbs} g</strong></div>
+        <div class="nutrition-item"><span>Eiweiß</span><strong>${r.nutrition.protein} g</strong></div>
+        <div class="nutrition-item"><span>Fett</span><strong>${r.nutrition.fat} g</strong></div>
+      </div>
+
+      <h2 class="recipe-section-title" id="steps">Zubereitung</h2>
+      <div class="steps-list">
+        ${r.steps.map((s, i) => `<div class="step-card"><h3>Schritt ${i + 1}</h3><p>${s}</p></div>`).join('')}
+      </div>
+    </div>`);
 
     document.getElementById('closeModal').onclick = closeModal;
     document.getElementById('plusPortion').onclick = () => { portions += 1; draw(); };
     document.getElementById('minusPortion').onclick = () => { portions = Math.max(1, portions - 1); draw(); };
+    document.getElementById('jumpIngredients').onclick = () => document.getElementById('ingredients').scrollIntoView({ behavior: 'smooth' });
     document.getElementById('jumpSteps').onclick = () => document.getElementById('steps').scrollIntoView({ behavior: 'smooth' });
     document.getElementById('jumpNutrition').onclick = () => document.getElementById('nutrition').scrollIntoView({ behavior: 'smooth' });
     document.getElementById('likeRecipe').onclick = async () => { await api.post(`/api/recipes/${r.id}/like`); state.swipedRecipeIds.add(r.id); await reloadData(); closeModal(); };
@@ -253,12 +298,28 @@ function openFilter() {
 async function openListEditor(id) {
   const list = await api.get(`/api/lists/${id}`);
   const draw = () => {
-    modal(`<button class="btn" id="closeModal">← Zurück</button><h2>${list.name}</h2><h3>Zutaten</h3>
-    ${list.items.map((item, i) => `<div class="ingredient"><label><input type="checkbox" data-check="${i}" ${item.checked ? 'checked' : ''}> ${item.name}</label><button class="btn" data-remove="${i}">✕</button></div>`).join('')}
-    <button class="btn" id="addItem">＋ Zutat hinzufügen</button>
-    <div style="height:20px"></div>
-    <button class="btn" id="saveList">Einkaufsliste speichern</button>
-    <button class="btn" id="deleteList">Einkaufsliste löschen</button>`);
+    modal(`<div class="list-editor">
+      <div class="header">
+        <button class="btn" id="closeModal">← Zurück</button>
+        <button class="btn" id="saveList">Speichern</button>
+      </div>
+      <h2>${list.name}</h2>
+      <p class="small">Tippe auf Kreise zum Abhaken, lösche einzelne Zutaten oder ergänze neue.</p>
+      <div class="shopping-items">
+        ${list.items.map((item, i) => `<div class="shopping-row">
+          <label class="shopping-check">
+            <input type="checkbox" data-check="${i}" ${item.checked ? 'checked' : ''}>
+            <span class="shopping-dot"></span>
+          </label>
+          <span class="shopping-name">${item.name}</span>
+          <button class="btn" data-remove="${i}">✕</button>
+        </div>`).join('')}
+      </div>
+      <div class="row">
+        <button class="btn" id="addItem">＋ Zutat hinzufügen</button>
+        <button class="btn" id="deleteList">Liste löschen</button>
+      </div>
+    </div>`);
     document.getElementById('closeModal').onclick = closeModal;
     document.querySelectorAll('[data-check]').forEach((c) => c.onchange = () => { list.items[c.dataset.check].checked = c.checked; });
     document.querySelectorAll('[data-remove]').forEach((b) => b.onclick = () => { list.items.splice(Number(b.dataset.remove), 1); draw(); });
@@ -271,11 +332,11 @@ async function openListEditor(id) {
 
 function openNewList() {
   modal(`<div class="header"><button class="btn" id="closeModal">✕</button><button class="btn" id="saveNewList">Speichern</button></div>
-    <h1>Neue Einkaufsliste erstellen</h1><label>Bezeichnung</label><input id="listName" />
-    <label>Farbe</label><div class="row">${['#7ed6df', '#f06262', '#81de91', '#cde94f', '#cd59d8'].map((c) => `<button class="circle" style="background:${c};width:46px;height:46px" data-color="${c}"></button>`).join('')}</div>`);
+    <h1>Neue Einkaufsliste erstellen</h1><label>Bezeichnung</label><input id="listName" placeholder="z.B. Wochenmarkt Samstag" />
+    <label>Farbcode</label><div class="row color-row">${['#7ed6df', '#f06262', '#81de91', '#cde94f', '#cd59d8'].map((c) => `<button class="color-pick" style="background:${c}" data-color="${c}"></button>`).join('')}</div>`);
   let chosen = '#7ed6df';
   document.getElementById('closeModal').onclick = closeModal;
-  document.querySelectorAll('[data-color]').forEach((b) => b.onclick = () => { chosen = b.dataset.color; });
+  document.querySelectorAll('[data-color]').forEach((b) => b.onclick = () => { chosen = b.dataset.color; document.querySelectorAll('[data-color]').forEach((x)=>x.classList.remove('active')); b.classList.add('active'); });
   document.getElementById('saveNewList').onclick = async () => {
     const name = document.getElementById('listName').value.trim();
     if (!name) return;
