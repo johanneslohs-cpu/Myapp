@@ -598,7 +598,26 @@ function openSettings() {
     resetLocalUserState();
     startAuthFlow();
   };
-  document.getElementById('deleteAccount').onclick = () => alert('Account löschen ist aktuell deaktiviert.');
+  document.getElementById('deleteAccount').onclick = () => {
+    modal(`<div class="settings-modal">
+      <h2>Account wirklich löschen?</h2>
+      <p class="small">Wenn du auf „Ja" klickst, werden alle gespeicherten Daten zu deinem Account dauerhaft gelöscht.</p>
+      <div class="settings-actions">
+        <button class="btn" id="cancelDeleteAccount">Nein</button>
+        <button class="btn settings-danger" id="confirmDeleteAccount">Ja</button>
+      </div>
+    </div>`);
+
+    document.getElementById('cancelDeleteAccount').onclick = () => openSettings();
+    document.getElementById('confirmDeleteAccount').onclick = async () => {
+      await api.delete('/api/account');
+      state.token = '';
+      localStorage.removeItem('auth_token');
+      resetLocalUserState();
+      closeModal();
+      await startAuthFlow();
+    };
+  };
 }
 
 function openExcluded() {
