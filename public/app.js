@@ -578,11 +578,20 @@ function openDiet() {
 }
 
 function openFeedback() {
-  modal(`<button class="btn" id="closeModal">← Zurück</button><h2>Hilfe und Feedback</h2>
-    <label>E-Mail-Adresse</label><input id="fMail" />
-    <label>Betreff</label><input id="fSub" />
-    <label>Nachricht</label><textarea id="fMsg"></textarea>
-    <button class="btn" id="sendFeedback">Abschicken</button>`);
+  modal(`<div class="feedback-modal">
+    <button class="btn" id="closeModal">← Zurück</button>
+    <h2>Hilfe und Feedback</h2>
+    <p class="small feedback-intro">Wir melden uns so schnell wie möglich bei dir zurück.</p>
+    <div class="feedback-form">
+      <label for="fMail">E-Mail-Adresse</label>
+      <input id="fMail" type="email" placeholder="name@beispiel.de" autocomplete="email" />
+      <label for="fSub">Betreff</label>
+      <input id="fSub" placeholder="Worum geht es?" />
+      <label for="fMsg">Nachricht</label>
+      <textarea id="fMsg" placeholder="Beschreibe dein Anliegen oder Feedback..."></textarea>
+    </div>
+    <button class="btn" id="sendFeedback">Abschicken</button>
+  </div>`);
   document.getElementById('closeModal').onclick = closeModal;
   document.getElementById('sendFeedback').onclick = async () => {
     await api.post('/api/feedback', {
@@ -596,11 +605,29 @@ function openFeedback() {
 }
 
 function openLegal() {
-  modal(`<button class="btn" id="closeModal">← Zurück</button><h2>Sonstiges</h2>
-    <p><b>Nutzungsbedingungen</b><br>Dies ist ein Beispieltext für Nutzungsbedingungen.</p>
-    <p><b>Datenschutzerklärung</b><br>Dies ist ein Beispieltext zum Datenschutz und zur Datenverarbeitung.</p>
-    <p><b>Datenschutzeinstellungen</b><br>Hier könnten Cookie- und Tracking-Einstellungen verwaltet werden.</p>
-    <p><b>AGB</b><br>Dies ist ein Beispieltext für allgemeine Geschäftsbedingungen.</p>`);
+  modal(`<div class="legal-modal">
+    <button class="btn" id="closeModal">← Zurück</button>
+    <h2>Sonstiges</h2>
+    <p class="small legal-intro">Hier findest du alle rechtlichen und administrativen Informationen übersichtlich gesammelt.</p>
+    <div class="legal-list">
+      <article class="legal-card">
+        <h3>Nutzungsbedingungen</h3>
+        <p>Dies ist ein Beispieltext für Nutzungsbedingungen.</p>
+      </article>
+      <article class="legal-card">
+        <h3>Datenschutzerklärung</h3>
+        <p>Dies ist ein Beispieltext zum Datenschutz und zur Datenverarbeitung.</p>
+      </article>
+      <article class="legal-card">
+        <h3>Datenschutzeinstellungen</h3>
+        <p>Hier könnten Cookie- und Tracking-Einstellungen verwaltet werden.</p>
+      </article>
+      <article class="legal-card">
+        <h3>AGB</h3>
+        <p>Dies ist ein Beispieltext für allgemeine Geschäftsbedingungen.</p>
+      </article>
+    </div>
+  </div>`);
   document.getElementById('closeModal').onclick = closeModal;
 }
 

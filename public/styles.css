@@ -285,3 +285,30 @@ textarea{min-height:100px}
 .auth-modal{display:flex;flex-direction:column;gap:12px}
 .auth-google-slot{margin:6px 0}
 .auth-guest-btn{width:100%;padding:12px 14px;font-weight:700}
+
+.feedback-modal{display:flex;flex-direction:column;gap:12px}
+.feedback-intro{margin-top:-2px;margin-bottom:2px;color:#c7d9cc;line-height:1.45}
+.feedback-form{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  padding:14px;
+  border:1px solid var(--line);
+  border-radius:16px;
+  background:linear-gradient(180deg,#1c2821,#17211b);
+}
+.feedback-form label{font-size:13px;color:#d7e6da;font-weight:600;margin-top:2px}
+.feedback-form input,.feedback-form textarea{background:#111a14}
+
+.legal-modal{display:flex;flex-direction:column;gap:12px}
+.legal-intro{color:#c7d9cc;line-height:1.45}
+.legal-list{display:flex;flex-direction:column;gap:10px}
+.legal-card{
+  border:1px solid var(--line);
+  border-radius:16px;
+  background:linear-gradient(180deg,#1d2a22,#17211b);
+  padding:14px;
+  box-shadow:0 10px 24px rgba(0,0,0,.2);
+}
+.legal-card h3{font-size:18px;margin-bottom:8px}
+.legal-card p{color:#d2dfd4;line-height:1.45}
