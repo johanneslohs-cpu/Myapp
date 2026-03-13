@@ -8,8 +8,19 @@ from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 from urllib.request import urlopen
 
-ROOT = Path(__file__).parent
-PUBLIC = ROOT / "public"
+ROOT = Path(__file__).resolve().parent
+
+
+def find_public_dir(root):
+    candidates = [root / "public", Path.cwd() / "public"]
+    candidates.extend(parent / "public" for parent in root.parents)
+    for c in candidates:
+        if (c / "index.html").exists():
+            return c
+    return None
+
+
+PUBLIC = find_public_dir(ROOT)
 DB_PATH = ROOT / "app.db"
 GOOGLE_CLIENT_ID = os.environ.get(
     "GOOGLE_CLIENT_ID",
@@ -155,6 +166,13 @@ class Handler(BaseHTTPRequestHandler):
                 (user_id, username, picture, "Ich esse alles", "Hier könntest du dein Abo verwalten."),
             )
 
+
+    def send_html(self, html, status=200):
+        self.send_response(status)
+        self.send_header("Content-Type", "text/html; charset=utf-8")
+        self.end_headers()
+        self.wfile.write(html.encode("utf-8"))
+
     def do_GET(self):
         parsed = urlparse(self.path)
         p = parsed.path
@@ -251,6 +269,20 @@ class Handler(BaseHTTPRequestHandler):
                 self.send_json({**dict(s), "excluded": [dict(r) for r in db.execute("SELECT * FROM excluded_ingredients WHERE user_id=?", (uid,)).fetchall()]})
                 return
 
+        if PUBLIC is None:
+            self.send_html(
+                """
+<!doctype html><html lang="de"><head><meta charset="utf-8"><title>Fehlende Dateien</title></head>
+<body style="font-family: sans-serif; padding: 24px;"> 
+<h1>Frontend-Dateien nicht gefunden</h1>
+<p>Der Ordner <code>public/</code> mit <code>index.html</code> fehlt.</p>
+<p>Bitte stelle sicher, dass <code>app.py</code> und der Ordner <code>public/</code> im selben Projektordner liegen.</p>
+</body></html>
+                """,
+                status=500,
+            )
+            return
+
         fpath = PUBLIC / ("index.html" if p == "/" else p.lstrip("/"))
         if fpath.exists() and fpath.is_file():
             ctype = "text/plain"
@@ -258,7 +290,10 @@ class Handler(BaseHTTPRequestHandler):
             if fpath.suffix == ".css": ctype = "text/css; charset=utf-8"
             if fpath.suffix == ".js": ctype = "application/javascript; charset=utf-8"
             self.send_response(200); self.send_header("Content-Type", ctype); self.end_headers(); self.wfile.write(fpath.read_bytes()); return
-        self.send_response(200); self.send_header("Content-Type", "text/html; charset=utf-8"); self.end_headers(); self.wfile.write((PUBLIC / "index.html").read_bytes())
+        index_file = PUBLIC / "index.html"
+        if index_file.exists():
+            self.send_response(200); self.send_header("Content-Type", "text/html; charset=utf-8"); self.end_headers(); self.wfile.write(index_file.read_bytes()); return
+        self.send_html("<h1>index.html fehlt</h1>", status=500)
 
     def do_POST(self):
         p = urlparse(self.path).path
