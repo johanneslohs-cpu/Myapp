@@ -1,4 +1,20 @@
 const state = {
+  tab: 'discover',
+  recipes: [],
+  favorites: [],
+  lists: [],
+  settings: null,
+  filters: {},
+  search: '',
+  selectedRecipe: null,
+  selectedList: null,
+  swipedRecipeIds: new Set(),
+  swipeBusy: false,
+  swipeRecipes: [],
+  dislikedRecipeIds: new Set(),
+  authToken: localStorage.getItem('auth_token') || '',
+  user: null,
+  googleClientId: ''
   tab: 'discover', recipes: [], favorites: [], lists: [], settings: null,
   filters: {}, search: '', swipeBusy: false, swipeRecipes: [], dislikedRecipeIds: new Set(),
   authToken: localStorage.getItem('auth_token') || '', user: null, googleClientId: '',
@@ -16,6 +32,11 @@ async function request(url, options = {}) {
     if (response.status === 401) {
       localStorage.removeItem('auth_token');
       state.authToken = '';
+      state.user = null;
+      render();
+    }
+    const message = data.error || `HTTP ${response.status}`;
+    throw new Error(message);
       render();
     }
     throw new Error(data.error || `HTTP ${response.status}`);
@@ -43,6 +64,14 @@ function renderLogin() {
   return `<div class="phone">${header('Anmelden')}<div class="empty-state"><h2>Google Login</h2><p>Melde dich an, damit Favoriten und Einkaufslisten accountbasiert gespeichert werden.</p><div id="googleSignIn"></div>${!state.googleClientId ? '<p class="small">GOOGLE_CLIENT_ID fehlt am Server.</p>' : ''}</div></div>`;
 }
 
+function recipeImageMarkup(recipe, className = 'recipe-photo') {
+  const image = recipe.image || '';
+  if (/^https?:\/\//.test(image)) {
+    return `<img class="${className}" src="${image}" alt="${recipe.name}" loading="lazy">`;
+  }
+  return `<div class="recipe-emoji">${image}</div>`;
+}
+
 function renderDiscover() {
   return `${header('Heute kochen')}<input class="search" id="searchInput" value="${state.search}" placeholder="Rezept suchen" /><div class="grid">${state.recipes.map(card).join('')}</div>`;
 }
@@ -59,6 +88,13 @@ function renderLists() {
 }
 function renderProfile() {
   const s = state.settings;
+  return `${header('Profil', `<button class="btn" id="openSettings">⚙</button>`)}
+  <div class="profile"><div class="avatar" id="changeAvatar">${s.profile_image}</div><h2>${s.username}</h2><p class="small">${state.user?.email || 'Smart Meal Matching · Green Edition'}</p></div>
+  <div class="stats"><div class="card"><h2>${state.favorites.length} ♥</h2><div>Favoriten</div></div><div class="card"><h2>${state.lists.length} 🛒</h2><div>Einkaufslisten</div></div></div>
+  <div class="stats"><div class="card" id="openExcluded">Das esse ich nicht</div><div class="card" id="openDiet">${s.diet}</div></div>
+  <div class="list-item" id="openFeedback">❓ Hilfe und Feedback</div>
+  <div class="list-item" id="openLegal">⋯ Sonstiges</div>
+  <div class="list-item" id="logout">↩ Logout</div>`;
   return `${header('Profil')}<div class="profile"><div class="avatar" id="changeAvatar">${s.profile_image}</div><h2>${s.username}</h2><p class="small">${state.user?.email || ''}</p></div><div class="stats"><div class="card"><h2>${state.favorites.length} ♥</h2></div><div class="card"><h2>${state.lists.length} 🛒</h2></div></div><div class="list-item" id="logout">↩ Logout</div>`;
 }
 
@@ -68,6 +104,8 @@ function render() {
     initGoogleButton();
     return;
   }
+  let content = '';
+  if (state.tab === 'discover') content = renderDiscover();
   let content = renderDiscover();
   if (state.tab === 'swipe') content = renderSwipe();
   if (state.tab === 'favorites') content = renderFavorites();
@@ -119,6 +157,28 @@ function bind() {
   document.querySelectorAll('[data-list]').forEach((el) => el.onclick = () => openListEditor(el.dataset.list));
   const nl = document.getElementById('newList'); if (nl) nl.onclick = async () => { const name = prompt('Name der Liste'); if (name) { await api.post('/api/lists', { name, color: '#7ed6df' }); await reloadData(); } };
   const ca = document.getElementById('changeAvatar'); if (ca) ca.onclick = async () => { const e = prompt('Profilbild Emoji', state.settings.profile_image); if (e) { await api.patch('/api/settings', { profile_image: e }); await reloadData(); } };
+  const lo = document.getElementById('logout'); if (lo) lo.onclick = async () => { await api.post('/api/auth/logout', {}); localStorage.removeItem('auth_token'); state.authToken = ''; state.user = null; render(); };
+  bindSwipeGestures();
+}
+
+async function reloadData(withRender = true) {
+  if (!state.authToken) {
+    render();
+    return;
+  }
+  try {
+    const q = new URLSearchParams({ search: state.search, ...Object.fromEntries(Object.entries(state.filters).map(([k, v]) => [k, String(v)])) });
+    state.recipes = await api.get(`/api/recipes?${q}`);
+    state.swipeRecipes = await api.get(`/api/swipe-recipes?${q}`);
+    state.favorites = await api.get('/api/favorites');
+    state.dislikedRecipeIds = new Set(await api.get('/api/dislikes'));
+    state.lists = await api.get('/api/lists');
+    state.settings = await api.get('/api/settings');
+    state.user = await api.get('/api/auth/me');
+    if (withRender) render(); else render();
+  } catch (error) {
+    console.error('Fehler beim Laden der Daten:', error);
+    alert(`Daten konnten nicht geladen werden: ${error.message}`);
   const lo = document.getElementById('logout'); if (lo) lo.onclick = async () => { await api.post('/api/auth/logout', {}); localStorage.removeItem('auth_token'); state.authToken = ''; render(); };
 }
 
@@ -141,6 +201,36 @@ async function bootstrap() {
   state.googleClientId = cfg.googleClientId || '';
   if (state.authToken) {
     try { await reloadData(); return; } catch (e) { localStorage.removeItem('auth_token'); state.authToken = ''; }
+  }
+  render();
+}
+
+function initGoogleButton() {
+  if (!state.googleClientId || !window.google || !window.google.accounts || !document.getElementById('googleSignIn')) return;
+  window.google.accounts.id.initialize({
+    client_id: state.googleClientId,
+    callback: async ({ credential }) => {
+      const res = await api.post('/api/auth/google', { credential });
+      state.authToken = res.token;
+      localStorage.setItem('auth_token', res.token);
+      await reloadData();
+    },
+  });
+  window.google.accounts.id.renderButton(document.getElementById('googleSignIn'), { theme: 'outline', size: 'large', text: 'signin_with' });
+}
+
+async function bootstrap() {
+  const cfg = await fetch('/api/config').then((r) => r.json()).catch(() => ({}));
+  state.googleClientId = cfg.googleClientId || '';
+  if (state.authToken) {
+    try {
+      await reloadData();
+      return;
+    } catch (error) {
+      localStorage.removeItem('auth_token');
+      state.authToken = '';
+      state.user = null;
+    }
   }
   render();
 }
