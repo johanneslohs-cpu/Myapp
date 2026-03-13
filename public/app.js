@@ -217,10 +217,7 @@ function openRecipe(id) {
     modal(`<div class="recipe-detail">
       <div class="recipe-detail-top">
         <button class="btn" id="closeModal">← Zurück</button>
-        <div class="row">
-          <button class="btn recipe-like-btn ${isFavorite ? 'active' : ''}" id="likeRecipe" aria-label="Rezept liken">♥</button>
-          <button class="btn recipe-dislike-btn" id="dislikeRecipe" aria-label="Rezept ablehnen">✕</button>
-        </div>
+        <button class="btn recipe-like-btn ${isFavorite ? 'active' : ''}" id="likeRecipe" aria-label="Rezept liken">♥</button>
       </div>
       <div class="recipe-hero">
         <div class="recipe-hero-media">${recipeImageMarkup(r, 'detail-photo')}</div>
@@ -301,13 +298,6 @@ function openRecipe(id) {
       state.swipedRecipeIds.add(r.id);
       state.favorites = await api.get('/api/favorites');
       draw();
-    };
-    document.getElementById('dislikeRecipe').onclick = async () => {
-      await api.post(`/api/recipes/${r.id}/dislike`);
-      state.dislikedRecipeIds.add(r.id);
-      state.swipedRecipeIds.add(r.id);
-      closeModal();
-      await reloadData();
     };
     document.getElementById('addToList').onclick = () => openAddToList(r.ingredients);
   };
@@ -407,7 +397,7 @@ function openFilter() {
       <div class="header"><button class="btn" id="closeModal">✕</button><h2>Filter</h2></div>
       <div class="filter-section"><h3>Kategorie</h3><div class="filter-options tags" id="catRow">${['Hauptgericht', 'Frühstück', 'Dinner', 'Nachtisch'].map((c) => `<button class="btn ${f.category === c ? 'active' : ''}" data-category="${c}">${c}</button>`).join('')}</div></div>
       <div class="filter-section"><h3>Kalorien</h3><div class="filter-options tags"><button class="btn ${f.maxCalories === 300 ? 'active' : ''}" data-cal="300">unter 300</button><button class="btn ${f.maxCalories === 400 ? 'active' : ''}" data-cal="400">unter 400</button><button class="btn ${f.maxCalories === 500 ? 'active' : ''}" data-cal="500">unter 500</button><button class="btn ${f.maxCalories === 700 ? 'active' : ''}" data-cal="700">unter 700</button></div></div>
-      <div class="filter-section"><h3>Eiweiß</h3><div class="filter-options tags"><button class="btn ${f.minProtein === 30 ? 'active' : ''}" data-pro="30">über 30</button><button class="btn ${f.minProtein === 50 ? 'active' : ''}" data-pro="50">über 50</button><button class="btn ${f.minProtein === 70 ? 'active' : ''}" data-pro="70">über 70</button></div></div>
+      <div class="filter-section"><h3>Eiweiß</h3><div class="filter-options tags"><button class="btn ${f.minProtein === 30 ? 'active' : ''}" data-pro="30">über 30 g</button><button class="btn ${f.minProtein === 50 ? 'active' : ''}" data-pro="50">über 50 g</button><button class="btn ${f.minProtein === 70 ? 'active' : ''}" data-pro="70">über 70 g</button></div></div>
       <div class="filter-section"><h3>Dauer</h3><div class="filter-options tags"><button class="btn ${f.maxDuration === 15 ? 'active' : ''}" data-dur="15">&lt;15 Min</button><button class="btn ${f.maxDuration === 30 ? 'active' : ''}" data-dur="30">&lt;30 Min</button><button class="btn ${f.maxDuration === 60 ? 'active' : ''}" data-dur="60">&lt;1 Std</button></div></div>
       <div class="filter-actions">
         <button class="btn" id="resetFilter">Filter zurücksetzen</button>
@@ -481,13 +471,23 @@ function openNewList() {
 
 function openSettings() {
   const s = state.settings;
-  modal(`<button class="btn" id="closeModal">← Einstellungen schließen</button>
+  modal(`<div class="settings-modal">
+    <button class="btn" id="closeModal">← Einstellungen schließen</button>
     <h2>Einstellungen</h2>
-    <label>Nutzername</label><input id="username" value="${s.username}" />
-    <label>Abo verwalten</label><div class="list-item">${s.manage_subscription_note}</div>
-    <button class="btn" id="saveSettings">Speichern</button>
-    <button class="btn" style="color:red" id="logout">Abmelden</button>
-    <button class="btn" style="color:red" id="deleteAccount">Account löschen</button>`);
+    <div class="settings-section">
+      <label for="username">Nutzername</label>
+      <input id="username" value="${s.username}" />
+    </div>
+    <div class="settings-section">
+      <label>Abo verwalten</label>
+      <div class="settings-note">${s.manage_subscription_note}</div>
+    </div>
+    <div class="settings-actions">
+      <button class="btn" id="saveSettings">Speichern</button>
+      <button class="btn settings-danger" id="logout">Abmelden</button>
+      <button class="btn settings-danger" id="deleteAccount">Account löschen</button>
+    </div>
+  </div>`);
   document.getElementById('closeModal').onclick = closeModal;
   document.getElementById('saveSettings').onclick = async () => { await api.patch('/api/settings', { username: document.getElementById('username').value }); await reloadData(); closeModal(); };
   document.getElementById('logout').onclick = async () => { await api.post('/api/auth/logout'); state.token=''; localStorage.removeItem('auth_token'); startAuthFlow(); };
@@ -505,8 +505,12 @@ function openExcluded() {
 
 function openDiet() {
   const options = ['Ich esse alles', 'Vegetarisch', 'Vegan', 'Low-Carb', 'High-Protein', 'Pescetarisch'];
-  modal(`<button class="btn" id="closeModal">← Zurück</button><h2>Ernährungsform</h2>
-    ${options.map((o) => `<div class="list-item"><label><input type="radio" name="diet" value="${o}" ${state.settings.diet === o ? 'checked' : ''}> ${o}</label></div>`).join('')}`);
+  modal(`<div class="diet-modal"><button class="btn" id="closeModal">← Zurück</button><h2>Ernährungsform</h2>
+    <p class="small">Wähle die Ernährungsweise, die am besten zu dir passt.</p>
+    <div class="diet-options">
+      ${options.map((o) => `<label class="diet-option ${state.settings.diet === o ? 'active' : ''}"><input type="radio" name="diet" value="${o}" ${state.settings.diet === o ? 'checked' : ''}><span class="diet-radio-dot"></span><span>${o}</span></label>`).join('')}
+    </div>
+  </div>`);
   document.getElementById('closeModal').onclick = closeModal;
   document.querySelectorAll('input[name="diet"]').forEach((r) => r.onchange = async () => { await api.patch('/api/settings', { diet: r.value }); await reloadData(); openDiet(); });
 }
@@ -581,10 +585,10 @@ function bind() {
 
 
 function authModal() {
-  modal(`<h2>Anmelden</h2>
+  modal(`<div class="auth-modal"><h2>Anmelden</h2>
     <p class="small">Melde dich mit Google an oder fahre als Gast fort.</p>
-    <div id="googleSignIn" style="margin:10px 0 12px;"></div>
-    <button class="btn" id="authGuest">Als Gast einloggen</button>`);
+    <div id="googleSignIn" class="auth-google-slot"></div>
+    <button class="btn auth-guest-btn" id="authGuest">Als Gast einloggen</button></div>`);
 
   document.getElementById('authGuest').onclick = async () => {
     const res = await api.post('/api/auth/guest', {});

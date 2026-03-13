@@ -262,3 +262,26 @@ textarea{min-height:100px}
 .color-row{gap:12px;margin-top:4px}
 .color-pick{width:32px;height:32px;border-radius:999px;border:2px solid rgba(255,255,255,.25);cursor:pointer;box-shadow:0 6px 14px rgba(0,0,0,.25)}
 .color-pick.active{transform:scale(1.08);border-color:#fff;box-shadow:0 0 0 3px rgba(126,214,223,.35)}
+
+
+.settings-modal{display:flex;flex-direction:column;gap:14px}
+.settings-section{display:flex;flex-direction:column;gap:8px;padding:14px;border:1px solid var(--line);border-radius:16px;background:linear-gradient(180deg,#1d2a22,#17211b)}
+.settings-section label{font-size:13px;color:#d2e2d6;font-weight:600}
+.settings-note{border:1px solid var(--line);border-radius:12px;padding:12px;background:#111a14;color:#d7e4d9;line-height:1.4}
+.settings-actions{display:flex;flex-direction:column;gap:10px;margin-top:2px}
+.settings-actions .btn{width:100%}
+.settings-danger{color:#ff9ba8}
+
+.diet-modal{display:flex;flex-direction:column;gap:12px}
+.diet-options{display:flex;flex-direction:column;gap:10px;margin-top:4px}
+.diet-option{display:flex;align-items:center;gap:12px;padding:14px;border:1px solid var(--line);border-radius:16px;background:linear-gradient(180deg,#202d24,#18221b);cursor:pointer;transition:.2s ease;box-shadow:0 10px 24px rgba(0,0,0,.2)}
+.diet-option:hover{transform:translateY(-1px)}
+.diet-option input{display:none}
+.diet-radio-dot{width:18px;height:18px;border-radius:999px;border:2px solid #9eb3a4;display:inline-block;position:relative;flex-shrink:0}
+.diet-option.active{border-color:rgba(87,216,144,.6);background:linear-gradient(180deg,rgba(87,216,144,.18),rgba(24,34,27,.95))}
+.diet-option input:checked + .diet-radio-dot{border-color:var(--primary);background:rgba(87,216,144,.14)}
+.diet-option input:checked + .diet-radio-dot::after{content:'';position:absolute;inset:3px;border-radius:999px;background:var(--primary)}
+
+.auth-modal{display:flex;flex-direction:column;gap:12px}
+.auth-google-slot{margin:6px 0}
+.auth-guest-btn{width:100%;padding:12px 14px;font-weight:700}
