@@ -621,12 +621,45 @@ function openSettings() {
 }
 
 function openExcluded() {
-  modal(`<button class="btn" id="closeModal">← Zurück</button><h2>Das esse ich nicht</h2>
-    <button class="btn" id="addExclude">＋ Zutat hinzufügen</button>
-    ${(state.settings.excluded || []).map((e) => `<div class="list-item"><label><input type="checkbox" data-ex="${e.id}" ${e.active ? 'checked' : ''}> ${e.name}</label></div>`).join('')}`);
+  const excluded = (state.settings.excluded || []).filter((entry) => entry.active);
+
+  modal(`<div class="excluded-modal">
+    <button class="btn" id="closeModal">← Zurück</button>
+    <h2>Das esse ich nicht</h2>
+    <p class="small excluded-note">Alle Rezepte, die eine dieser Zutaten enthalten, werden automatisch ausgeblendet.</p>
+    <div class="excluded-add-row">
+      <input id="excludeName" class="search" placeholder="z. B. Pilze, Sellerie, Lachs" />
+      <button class="btn" id="addExclude">Hinzufügen</button>
+    </div>
+    <div class="excluded-list">
+      ${excluded.map((entry) => `<div class="excluded-chip"><span>${entry.name}</span><button class="excluded-remove" data-remove-ex="${entry.id}" title="Zutat entfernen">✕</button></div>`).join('')}
+      ${excluded.length ? '' : '<div class="empty-state"><h3>Noch keine Zutaten</h3><p>Füge Zutaten hinzu, die du nicht essen möchtest.</p></div>'}
+    </div>
+  </div>`);
+
+  const addIngredient = async () => {
+    const input = document.getElementById('excludeName');
+    const name = input.value.trim();
+    if (!name) return;
+    await api.post('/api/excluded', { name });
+    await reloadData();
+    openExcluded();
+  };
+
   document.getElementById('closeModal').onclick = closeModal;
-  document.getElementById('addExclude').onclick = async () => { const name = prompt('Neue Zutat'); if (name) { await api.post('/api/excluded', { name }); await reloadData(); openExcluded(); } };
-  document.querySelectorAll('[data-ex]').forEach((b) => b.onchange = async () => { await api.patch(`/api/excluded/${b.dataset.ex}`, { active: b.checked }); await reloadData(); });
+  document.getElementById('addExclude').onclick = addIngredient;
+  document.getElementById('excludeName').onkeydown = async (event) => {
+    if (event.key !== 'Enter') return;
+    event.preventDefault();
+    await addIngredient();
+  };
+  document.querySelectorAll('[data-remove-ex]').forEach((button) => {
+    button.onclick = async () => {
+      await api.delete(`/api/excluded/${button.dataset.removeEx}`);
+      await reloadData();
+      openExcluded();
+    };
+  });
 }
 
 function openDiet() {

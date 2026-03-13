@@ -1768,6 +1768,17 @@ class Handler(BaseHTTPRequestHandler):
                     db.execute("DELETE FROM shopping_lists WHERE id=? AND user_id=?", (lid, uid))
                 self.send_json({"ok": True})
                 return
+
+            if p.startswith("/api/excluded/"):
+                eid = int(p.split("/")[3])
+                if ident["is_guest"]:
+                    g = ensure_guest(ident["token"])
+                    g["settings"]["excluded"] = [e for e in g["settings"]["excluded"] if e["id"] != eid]
+                else:
+                    uid = ident["user_id"]
+                    db.execute("DELETE FROM excluded_ingredients WHERE id=? AND user_id=?", (eid, uid))
+                self.send_json({"ok": True})
+                return
         self.send_json({"error": "Unbekannt"}, 404)
 
 
