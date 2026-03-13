@@ -115,6 +115,50 @@ function formatIngredientsWithPortions(ingredients = [], portions = 2) {
   });
 }
 
+function ingredientMergeKey(name = '') {
+  return String(name || '').trim().replace(/\s+/g, ' ').toLowerCase();
+}
+
+function mergeShoppingItems(existingItems = [], incomingIngredients = []) {
+  const merged = existingItems.map((item) => ({ ...item }));
+  const indexByName = new Map();
+
+  merged.forEach((item, index) => {
+    const key = ingredientMergeKey(item.name);
+    if (!key || indexByName.has(key)) return;
+    indexByName.set(key, index);
+  });
+
+  incomingIngredients.forEach((ingredient) => {
+    const ingredientName = String(ingredient || '').trim();
+    if (!ingredientName) return;
+    const key = ingredientMergeKey(ingredientName);
+    if (!key) return;
+    const existingIndex = indexByName.get(key);
+
+    if (existingIndex === undefined) {
+      merged.push({ name: ingredientName, checked: false });
+      indexByName.set(key, merged.length - 1);
+      return;
+    }
+
+    const parsedExisting = parseIngredientEntry(merged[existingIndex].name);
+    const parsedIncoming = parseIngredientEntry(ingredientName);
+    const sameBaseName = ingredientMergeKey(parsedExisting.name) === ingredientMergeKey(parsedIncoming.name);
+    const sameUnit = ingredientMergeKey(parsedExisting.unit) === ingredientMergeKey(parsedIncoming.unit);
+    const hasAmounts = parsedExisting.amount !== null && parsedIncoming.amount !== null;
+
+    if (sameBaseName && sameUnit && hasAmounts) {
+      const summedAmount = Math.round((parsedExisting.amount + parsedIncoming.amount) * 10) / 10;
+      const normalizedUnit = parsedExisting.unit || parsedIncoming.unit;
+      const normalizedName = parsedExisting.name;
+      merged[existingIndex].name = `${String(summedAmount).replace('.', ',')} ${normalizedUnit} ${normalizedName}`.replace(/\s+/g, ' ').trim();
+    }
+  });
+
+  return merged;
+}
+
 function fullStepText(step) {
   return `${step} Arbeite sauber und mit mittlerer Hitze, schmecke am Ende sorgfältig mit Salz, Pfeffer und frischen Kräutern ab und richte das Gericht anschließend direkt heiß an.`;
 }
@@ -634,13 +678,25 @@ function openLegal() {
 
 async function openAddToList(ingredients) {
   const lists = await api.get('/api/lists');
-  modal(`<button class="btn" id="closeModal">← Zurück</button><h2>Zu Einkaufsliste hinzufügen</h2>
-    ${lists.map((l) => `<div class="list-item" data-add-list="${l.id}">${l.name}</div>`).join('')}`);
+  modal(`<div class="add-to-list-modal">
+    <div class="add-to-list-head">
+      <button class="btn" id="closeModal">← Zurück</button>
+      <h2>Zu Einkaufsliste hinzufügen</h2>
+      <p class="small">Wähle eine Liste. Gleiche Zutaten werden zusammengeführt und Mengen addiert.</p>
+    </div>
+    <div class="add-to-list-grid">
+      ${lists.map((l) => `<button class="add-to-list-option" data-add-list="${l.id}">
+        <span class="add-to-list-name">${l.name}</span>
+        <span class="add-to-list-meta">${(l.items || []).length} Zutaten</span>
+      </button>`).join('') || '<div class="empty-state"><h3>Noch keine Listen</h3><p>Lege erst eine Einkaufsliste an, um Zutaten hinzuzufügen.</p></div>'}
+    </div>
+  </div>`);
   document.getElementById('closeModal').onclick = closeModal;
+  if (!lists.length) return;
   document.querySelectorAll('[data-add-list]').forEach((b) => b.onclick = async () => {
     const list = await api.get(`/api/lists/${b.dataset.addList}`);
-    ingredients.forEach((i) => list.items.push({ name: i, checked: false }));
-    await api.put(`/api/lists/${list.id}`, { name: list.name, items: list.items });
+    const mergedItems = mergeShoppingItems(list.items || [], ingredients || []);
+    await api.put(`/api/lists/${list.id}`, { name: list.name, items: mergedItems });
     await reloadData();
     closeModal();
   });
