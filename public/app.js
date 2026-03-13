@@ -177,7 +177,7 @@ function render() {
   if (state.tab === 'favorites') content = renderFavorites();
   if (state.tab === 'lists') content = renderLists();
   if (state.tab === 'profile') content = renderProfile();
-  app.innerHTML = `<div class="phone">${content}</div>${nav()}<div id="modalRoot"></div>`;
+  app.innerHTML = `<div class="phone">${content}</div>${nav()}`;
   bind();
 }
 
