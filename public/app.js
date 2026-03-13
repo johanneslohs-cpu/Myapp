@@ -11,14 +11,25 @@ const state = {
   swipedRecipeIds: new Set(),
   swipeBusy: false,
   swipeRecipes: [],
-  dislikedRecipeIds: new Set()
+  dislikedRecipeIds: new Set(),
+  authToken: localStorage.getItem('auth_token') || '',
+  user: null,
+  googleClientId: ''
 };
 
 async function request(url, options = {}) {
-  const response = await fetch(url, options);
+  const headers = { ...(options.headers || {}) };
+  if (state.authToken) headers.Authorization = `Bearer ${state.authToken}`;
+  const response = await fetch(url, { ...options, headers });
   const raw = await response.text();
   const data = raw ? JSON.parse(raw) : {};
   if (!response.ok) {
+    if (response.status === 401) {
+      localStorage.removeItem('auth_token');
+      state.authToken = '';
+      state.user = null;
+      render();
+    }
     const message = data.error || `HTTP ${response.status}`;
     throw new Error(message);
   }
@@ -50,6 +61,10 @@ function nav() {
 }
 
 function header(title, right = '') { return `<div class="header"><h1>${title}</h1><div>${right}</div></div>`; }
+
+function renderLogin() {
+  return `<div class="phone">${header('Anmelden')}<div class="empty-state"><h2>Google Login</h2><p>Melde dich an, damit Favoriten und Einkaufslisten accountbasiert gespeichert werden.</p><div id="googleSignIn"></div>${!state.googleClientId ? '<p class="small">GOOGLE_CLIENT_ID fehlt am Server.</p>' : ''}</div></div>`;
+}
 
 function recipeImageMarkup(recipe, className = 'recipe-photo') {
   const image = recipe.image || '';
@@ -159,14 +174,20 @@ function renderLists() {
 function renderProfile() {
   const s = state.settings;
   return `${header('Profil', `<button class="btn" id="openSettings">⚙</button>`)}
-  <div class="profile"><div class="avatar" id="changeAvatar">${s.profile_image}</div><h2>${s.username}</h2><p class="small">Smart Meal Matching · Green Edition</p></div>
+  <div class="profile"><div class="avatar" id="changeAvatar">${s.profile_image}</div><h2>${s.username}</h2><p class="small">${state.user?.email || 'Smart Meal Matching · Green Edition'}</p></div>
   <div class="stats"><div class="card"><h2>${state.favorites.length} ♥</h2><div>Favoriten</div></div><div class="card"><h2>${state.lists.length} 🛒</h2><div>Einkaufslisten</div></div></div>
   <div class="stats"><div class="card" id="openExcluded">Das esse ich nicht</div><div class="card" id="openDiet">${s.diet}</div></div>
   <div class="list-item" id="openFeedback">❓ Hilfe und Feedback</div>
-  <div class="list-item" id="openLegal">⋯ Sonstiges</div>`;
+  <div class="list-item" id="openLegal">⋯ Sonstiges</div>
+  <div class="list-item" id="logout">↩ Logout</div>`;
 }
 
 function render() {
+  if (!state.authToken) {
+    app.innerHTML = `${renderLogin()}<div id="modalRoot"></div>`;
+    initGoogleButton();
+    return;
+  }
   let content = '';
   if (state.tab === 'discover') content = renderDiscover();
   if (state.tab === 'swipe') content = renderSwipe();
@@ -555,10 +576,15 @@ function bind() {
   const of = document.getElementById('openFeedback'); if (of) of.onclick = openFeedback;
   const ol = document.getElementById('openLegal'); if (ol) ol.onclick = openLegal;
   const ca = document.getElementById('changeAvatar'); if (ca) ca.onclick = async () => { const e = prompt('Profilbild Emoji', state.settings.profile_image); if (e) { await api.patch('/api/settings', { profile_image: e }); await reloadData(); } };
+  const lo = document.getElementById('logout'); if (lo) lo.onclick = async () => { await api.post('/api/auth/logout', {}); localStorage.removeItem('auth_token'); state.authToken = ''; state.user = null; render(); };
   bindSwipeGestures();
 }
 
 async function reloadData(withRender = true) {
+  if (!state.authToken) {
+    render();
+    return;
+  }
   try {
     const q = new URLSearchParams({ search: state.search, ...Object.fromEntries(Object.entries(state.filters).map(([k, v]) => [k, String(v)])) });
     state.recipes = await api.get(`/api/recipes?${q}`);
@@ -567,6 +593,7 @@ async function reloadData(withRender = true) {
     state.dislikedRecipeIds = new Set(await api.get('/api/dislikes'));
     state.lists = await api.get('/api/lists');
     state.settings = await api.get('/api/settings');
+    state.user = await api.get('/api/auth/me');
     if (withRender) render(); else render();
   } catch (error) {
     console.error('Fehler beim Laden der Daten:', error);
@@ -574,4 +601,34 @@ async function reloadData(withRender = true) {
   }
 }
 
-reloadData();
+function initGoogleButton() {
+  if (!state.googleClientId || !window.google || !window.google.accounts || !document.getElementById('googleSignIn')) return;
+  window.google.accounts.id.initialize({
+    client_id: state.googleClientId,
+    callback: async ({ credential }) => {
+      const res = await api.post('/api/auth/google', { credential });
+      state.authToken = res.token;
+      localStorage.setItem('auth_token', res.token);
+      await reloadData();
+    },
+  });
+  window.google.accounts.id.renderButton(document.getElementById('googleSignIn'), { theme: 'outline', size: 'large', text: 'signin_with' });
+}
+
+async function bootstrap() {
+  const cfg = await fetch('/api/config').then((r) => r.json()).catch(() => ({}));
+  state.googleClientId = cfg.googleClientId || '';
+  if (state.authToken) {
+    try {
+      await reloadData();
+      return;
+    } catch (error) {
+      localStorage.removeItem('auth_token');
+      state.authToken = '';
+      state.user = null;
+    }
+  }
+  render();
+}
+
+bootstrap();

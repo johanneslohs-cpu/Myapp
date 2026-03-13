@@ -1,14 +1,14 @@
-# MyApp – Rezept-App (Mockup umgesetzt)
+# MyApp – Rezept-App
 
-Vollständige App mit allen gewünschten Bereichen:
+Jetzt mit **Google-Login** und nutzerbezogener Speicherung.
 
-- Entdecken (Suche, Filter, Rezeptdetails)
-- Menu-Swipe (Like / Dislike / Info)
-- Favoriten (anzeigen, entfernen, weitere hinzufügen)
-- Einkaufslisten (erstellen, bearbeiten, speichern, löschen)
-- Profil (Einstellungen, Profilbild ändern, ausgeschlossene Zutaten, Ernährungsform)
-- Hilfe & Feedback (wird in DB gespeichert)
-- Sonstiges (Beispieltexte für Nutzungsbedingungen, Datenschutz, AGB)
+## Features
+
+- Login/Registrierung mit Google-Konto
+- Favoriten pro Account
+- Einkaufslisten pro Account
+- Profileinstellungen pro Account
+- Daten bleiben beim erneuten Login (auch auf anderem Gerät, solange derselbe Server genutzt wird)
 
 ## Stack
 
@@ -19,12 +19,15 @@ Vollständige App mit allen gewünschten Bereichen:
 ## Start
 
 ```bash
+export GOOGLE_CLIENT_ID="deine-google-client-id.apps.googleusercontent.com"
 python3 app.py
 ```
 
 Dann im Browser öffnen: `http://localhost:3000`
 
-## Hinweis
+## Google OAuth einrichten
 
-- **Abo verwalten** ist wie gewünscht als Platzhalter ohne echte Funktion enthalten.
-- Alle Daten liegen lokal in `app.db`.
+1. In der Google Cloud Console ein OAuth Client (Web) erstellen.
+2. JavaScript Origin z. B. `http://localhost:3000` eintragen.
+3. Client-ID als `GOOGLE_CLIENT_ID` setzen.
+
