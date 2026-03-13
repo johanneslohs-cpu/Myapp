@@ -217,7 +217,11 @@ class Handler(BaseHTTPRequestHandler):
 
     def auth_identity(self, db):
         auth = self.headers.get("Authorization", "")
-        token = auth.removeprefix("Bearer ").strip() or self.headers.get("X-Auth-Token", "")
+        if auth.startswith("Bearer "):
+            token = auth[len("Bearer "):].strip()
+        else:
+            token = ""
+        token = token or self.headers.get("X-Auth-Token", "")
         if not token:
             return None
         s = db.execute("SELECT token,user_id,is_guest FROM sessions WHERE token=?", (token,)).fetchone()
