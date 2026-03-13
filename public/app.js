@@ -182,12 +182,23 @@ function render() {
 }
 
 function modal(html) {
-  document.getElementById('modalRoot').innerHTML = `<div class="modal"><div class="modal-content">${html}</div></div>`;
+  const root = ensureModalRoot();
+  root.innerHTML = `<div class="modal"><div class="modal-content">${html}</div></div>`;
   document.querySelector('.modal').onclick = (e) => {
     if (e.target.classList.contains('modal')) closeModal();
   };
 }
-function closeModal() { document.getElementById('modalRoot').innerHTML = ''; }
+function ensureModalRoot() {
+  let root = document.getElementById('modalRoot');
+  if (!root) {
+    root = document.createElement('div');
+    root.id = 'modalRoot';
+    document.body.appendChild(root);
+  }
+  return root;
+}
+
+function closeModal() { ensureModalRoot().innerHTML = ''; }
 
 function openRecipe(id) {
   const r = [...state.recipes, ...state.favorites].find((x) => x.id === Number(id));
