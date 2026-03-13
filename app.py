@@ -92,6 +92,9 @@ def init_db():
         ensure_column(db, "users", "updated_at", "TEXT DEFAULT CURRENT_TIMESTAMP")
 
         ensure_column(db, "user_settings", "manage_subscription_note", "TEXT NOT NULL DEFAULT 'Hier könntest du dein Abo verwalten.'")
+        ensure_column(db, "user_settings", "username", "TEXT NOT NULL DEFAULT 'Nutzer'")
+        ensure_column(db, "user_settings", "profile_image", "TEXT NOT NULL DEFAULT '👤'")
+        ensure_column(db, "user_settings", "diet", "TEXT NOT NULL DEFAULT 'Ich esse alles'")
 
         seed_recipes(db)
 
