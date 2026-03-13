@@ -39,6 +39,24 @@ const api = {
 
 const app = document.getElementById('app');
 
+const FALLBACK_FOOD_IMAGES = [
+  'https://images.unsplash.com/photo-1498837167922-ddd27525d352?auto=format&fit=crop&w=1200&q=80',
+  'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=1200&q=80',
+  'https://images.unsplash.com/photo-1467003909585-2f8a72700288?auto=format&fit=crop&w=1200&q=80',
+  'https://images.unsplash.com/photo-1473093295043-cdd812d0e601?auto=format&fit=crop&w=1200&q=80',
+  'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=1200&q=80',
+  'https://images.unsplash.com/photo-1515003197210-e0cd71810b5f?auto=format&fit=crop&w=1200&q=80'
+];
+
+function hashString(value = '') {
+  return [...value].reduce((sum, c) => sum + c.charCodeAt(0), 0);
+}
+
+function recipeFallbackImage(recipe) {
+  const key = `${recipe.name || ''}-${recipe.cuisine || ''}-${recipe.category || ''}`;
+  return FALLBACK_FOOD_IMAGES[hashString(key) % FALLBACK_FOOD_IMAGES.length];
+}
+
 const getSwipeQueue = () => state.swipeRecipes.filter((recipe) => !state.swipedRecipeIds.has(recipe.id));
 const currentSwipeRecipe = () => getSwipeQueue()[0];
 
@@ -57,10 +75,47 @@ function header(title, right = '') { return `<div class="header"><h1>${title}</h
 
 function recipeImageMarkup(recipe, className = 'recipe-photo') {
   const image = recipe.image || '';
-  if (/^https?:\/\//.test(image)) {
-    return `<img class="${className}" src="${image}" alt="${recipe.name}" loading="lazy">`;
+  const source = /^https?:\/\//.test(image) ? image : recipeFallbackImage(recipe);
+  return `<img class="${className}" src="${source}" alt="${recipe.name}" loading="lazy">`;
+}
+
+function resetLocalUserState() {
+  state.tab = 'discover';
+  state.search = '';
+  state.filters = {};
+  state.selectedRecipe = null;
+  state.selectedList = null;
+  state.swipedRecipeIds = new Set();
+  state.swipeBusy = false;
+  state.swipeRecipes = [];
+  state.dislikedRecipeIds = new Set();
+  state.recipes = [];
+  state.favorites = [];
+  state.lists = [];
+  state.settings = null;
+}
+
+function parseIngredientEntry(entry) {
+  const raw = String(entry || '').trim();
+  const m = raw.match(/^(\d+[\d.,]*)\s*(g|kg|ml|l|EL|TL|Stk\.?|Stück|Prise|Bund|Dose|Dosen)?\s+(.+)$/i);
+  if (m) {
+    const amount = Number(m[1].replace(',', '.'));
+    return { amount: Number.isFinite(amount) ? amount : 1, unit: m[2] || '', name: m[3] };
   }
-  return `<div class="recipe-emoji">${image}</div>`;
+  return { amount: 1, unit: 'Portion', name: raw };
+}
+
+function formatIngredientsWithPortions(ingredients = [], portions = 2) {
+  const factor = Math.max(1, portions) / 2;
+  return ingredients.map((ingredient) => {
+    const parsed = parseIngredientEntry(ingredient);
+    const scaledAmount = Math.round(parsed.amount * factor * 10) / 10;
+    return `${String(scaledAmount).replace('.', ',')} ${parsed.unit} ${parsed.name}`.replace(/\s+/g, ' ').trim();
+  });
+}
+
+function fullStepText(step) {
+  return `${step} Arbeite sauber und mit mittlerer Hitze, schmecke am Ende sorgfältig mit Salz, Pfeffer und frischen Kräutern ab und richte das Gericht anschließend direkt heiß an.`;
 }
 
 function renderDiscover() {
@@ -214,6 +269,7 @@ function openRecipe(id) {
   let pickedIngredients = new Set();
   const draw = () => {
     const isFavorite = state.favorites.some((recipe) => recipe.id === r.id);
+    const detailedIngredients = formatIngredientsWithPortions(r.ingredients || [], portions);
     modal(`<div class="recipe-detail">
       <div class="recipe-detail-top">
         <button class="btn" id="closeModal">← Zurück</button>
@@ -247,7 +303,7 @@ function openRecipe(id) {
 
       <h2 class="recipe-section-title">Zutaten</h2>
       <div class="recipe-ingredients">
-        ${(r.ingredients || []).map((i, index) => {
+        ${detailedIngredients.map((i, index) => {
           const picked = pickedIngredients.has(index);
           return `<div class="ingredient ingredient-card ${picked ? 'picked' : ''}"><span class="ingredient-text">${i}</span><button class="ingredient-pick ${picked ? 'picked' : ''}" data-ingredient-pick="${index}" title="Als gekauft markieren">${picked ? '✓' : '○'}</button></div>`;
         }).join('')}
@@ -266,7 +322,7 @@ function openRecipe(id) {
 
       <h2 class="recipe-section-title" id="steps">Zubereitung</h2>
       <div class="steps-list">
-        ${r.steps.map((s, i) => `<div class="step-card"><div class="step-index">${String(i + 1).padStart(2, '0')}</div><div><h3>Schritt ${i + 1}</h3><p>${s}</p></div></div>`).join('')}
+        ${r.steps.map((s, i) => `<div class="step-card"><div class="step-index">${String(i + 1).padStart(2, '0')}</div><div><h3>Schritt ${i + 1}</h3><p>${fullStepText(s)}</p></div></div>`).join('')}
       </div>
     </div>`);
 
@@ -490,7 +546,13 @@ function openSettings() {
   </div>`);
   document.getElementById('closeModal').onclick = closeModal;
   document.getElementById('saveSettings').onclick = async () => { await api.patch('/api/settings', { username: document.getElementById('username').value }); await reloadData(); closeModal(); };
-  document.getElementById('logout').onclick = async () => { await api.post('/api/auth/logout'); state.token=''; localStorage.removeItem('auth_token'); startAuthFlow(); };
+  document.getElementById('logout').onclick = async () => {
+    await api.post('/api/auth/logout');
+    state.token='';
+    localStorage.removeItem('auth_token');
+    resetLocalUserState();
+    startAuthFlow();
+  };
   document.getElementById('deleteAccount').onclick = () => alert('Account löschen ist aktuell deaktiviert.');
 }
 
@@ -592,6 +654,7 @@ function authModal() {
 
   document.getElementById('authGuest').onclick = async () => {
     const res = await api.post('/api/auth/guest', {});
+    resetLocalUserState();
     state.token = res.token; localStorage.setItem('auth_token', res.token); closeModal(); await startAuthFlow();
   };
 
@@ -602,6 +665,7 @@ function authModal() {
       callback: async (response) => {
         try {
           const res = await api.post('/api/auth/google', { credential: response.credential });
+          resetLocalUserState();
           state.token = res.token;
           localStorage.setItem('auth_token', res.token);
           closeModal();
@@ -636,6 +700,7 @@ async function startAuthFlow() {
     state.auth = await api.get('/api/auth/me');
     await reloadData();
   } catch (error) {
+    resetLocalUserState();
     state.token = '';
     localStorage.removeItem('auth_token');
     authModal();
