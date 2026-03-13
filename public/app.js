@@ -11,6 +11,7 @@ const state = {
   authToken: localStorage.getItem('auth_token') || '',
   user: null,
   googleClientId: '',
+  googleInitRetries: 0,
 };
 
 const app = document.getElementById('app');
@@ -168,7 +169,7 @@ function bind() {
 async function reloadData() {
   if (!state.authToken) {
     render();
-    return;
+    return false;
   }
 
   try {
@@ -181,14 +182,23 @@ async function reloadData() {
     state.settings = await api.get('/api/settings');
     state.user = await api.get('/api/auth/me');
     render();
+    return true;
   } catch (error) {
     console.error('Fehler beim Laden der Daten:', error);
     alert(`Daten konnten nicht geladen werden: ${error.message}`);
+    return false;
   }
 }
 
 function initGoogleButton() {
-  if (!state.googleClientId || !window.google || !window.google.accounts || !document.getElementById('googleSignIn')) return;
+  if (!state.googleClientId || !document.getElementById('googleSignIn')) return;
+  if (!window.google || !window.google.accounts) {
+    if (state.googleInitRetries < 20) {
+      state.googleInitRetries += 1;
+      setTimeout(initGoogleButton, 250);
+    }
+    return;
+  }
   window.google.accounts.id.initialize({
     client_id: state.googleClientId,
     callback: async ({ credential }) => {
@@ -206,14 +216,12 @@ async function bootstrap() {
   state.googleClientId = cfg.googleClientId || '';
 
   if (state.authToken) {
-    try {
-      await reloadData();
-      return;
-    } catch (_error) {
-      localStorage.removeItem('auth_token');
-      state.authToken = '';
-      state.user = null;
-    }
+    const ok = await reloadData();
+    if (ok) return;
+
+    localStorage.removeItem('auth_token');
+    state.authToken = '';
+    state.user = null;
   }
 
   render();
