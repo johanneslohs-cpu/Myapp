@@ -102,13 +102,14 @@ function parseIngredientEntry(entry) {
     const amount = Number(m[1].replace(',', '.'));
     return { amount: Number.isFinite(amount) ? amount : 1, unit: m[2] || '', name: m[3] };
   }
-  return { amount: 1, unit: 'Portion', name: raw };
+  return { amount: null, unit: '', name: raw };
 }
 
 function formatIngredientsWithPortions(ingredients = [], portions = 2) {
   const factor = Math.max(1, portions) / 2;
   return ingredients.map((ingredient) => {
     const parsed = parseIngredientEntry(ingredient);
+    if (parsed.amount === null) return parsed.name;
     const scaledAmount = Math.round(parsed.amount * factor * 10) / 10;
     return `${String(scaledAmount).replace('.', ',')} ${parsed.unit} ${parsed.name}`.replace(/\s+/g, ' ').trim();
   });
