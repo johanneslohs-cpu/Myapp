@@ -504,7 +504,7 @@ function openExcluded() {
 }
 
 function openDiet() {
-  const options = ['Ich esse alles', 'Vegetarisch', 'Vegan', 'Low-Carb', 'High-Protein', 'Pescetarisch'];
+  const options = ['Ich esse alles', 'Pescetarisch', 'Vegetarisch', 'Vegan', 'High-Protein'];
   modal(`<div class="diet-modal"><button class="btn" id="closeModal">← Zurück</button><h2>Ernährungsform</h2>
     <p class="small">Wähle die Ernährungsweise, die am besten zu dir passt.</p>
     <div class="diet-options">
