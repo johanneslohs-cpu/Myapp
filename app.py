@@ -11,7 +11,10 @@ from urllib.request import urlopen
 ROOT = Path(__file__).parent
 PUBLIC = ROOT / "public"
 DB_PATH = ROOT / "app.db"
-GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", "")
+GOOGLE_CLIENT_ID = os.environ.get(
+    "GOOGLE_CLIENT_ID",
+    "1014015739173-sj85p3bdscndu859jtveok8kjrgfqr2q.apps.googleusercontent.com",
+)
 
 
 def conn():
