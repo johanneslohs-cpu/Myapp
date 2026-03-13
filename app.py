@@ -27,6 +27,11 @@ def table_columns(db, table_name):
     return {r["name"] for r in db.execute(f"PRAGMA table_info({table_name})").fetchall()}
 
 
+def ensure_column(db, table_name, column_name, ddl):
+    if column_name not in table_columns(db, table_name):
+        db.execute(f"ALTER TABLE {table_name} ADD COLUMN {column_name} {ddl}")
+
+
 def seed_recipes(db):
     if db.execute("SELECT COUNT(*) FROM recipes").fetchone()[0] > 0:
         return
@@ -78,9 +83,15 @@ def init_db():
         )
 
         for t in ["favorites", "dislikes", "shopping_lists", "excluded_ingredients", "feedback_messages"]:
-            cols = table_columns(db, t)
-            if "user_id" not in cols:
-                db.execute(f"ALTER TABLE {t} ADD COLUMN user_id INTEGER")
+            ensure_column(db, t, "user_id", "INTEGER")
+
+        ensure_column(db, "users", "email", "TEXT")
+        ensure_column(db, "users", "name", "TEXT")
+        ensure_column(db, "users", "picture", "TEXT")
+        ensure_column(db, "users", "created_at", "TEXT DEFAULT CURRENT_TIMESTAMP")
+        ensure_column(db, "users", "updated_at", "TEXT DEFAULT CURRENT_TIMESTAMP")
+
+        ensure_column(db, "user_settings", "manage_subscription_note", "TEXT NOT NULL DEFAULT 'Hier könntest du dein Abo verwalten.'")
 
         seed_recipes(db)
 
