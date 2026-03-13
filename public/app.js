@@ -576,33 +576,49 @@ function bind() {
 
 function authModal() {
   modal(`<h2>Anmelden</h2>
-    <p class="small">Erstelle einen Account, melde dich an oder fahre als Gast fort.</p>
-    <label>E-Mail</label><input id="authEmail" placeholder="name@email.de" />
-    <label>Passwort</label><input id="authPassword" type="password" placeholder="mind. 6 Zeichen" />
-    <label>Name (nur bei Registrierung)</label><input id="authName" placeholder="Dein Name" />
-    <div class="row" style="margin-top:10px;gap:8px;flex-wrap:wrap;">
-      <button class="btn" id="authLogin">Anmelden</button>
-      <button class="btn" id="authRegister">Account erstellen</button>
-      <button class="btn" id="authGuest">Als Gast fortfahren</button>
-    </div>`);
+    <p class="small">Melde dich mit Google an oder fahre als Gast fort.</p>
+    <div id="googleSignIn" style="margin:10px 0 12px;"></div>
+    <button class="btn" id="authGuest">Als Gast einloggen</button>`);
 
-  const email = () => document.getElementById('authEmail').value.trim();
-  const password = () => document.getElementById('authPassword').value;
-  const name = () => document.getElementById('authName').value.trim();
-
-  document.getElementById('authLogin').onclick = async () => {
-    const res = await api.post('/api/auth/login', { email: email(), password: password() });
-    state.token = res.token; localStorage.setItem('auth_token', res.token); closeModal(); await startAuthFlow();
-  };
-  document.getElementById('authRegister').onclick = async () => {
-    const res = await api.post('/api/auth/register', { email: email(), password: password(), username: name() || 'Nutzer' });
-    state.token = res.token; localStorage.setItem('auth_token', res.token); closeModal(); await startAuthFlow();
-  };
   document.getElementById('authGuest').onclick = async () => {
     const res = await api.post('/api/auth/guest', {});
     state.token = res.token; localStorage.setItem('auth_token', res.token); closeModal(); await startAuthFlow();
   };
+
+  const initializeGoogle = () => {
+    if (!window.google || !window.google.accounts || !window.google.accounts.id) return;
+    window.google.accounts.id.initialize({
+      client_id: '1014015739173-sj85p3bdscndu859jtveok8kjrgfqr2q.apps.googleusercontent.com',
+      callback: async (response) => {
+        try {
+          const res = await api.post('/api/auth/google', { credential: response.credential });
+          state.token = res.token;
+          localStorage.setItem('auth_token', res.token);
+          closeModal();
+          await startAuthFlow();
+        } catch (error) {
+          alert(`Google Login fehlgeschlagen: ${error.message}`);
+        }
+      }
+    });
+    window.google.accounts.id.renderButton(
+      document.getElementById('googleSignIn'),
+      { theme: 'outline', size: 'large', text: 'signin_with', shape: 'pill', width: 280 }
+    );
+  };
+
+  initializeGoogle();
+  if (!window.google) {
+    const waitForGoogle = setInterval(() => {
+      if (window.google) {
+        clearInterval(waitForGoogle);
+        initializeGoogle();
+      }
+    }, 150);
+    setTimeout(() => clearInterval(waitForGoogle), 5000);
+  }
 }
+
 
 async function startAuthFlow() {
   if (!state.token) { authModal(); return; }
