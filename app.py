@@ -1727,6 +1727,24 @@ class Handler(BaseHTTPRequestHandler):
             ident = self.require_identity(db)
             if not ident:
                 return
+            if p == "/api/account":
+                if ident["is_guest"]:
+                    self.send_json({"error": "Gast-Accounts können nicht gelöscht werden"}, 400)
+                    return
+
+                uid = ident["user_id"]
+                db.execute("DELETE FROM sessions WHERE user_id=?", (uid,))
+                db.execute("DELETE FROM favorites WHERE user_id=?", (uid,))
+                db.execute("DELETE FROM dislikes WHERE user_id=?", (uid,))
+                db.execute("DELETE FROM excluded_ingredients WHERE user_id=?", (uid,))
+                db.execute("DELETE FROM feedback_messages WHERE user_id=?", (uid,))
+                db.execute("DELETE FROM shopping_items WHERE list_id IN (SELECT id FROM shopping_lists WHERE user_id=?)", (uid,))
+                db.execute("DELETE FROM shopping_lists WHERE user_id=?", (uid,))
+                db.execute("DELETE FROM user_settings WHERE user_id=?", (uid,))
+                db.execute("DELETE FROM users WHERE id=?", (uid,))
+
+                self.send_json({"ok": True})
+                return
             if p.startswith("/api/favorites/"):
                 rid = int(p.split("/")[3])
                 if ident["is_guest"]:
