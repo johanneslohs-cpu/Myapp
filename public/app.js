@@ -162,8 +162,14 @@ function renderLists() {
 
 function renderProfile() {
   const s = state.settings;
+  const profileImage = s.profile_image || '';
+  const hasImageUrl = /^https?:\/\//.test(profileImage);
+  const avatarContent = hasImageUrl
+    ? `<img src="${profileImage}" alt="${s.username}" class="avatar-image" loading="lazy">`
+    : (s.username || '?').trim().charAt(0).toUpperCase() || '?';
+
   return `${header('Profil', `<button class="btn" id="openSettings">⚙</button>`)}
-  <div class="profile"><div class="avatar" id="changeAvatar">${s.profile_image}</div><h2>${s.username}</h2><p class="small">Smart Meal Matching · Green Edition</p></div>
+  <div class="profile"><div class="avatar" id="changeAvatar">${avatarContent}</div><h2>${s.username}</h2><p class="small">Smart Meal Matching · Green Edition</p></div>
   <div class="stats"><div class="card"><h2>${state.favorites.length} ♥</h2><div>Favoriten</div></div><div class="card"><h2>${state.lists.length} 🛒</h2><div>Einkaufslisten</div></div></div>
   <div class="stats"><div class="card" id="openExcluded">Das esse ich nicht</div><div class="card" id="openDiet">${s.diet}</div></div>
   <div class="list-item" id="openFeedback">❓ Hilfe und Feedback</div>
