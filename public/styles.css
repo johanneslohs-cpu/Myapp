@@ -272,6 +272,17 @@ textarea{min-height:100px}
 .settings-actions .btn{width:100%}
 .settings-danger{color:#ff9ba8}
 
+
+.excluded-modal{display:flex;flex-direction:column;gap:12px}
+.excluded-note{color:#c7d9cc;line-height:1.45;margin-top:-4px}
+.excluded-add-row{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center}
+.excluded-add-row .search{margin:0}
+.excluded-list{display:flex;flex-wrap:wrap;gap:10px;margin-top:2px}
+.excluded-chip{display:inline-flex;align-items:center;gap:8px;padding:10px 12px;border-radius:999px;border:1px solid rgba(126,225,165,.45);background:linear-gradient(160deg,rgba(64,122,88,.45),rgba(24,34,27,.95));max-width:100%}
+.excluded-chip span{font-size:14px;line-height:1.3}
+.excluded-remove{width:24px;height:24px;border-radius:999px;border:1px solid rgba(255,255,255,.28);background:#152019;color:#f3ffef;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0}
+.excluded-remove:hover{border-color:#ff9ba8;color:#ffb7c0}
+
 .diet-modal{display:flex;flex-direction:column;gap:12px}
 .diet-options{display:flex;flex-direction:column;gap:10px;margin-top:4px}
 .diet-option{display:flex;align-items:center;gap:12px;padding:14px;border:1px solid var(--line);border-radius:16px;background:linear-gradient(180deg,#202d24,#18221b);cursor:pointer;transition:.2s ease;box-shadow:0 10px 24px rgba(0,0,0,.2)}
