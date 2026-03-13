@@ -6,6 +6,7 @@ from datetime import datetime
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
+from urllib.error import HTTPError, URLError
 from urllib.request import urlopen
 
 ROOT = Path(__file__).resolve().parent
@@ -121,8 +122,13 @@ def row_to_recipe(r):
 
 
 def verify_google_token(credential):
-    with urlopen(f"https://oauth2.googleapis.com/tokeninfo?id_token={credential}") as resp:
-        payload = json.loads(resp.read().decode("utf-8"))
+    try:
+        with urlopen(f"https://oauth2.googleapis.com/tokeninfo?id_token={credential}") as resp:
+            payload = json.loads(resp.read().decode("utf-8"))
+    except HTTPError as e:
+        raise ValueError(f"Google-Token konnte nicht verifiziert werden (HTTP {e.code})") from e
+    except URLError as e:
+        raise ValueError("Google-Token konnte wegen eines Netzwerkfehlers nicht verifiziert werden") from e
     if GOOGLE_CLIENT_ID and payload.get("aud") != GOOGLE_CLIENT_ID:
         raise ValueError("Google Client ID stimmt nicht überein")
     return payload
@@ -149,7 +155,13 @@ class Handler(BaseHTTPRequestHandler):
         if not token:
             return None
         row = db.execute("SELECT user_id FROM sessions WHERE token=?", (token,)).fetchone()
-        return row["user_id"] if row else None
+        if not row:
+            return None
+        user_exists = db.execute("SELECT id FROM users WHERE id=?", (row["user_id"],)).fetchone()
+        if not user_exists:
+            db.execute("DELETE FROM sessions WHERE token=?", (token,))
+            return None
+        return row["user_id"]
 
     def require_user(self, db):
         uid = self.auth_user(db)
@@ -188,6 +200,9 @@ class Handler(BaseHTTPRequestHandler):
                 if not uid:
                     return
                 u = db.execute("SELECT id,email,name,picture FROM users WHERE id=?", (uid,)).fetchone()
+                if not u:
+                    self.send_json({"error": "Nutzer nicht gefunden"}, 404)
+                    return
                 self.send_json(dict(u))
                 return
 
@@ -265,6 +280,7 @@ class Handler(BaseHTTPRequestHandler):
                 return
 
             if p == "/api/settings":
+                self.ensure_user_defaults(db, uid)
                 s = db.execute("SELECT * FROM user_settings WHERE user_id=?", (uid,)).fetchone()
                 self.send_json({**dict(s), "excluded": [dict(r) for r in db.execute("SELECT * FROM excluded_ingredients WHERE user_id=?", (uid,)).fetchall()]})
                 return
