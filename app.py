@@ -7,12 +7,14 @@ from datetime import datetime
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
+from urllib.request import urlopen
 
 ROOT = Path(__file__).resolve().parent
 PUBLIC = ROOT / "public"
 DB_PATH = ROOT / "app.db"
 
 GUEST_DATA = {}
+GOOGLE_CLIENT_ID = "1014015739173-sj85p3bdscndu859jtveok8kjrgfqr2q.apps.googleusercontent.com"
 
 
 def conn():
@@ -123,22 +125,50 @@ def verify_password(password, stored):
     return hmac.compare_digest(calc, digest)
 
 
+RECIPE_CATALOG = [
+    ("Spaghetti Bolognese", "Hauptgericht", 25, 10, "Italienisch", 520, 31, "https://images.unsplash.com/photo-1621996346565-e3dbc646d9a9?auto=format&fit=crop&w=1200&q=80", "Klassische Pasta mit kräftiger Tomatensauce.", ["Spaghetti", "Rinderhack", "Tomaten", "Zwiebel", "Knoblauch"], ["Pasta al dente kochen", "Sauce 20 Minuten köcheln lassen", "Mit Parmesan servieren"], {"kcal": 520, "carbs": 56, "protein": 31, "fat": 18}, ["high-protein"]),
+    ("Hähnchen Teriyaki Bowl", "Hauptgericht", 30, 9, "Asiatisch", 490, 36, "https://images.unsplash.com/photo-1512058564366-18510be2db19?auto=format&fit=crop&w=1200&q=80", "Saftiges Hähnchen mit Reis und Gemüse.", ["Hähnchenbrust", "Reis", "Brokkoli", "Karotte", "Teriyaki-Sauce"], ["Reis kochen", "Hähnchen anbraten", "Gemüse garen und alles glasieren"], {"kcal": 490, "carbs": 52, "protein": 36, "fat": 14}, ["high-protein"]),
+    ("Ofengemüse mit Feta", "Dinner", 35, 8, "Mediterran", 410, 17, "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=1200&q=80", "Buntes Gemüse aus dem Ofen mit cremigem Feta.", ["Zucchini", "Paprika", "Süßkartoffel", "Feta", "Olivenöl"], ["Gemüse schneiden", "Mit Öl und Gewürzen mischen", "30 Minuten backen"], {"kcal": 410, "carbs": 39, "protein": 17, "fat": 18}, ["vegetarisch"]),
+    ("Lachs mit Zitronenreis", "Hauptgericht", 28, 7, "Nordisch", 530, 34, "https://images.unsplash.com/photo-1467003909585-2f8a72700288?auto=format&fit=crop&w=1200&q=80", "Zarter Lachs auf aromatischem Zitronenreis.", ["Lachsfilet", "Reis", "Zitrone", "Spinat", "Dill"], ["Reis kochen", "Lachs knusprig braten", "Mit Zitronenschale verfeinern"], {"kcal": 530, "carbs": 44, "protein": 34, "fat": 22}, ["high-protein"]),
+    ("Shakshuka", "Frühstück", 22, 7, "Orientalisch", 360, 24, "https://images.unsplash.com/photo-1590412200988-a436970781fa?auto=format&fit=crop&w=1200&q=80", "Würzige Tomatensauce mit pochierten Eiern.", ["Eier", "Tomaten", "Paprika", "Zwiebel", "Kreuzkümmel"], ["Sauce kochen", "Mulden formen", "Eier stocken lassen"], {"kcal": 360, "carbs": 14, "protein": 24, "fat": 21}, ["vegetarisch", "low-carb"]),
+    ("Protein-Pancakes", "Frühstück", 15, 6, "International", 330, 27, "https://images.unsplash.com/photo-1528207776546-365bb710ee93?auto=format&fit=crop&w=1200&q=80", "Fluffige Pancakes mit viel Eiweiß.", ["Haferflocken", "Eier", "Skyr", "Backpulver", "Banane"], ["Teig mixen", "In Pfanne ausbacken", "Mit Beeren toppen"], {"kcal": 330, "carbs": 32, "protein": 27, "fat": 10}, ["vegetarisch", "high-protein"]),
+    ("Caesar Salad mit Hähnchen", "Dinner", 20, 9, "Amerikanisch", 450, 35, "https://images.unsplash.com/photo-1546793665-c74683f339c1?auto=format&fit=crop&w=1200&q=80", "Knackiger Salat mit gegrilltem Hähnchen.", ["Römersalat", "Hähnchen", "Parmesan", "Croutons", "Caesar Dressing"], ["Hähnchen grillen", "Salat vorbereiten", "Alles mischen"], {"kcal": 450, "carbs": 18, "protein": 35, "fat": 24}, ["low-carb", "high-protein"]),
+    ("Gemüse-Curry", "Hauptgericht", 32, 10, "Indisch", 470, 16, "https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?auto=format&fit=crop&w=1200&q=80", "Cremiges Curry mit Kokosmilch und Gemüse.", ["Kichererbsen", "Blumenkohl", "Karotten", "Kokosmilch", "Currypaste"], ["Gemüse anbraten", "Currypaste rösten", "Mit Kokosmilch köcheln"], {"kcal": 470, "carbs": 49, "protein": 16, "fat": 21}, ["vegan", "vegetarisch"]),
+    ("Rindergeschnetzeltes", "Hauptgericht", 27, 8, "Deutsch", 560, 38, "https://images.unsplash.com/photo-1600891964599-f61ba0e24092?auto=format&fit=crop&w=1200&q=80", "Kräftiges Rindfleisch in Pilzrahm.", ["Rindfleisch", "Champignons", "Zwiebeln", "Sahne", "Petersilie"], ["Fleisch scharf anbraten", "Pilze garen", "Kurz cremig einkochen"], {"kcal": 560, "carbs": 15, "protein": 38, "fat": 34}, ["low-carb", "high-protein"]),
+    ("Falafel Wrap", "Dinner", 18, 9, "Orientalisch", 430, 15, "https://images.unsplash.com/photo-1529006557810-274b9b2fc783?auto=format&fit=crop&w=1200&q=80", "Knusprige Falafel mit frischem Salat im Wrap.", ["Falafel", "Wrap", "Salat", "Tomate", "Joghurtsauce"], ["Falafel backen", "Gemüse schneiden", "Wrap füllen und rollen"], {"kcal": 430, "carbs": 47, "protein": 15, "fat": 18}, ["vegetarisch"]),
+    ("Linsensuppe", "Dinner", 40, 8, "International", 320, 19, "https://images.unsplash.com/photo-1547592166-23ac45744acd?auto=format&fit=crop&w=1200&q=80", "Herzhafte Suppe mit roten Linsen und Gemüse.", ["Rote Linsen", "Karotten", "Sellerie", "Tomaten", "Brühe"], ["Gemüse anschwitzen", "Linsen zugeben", "25 Minuten köcheln"], {"kcal": 320, "carbs": 39, "protein": 19, "fat": 8}, ["vegan", "vegetarisch"]),
+    ("Avocado-Ei-Toast", "Frühstück", 10, 5, "Modern", 350, 14, "https://images.unsplash.com/photo-1603046891744-1f76eb10aec2?auto=format&fit=crop&w=1200&q=80", "Schnelles Frühstück mit gesunden Fetten.", ["Vollkorntoast", "Avocado", "Ei", "Zitrone", "Chili"], ["Toast rösten", "Avocado zerdrücken", "Mit Ei toppen"], {"kcal": 350, "carbs": 24, "protein": 14, "fat": 20}, ["vegetarisch"]),
+    ("Quinoa Bowl", "Hauptgericht", 24, 9, "Modern", 400, 18, "https://images.unsplash.com/photo-1490645935967-10de6ba17061?auto=format&fit=crop&w=1200&q=80", "Nährstoffreiche Bowl mit Quinoa und Gemüse.", ["Quinoa", "Edamame", "Rote Bete", "Gurke", "Sesam"], ["Quinoa kochen", "Toppings vorbereiten", "Dressing darüber geben"], {"kcal": 400, "carbs": 45, "protein": 18, "fat": 14}, ["vegan", "vegetarisch"]),
+    ("Pasta Primavera", "Dinner", 26, 8, "Italienisch", 460, 17, "https://images.unsplash.com/photo-1473093295043-cdd812d0e601?auto=format&fit=crop&w=1200&q=80", "Leichte Pasta mit viel frischem Gemüse.", ["Penne", "Zucchini", "Erbsen", "Parmesan", "Olivenöl"], ["Pasta kochen", "Gemüse sautieren", "Mit Pasta vermengen"], {"kcal": 460, "carbs": 58, "protein": 17, "fat": 16}, ["vegetarisch"]),
+    ("Schoko-Chia-Pudding", "Nachtisch", 8, 6, "International", 280, 10, "https://images.unsplash.com/photo-1488477181946-6428a0291777?auto=format&fit=crop&w=1200&q=80", "Cremiger Nachtisch mit Kakao und Chiasamen.", ["Chiasamen", "Mandelmilch", "Kakao", "Ahornsirup", "Beeren"], ["Alles verrühren", "Über Nacht quellen lassen", "Mit Beeren servieren"], {"kcal": 280, "carbs": 22, "protein": 10, "fat": 13}, ["vegan", "vegetarisch"]),
+]
+
+
 def seed_recipes(db):
-    if db.execute("SELECT COUNT(*) FROM recipes").fetchone()[0] > 0:
-        return
-    recipes = [
-        ("Spaghetti Bolognese", "Hauptgericht", 20, 8, "Italienisch", 473, 28, "🍝", "Klassisch.", ["Spaghetti", "Tomatensauce", "Hackfleisch"], ["Nudeln kochen", "Sauce kochen"], {"kcal": 473, "carbs": 52, "protein": 28, "fat": 17}, ["high-protein"]),
-        ("Pizza Margherita", "Dinner", 30, 6, "Italienisch", 420, 16, "🍕", "Einfach.", ["Teig", "Mozzarella", "Tomatensauce"], ["Belegen", "Backen"], {"kcal": 420, "carbs": 48, "protein": 16, "fat": 18}, ["vegetarisch"]),
-        ("Shakshuka", "Frühstück", 22, 7, "Orientalisch", 360, 24, "🍳", "Aromatisch.", ["Eier", "Tomaten", "Paprika"], ["Sauce", "Eier stocken"], {"kcal": 360, "carbs": 14, "protein": 24, "fat": 21}, ["vegetarisch", "low-carb"]),
-    ]
-    for r in recipes:
-        db.execute(
-            """
-            INSERT INTO recipes (name, category, duration, ingredients_count, cuisine, calories, protein, image, description, ingredients_json, steps_json, nutrition_json, diet_tags)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """,
-            (r[0], r[1], r[2], r[3], r[4], r[5], r[6], r[7], r[8], json.dumps(r[9]), json.dumps(r[10]), json.dumps(r[11]), json.dumps(r[12])),
-        )
+    names = [r[0] for r in RECIPE_CATALOG]
+    marks = ",".join(["?"] * len(names))
+    db.execute(f"DELETE FROM recipes WHERE name NOT IN ({marks})", tuple(names))
+    for r in RECIPE_CATALOG:
+        existing = db.execute("SELECT id FROM recipes WHERE name=?", (r[0],)).fetchone()
+        payload = (r[1], r[2], r[3], r[4], r[5], r[6], r[7], r[8], json.dumps(r[9]), json.dumps(r[10]), json.dumps(r[11]), json.dumps(r[12]), r[0])
+        if existing:
+            db.execute(
+                """
+                UPDATE recipes
+                SET category=?, duration=?, ingredients_count=?, cuisine=?, calories=?, protein=?, image=?, description=?,
+                    ingredients_json=?, steps_json=?, nutrition_json=?, diet_tags=?
+                WHERE name=?
+                """,
+                payload,
+            )
+        else:
+            db.execute(
+                """
+                INSERT INTO recipes (name, category, duration, ingredients_count, cuisine, calories, protein, image, description, ingredients_json, steps_json, nutrition_json, diet_tags)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (r[0], r[1], r[2], r[3], r[4], r[5], r[6], r[7], r[8], json.dumps(r[9]), json.dumps(r[10]), json.dumps(r[11]), json.dumps(r[12])),
+            )
 
 
 def init_db():
@@ -188,6 +218,23 @@ def init_db():
         ensure_column(db, "user_settings", "diet", "TEXT NOT NULL DEFAULT 'Ich esse alles'")
 
         seed_recipes(db)
+
+
+def verify_google_id_token(id_token):
+    if not id_token:
+        return None
+    try:
+        with urlopen(f"https://oauth2.googleapis.com/tokeninfo?id_token={id_token}", timeout=8) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+    except Exception:
+        return None
+    if data.get("aud") != GOOGLE_CLIENT_ID:
+        return None
+    if data.get("email_verified") not in {"true", True}:
+        return None
+    if not data.get("sub"):
+        return None
+    return data
 
 
 def row_to_recipe(r):
@@ -315,11 +362,37 @@ class Handler(BaseHTTPRequestHandler):
                 if ident["is_guest"]:
                     guest = ensure_guest(ident["token"])
                     disliked, favs = guest["dislikes"], guest["favorites"]
+                    excludes = [e["name"].lower() for e in guest["settings"]["excluded"] if e.get("active")]
+                    diet = guest["settings"].get("diet", "Ich esse alles")
                 else:
                     uid = ident["user_id"]
                     disliked = {r["recipe_id"] for r in db.execute("SELECT recipe_id FROM dislikes WHERE user_id=?", (uid,)).fetchall()}
                     favs = {r["recipe_id"] for r in db.execute("SELECT recipe_id FROM favorites WHERE user_id=?", (uid,)).fetchall()}
-                self.send_json([r for r in rows if r["id"] not in disliked and r["id"] not in favs])
+                    s = db.execute("SELECT diet FROM user_settings WHERE user_id=?", (uid,)).fetchone()
+                    diet = s["diet"] if s else "Ich esse alles"
+                    excludes = [r["name"].lower() for r in db.execute("SELECT name FROM excluded_ingredients WHERE active=1 AND user_id=?", (uid,)).fetchall()]
+
+                def ok(r):
+                    if r["id"] in disliked or r["id"] in favs:
+                        return False
+                    if "category" in q and r["category"] != q["category"][0]:
+                        return False
+                    if "maxCalories" in q and r["calories"] >= int(q["maxCalories"][0]):
+                        return False
+                    if "minProtein" in q and r["protein"] <= int(q["minProtein"][0]):
+                        return False
+                    if "maxDuration" in q and r["duration"] >= int(q["maxDuration"][0]):
+                        return False
+                    if diet != "Ich esse alles":
+                        d = diet.lower()
+                        if "vegetarisch" in d and "vegetarisch" not in r["diet_tags"]:
+                            return False
+                        if "vegan" in d and "vegan" not in r["diet_tags"]:
+                            return False
+                    ing = " ".join(r["ingredients"]).lower()
+                    return not any(e in ing for e in excludes)
+
+                self.send_json([r for r in rows if ok(r)])
                 return
 
             if p == "/api/dislikes":
@@ -453,6 +526,37 @@ class Handler(BaseHTTPRequestHandler):
                 db.execute("INSERT INTO sessions (token,user_id,is_guest) VALUES (?,NULL,1)", (token,))
                 ensure_guest(token)
                 self.send_json({"token": token, "mode": "guest"})
+                return
+
+            if p == "/api/auth/google":
+                id_token = b.get("credential") or b.get("id_token") or ""
+                payload = verify_google_id_token(id_token)
+                if not payload:
+                    self.send_json({"error": "Google Login fehlgeschlagen"}, 401)
+                    return
+                sub = payload["sub"]
+                email = (payload.get("email") or "").strip().lower()
+                name = (payload.get("name") or "Nutzer").strip() or "Nutzer"
+                picture = payload.get("picture") or "👤"
+
+                user = db.execute("SELECT id FROM users WHERE google_sub=?", (sub,)).fetchone()
+                if user:
+                    user_id = user["id"]
+                    db.execute(
+                        "UPDATE users SET email=?, name=?, picture=?, username=COALESCE(username, ?), profile_image=COALESCE(profile_image, ?), updated_at=? WHERE id=?",
+                        (email, name, picture, name, picture, datetime.utcnow().isoformat(), user_id),
+                    )
+                else:
+                    db.execute(
+                        "INSERT INTO users (google_sub,email,name,picture,username,profile_image,updated_at) VALUES (?,?,?,?,?,?,?)",
+                        (sub, email, name, picture, name, picture, datetime.utcnow().isoformat()),
+                    )
+                    user_id = db.execute("SELECT id FROM users WHERE google_sub=?", (sub,)).fetchone()["id"]
+
+                self.ensure_user_defaults(db, user_id, name, picture)
+                token = secrets.token_urlsafe(32)
+                db.execute("INSERT INTO sessions (token,user_id,is_guest) VALUES (?,?,0)", (token, user_id))
+                self.send_json({"token": token, "mode": "user"})
                 return
 
             ident = self.require_identity(db)
