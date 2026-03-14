@@ -15,7 +15,10 @@ PUBLIC = ROOT / "public"
 DB_PATH = ROOT / "app.db"
 
 GUEST_DATA = {}
-GOOGLE_CLIENT_ID = "1014015739173-sj85p3bdscndu859jtveok8kjrgfqr2q.apps.googleusercontent.com"
+GOOGLE_CLIENT_ID = os.getenv(
+    "GOOGLE_CLIENT_ID",
+    "1014015739173-sj85p3bdscndu859jtveok8kjrgfqr2q.apps.googleusercontent.com",
+).strip()
 HOST = os.getenv("HOST", "0.0.0.0")
 PORT = int(os.getenv("PORT", "3000"))
 CORS_ALLOW_ORIGIN = os.getenv("CORS_ALLOW_ORIGIN", "*")
@@ -1228,7 +1231,7 @@ def init_db():
 
 
 def verify_google_id_token(id_token):
-    if not id_token:
+    if not id_token or not GOOGLE_CLIENT_ID:
         return None
     try:
         with urlopen(f"https://oauth2.googleapis.com/tokeninfo?id_token={id_token}", timeout=8) as resp:
@@ -1335,6 +1338,10 @@ class Handler(BaseHTTPRequestHandler):
         q = parse_qs(parsed.query)
 
         with conn() as db:
+            if p == "/api/public-config":
+                self.send_json({"googleClientId": GOOGLE_CLIENT_ID})
+                return
+
             if p == "/api/auth/me":
                 ident = self.require_identity(db)
                 if not ident:

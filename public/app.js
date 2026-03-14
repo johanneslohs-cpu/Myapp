@@ -21,7 +21,8 @@ const state = {
   swipeRecipes: [],
   dislikedRecipeIds: new Set(),
   token: localStorage.getItem('auth_token') || '',
-  auth: null
+  auth: null,
+  googleClientId: ''
 };
 
 async function request(url, options = {}) {
@@ -797,6 +798,7 @@ function authModal() {
         <h2>Willkommen zurück</h2>
         <p class="auth-copy">Melde dich an, um deine Favoriten, Einkaufslisten und Einstellungen auf allen Geräten zu nutzen.</p>
         <div id="googleSignIn" class="auth-google-slot"></div>
+        ${state.googleClientId ? '' : '<p class="muted">Google-Login ist gerade nicht verfügbar.</p>'}
         <button class="btn auth-guest-btn" id="authGuest">Als Gast einloggen</button>
       </div>
     </div>
@@ -812,9 +814,10 @@ function authModal() {
   };
 
   const initializeGoogle = () => {
+    if (!state.googleClientId) return;
     if (!window.google || !window.google.accounts || !window.google.accounts.id) return;
     window.google.accounts.id.initialize({
-      client_id: '1014015739173-sj85p3bdscndu859jtveok8kjrgfqr2q.apps.googleusercontent.com',
+      client_id: state.googleClientId,
       callback: async (response) => {
         try {
           const res = await api.post('/api/auth/google', { credential: response.credential });
@@ -876,4 +879,19 @@ async function reloadData(withRender = true) {
   }
 }
 
-startAuthFlow();
+async function loadPublicConfig() {
+  try {
+    const config = await api.get('/api/public-config');
+    state.googleClientId = (config.googleClientId || '').trim();
+  } catch (error) {
+    console.warn('Konnte Public-Config nicht laden, nutze Fallbacks.', error);
+    state.googleClientId = '';
+  }
+}
+
+async function bootstrap() {
+  await loadPublicConfig();
+  await startAuthFlow();
+}
+
+bootstrap();
