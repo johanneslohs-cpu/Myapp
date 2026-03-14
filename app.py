@@ -1,6 +1,7 @@
 import hashlib
 import hmac
 import json
+import os
 import secrets
 import sqlite3
 from datetime import datetime
@@ -15,6 +16,9 @@ DB_PATH = ROOT / "app.db"
 
 GUEST_DATA = {}
 GOOGLE_CLIENT_ID = "1014015739173-sj85p3bdscndu859jtveok8kjrgfqr2q.apps.googleusercontent.com"
+HOST = os.getenv("HOST", "0.0.0.0")
+PORT = int(os.getenv("PORT", "3000"))
+CORS_ALLOW_ORIGIN = os.getenv("CORS_ALLOW_ORIGIN", "*")
 
 
 def conn():
@@ -1267,6 +1271,16 @@ def row_to_recipe(r):
 
 
 class Handler(BaseHTTPRequestHandler):
+    def end_headers(self):
+        self.send_header("Access-Control-Allow-Origin", CORS_ALLOW_ORIGIN)
+        self.send_header("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Auth-Token")
+        self.send_header("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
+        super().end_headers()
+
+    def do_OPTIONS(self):
+        self.send_response(204)
+        self.end_headers()
+
     def send_json(self, data, status=200):
         b = json.dumps(data).encode("utf-8")
         self.send_response(status)
@@ -1784,6 +1798,6 @@ class Handler(BaseHTTPRequestHandler):
 
 if __name__ == "__main__":
     init_db()
-    server = HTTPServer(("0.0.0.0", 3000), Handler)
-    print("App läuft auf http://localhost:3000")
+    server = HTTPServer((HOST, PORT), Handler)
+    print(f"App läuft auf http://{HOST}:{PORT}")
     server.serve_forever()
