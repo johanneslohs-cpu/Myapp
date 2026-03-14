@@ -83,6 +83,24 @@ Alternativ kann sie auch in `localStorage` gesetzt werden:
 localStorage.setItem('myapp_api_base_url', 'https://deine-app.onrender.com');
 ```
 
+### Cordova schnell bauen (Android APK)
+
+Die Frontend-Dateien sind so vorbereitet, dass sie im Cordova-`file://`-Kontext laufen.
+
+- CSS/JS werden relativ geladen (wichtig für Cordova-Assets)
+- Wenn keine API-URL gesetzt ist, nutzt die App in Cordova automatisch:
+  `https://myapp-rezepte.onrender.com`
+
+Einfacher Build-Ablauf:
+
+```bash
+cordova platform add android
+cordova build android --release -- --packageType=apk
+```
+
+Wenn du später einen anderen Server nutzen willst, setze vor dem Build die gewünschte URL
+über `window.MYAPP_API_BASE_URL` oder `localStorage` (siehe oben).
+
 
 ## Google-Login (Render + Google Cloud)
 

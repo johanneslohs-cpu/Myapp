@@ -1,4 +1,11 @@
-const API_BASE_URL = (window.MYAPP_API_BASE_URL || localStorage.getItem('myapp_api_base_url') || '').replace(/\/$/, '');
+const isCordovaFileRuntime = window.location.protocol === 'file:';
+const DEFAULT_CORDOVA_API_BASE_URL = 'https://myapp-rezepte.onrender.com';
+
+const API_BASE_URL = (
+  window.MYAPP_API_BASE_URL
+  || localStorage.getItem('myapp_api_base_url')
+  || (isCordovaFileRuntime ? DEFAULT_CORDOVA_API_BASE_URL : '')
+).replace(/\/$/, '');
 
 function withApiBase(url) {
   if (!url) return url;
