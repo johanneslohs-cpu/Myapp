@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: myapp-rezepte
+    runtime: python
+    plan: free
+    buildCommand: "echo 'No build step required'"
+    startCommand: "python3 app.py"
+    envVars:
+      - key: HOST
+        value: 0.0.0.0
+      - key: CORS_ALLOW_ORIGIN
+        value: "*"

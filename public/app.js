@@ -1,3 +1,11 @@
+const API_BASE_URL = (window.MYAPP_API_BASE_URL || localStorage.getItem('myapp_api_base_url') || '').replace(/\/$/, '');
+
+function withApiBase(url) {
+  if (!url) return url;
+  if (/^https?:\/\//i.test(url)) return url;
+  return `${API_BASE_URL}${url}`;
+}
+
 const state = {
   tab: 'discover',
   recipes: [],
@@ -19,7 +27,7 @@ const state = {
 async function request(url, options = {}) {
   const headers = { ...(options.headers || {}) };
   if (state.token) headers.Authorization = `Bearer ${state.token}`;
-  const response = await fetch(url, { ...options, headers });
+  const response = await fetch(withApiBase(url), { ...options, headers });
   const raw = await response.text();
   const data = raw ? JSON.parse(raw) : {};
   if (!response.ok) {
