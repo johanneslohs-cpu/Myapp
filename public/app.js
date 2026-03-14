@@ -208,7 +208,6 @@ function renderSwipe() {
             <span>🍽 ${r.cuisine}</span>
           </div>
         </div>
-        <p class="big-copy">Ausgewogen, schnell und alltagstauglich – mit klaren Nährwerten und Schritt-für-Schritt-Anleitung für ein professionelles Kocherlebnis.</p>
       </div>
     </div>
     <div class="actions">
@@ -783,10 +782,20 @@ function bind() {
 
 
 function authModal() {
-  modal(`<div class="auth-modal"><h2>Anmelden</h2>
-    <p class="small">Melde dich mit Google an oder fahre als Gast fort.</p>
-    <div id="googleSignIn" class="auth-google-slot"></div>
-    <button class="btn auth-guest-btn" id="authGuest">Als Gast einloggen</button></div>`);
+  modal(`<div class="auth-shell">
+    <div class="auth-phone-frame">
+      <div class="auth-modal">
+        <div class="auth-brand">MyApp Rezepte</div>
+        <h2>Willkommen zurück</h2>
+        <p class="auth-copy">Melde dich an, um deine Favoriten, Einkaufslisten und Einstellungen auf allen Geräten zu nutzen.</p>
+        <div id="googleSignIn" class="auth-google-slot"></div>
+        <button class="btn auth-guest-btn" id="authGuest">Als Gast einloggen</button>
+      </div>
+    </div>
+  </div>`);
+
+  const authBackdrop = document.querySelector('#modalRoot .modal');
+  if (authBackdrop) authBackdrop.classList.add('auth-backdrop');
 
   document.getElementById('authGuest').onclick = async () => {
     const res = await api.post('/api/auth/guest', {});
@@ -813,7 +822,7 @@ function authModal() {
     });
     window.google.accounts.id.renderButton(
       document.getElementById('googleSignIn'),
-      { theme: 'outline', size: 'large', text: 'signin_with', shape: 'pill', width: 280 }
+      { theme: 'outline', size: 'large', text: 'signin_with', shape: 'pill', width: 320 }
     );
   };
 
