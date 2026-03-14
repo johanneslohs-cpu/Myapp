@@ -83,11 +83,26 @@ Alternativ kann sie auch in `localStorage` gesetzt werden:
 localStorage.setItem('myapp_api_base_url', 'https://deine-app.onrender.com');
 ```
 
+
+## Google-Login (Render + Google Cloud)
+
+Bei Fehlern wie **`Error 400: origin_mismatch`** muss die Render-Domain in der Google-Cloud-OAuth-Konfiguration hinterlegt sein.
+
+1. Öffne in der Google Cloud Console: **APIs & Services → Credentials**
+2. Wähle deinen **OAuth 2.0 Client (Web application)**
+3. Trage unter **Authorized JavaScript origins** ein:
+   - `https://myapp-rezepte.onrender.com`
+4. Speichere die Änderung
+5. Setze auf Render die Environment-Variable `GOOGLE_CLIENT_ID` auf genau diese Client-ID
+
+Wichtig: Frontend und Backend müssen dieselbe Google-Client-ID verwenden.
+
 ## Konfigurierbare Umgebungsvariablen
 
 - `HOST` (Default: `0.0.0.0`)
 - `PORT` (Default: `3000`)
 - `CORS_ALLOW_ORIGIN` (Default: `*`)
+- `GOOGLE_CLIENT_ID` (Default: eingebauter Web-Client; für Deployments auf Render explizit setzen)
 
 Beispiel lokal:
 
