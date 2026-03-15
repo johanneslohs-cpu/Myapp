@@ -180,7 +180,7 @@ function fullStepText(step) {
 }
 
 function renderDiscover() {
-  return `${header('Heute kochen', `<button class="btn" id="openFilter">⏷ Filter</button>`)}
+  return `${header('Heute kochen', `<button class="btn" id="openFilter">▼ Filter</button>`)}
     <input class="search" placeholder="Rezept suchen" value="${state.search}" id="searchInput" />
     <div class="hero" data-tab-jump="swipe">
       <div class="hero-image"><h2 class="hero-title">Swipe dich zu deinem nächsten Lieblingsgericht</h2></div>
@@ -202,14 +202,14 @@ function renderSwipe() {
   const queue = getSwipeQueue();
   const r = queue[0];
   if (!r) {
-    return `${header('Menu-Swipe', `<button class="btn" id="openFilter">⏷ Filter</button>`)}
+    return `${header('Menu-Swipe', `<button class="btn" id="openFilter">▼ Filter</button>`)}
       <div class="empty-state">
         <h3>Keine Karten mehr im Swipe-Deck</h3>
         <p>Auf „Entdecken“ findest du weiterhin alle Rezepte.</p>
         <button class="btn" id="resetDislikes">Abgelehnte Rezepte neu laden</button>
       </div>`;
   }
-  return `${header('Menu-Swipe', `<button class="btn" id="openFilter">⏷ Filter</button>`)}
+  return `${header('Menu-Swipe', `<button class="btn" id="openFilter">▼ Filter</button>`)}
     <p class="small">${queue.length} Rezepte im Swipe-Deck</p>
     <div class="swipe-stage">
       <div class="big-card" data-recipe="${r.id}" id="swipeCard">
@@ -252,7 +252,7 @@ function filteredFavorites() {
 
 function renderFavorites() {
   const favorites = filteredFavorites();
-  return `${header('Deine Favoriten', `<button class="btn" id="openFilter">⏷ Filter</button>`)}
+  return `${header('Deine Favoriten', `<button class="btn" id="openFilter">▼ Filter</button>`)}
     <input class="search" placeholder="Rezept suchen" value="${state.search}" id="searchInput" />
     <div class="grid">${favorites.map(recipeCard).join('')}
       <div class="card favorite-add-card" id="toSwipe"><div class="recipe-img add-favorite-media"><span class="add-favorite-plus">＋</span></div><div>Weitere Favoriten hinzufügen</div></div>
