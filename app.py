@@ -8,6 +8,7 @@ from datetime import datetime
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
+from urllib.error import HTTPError, URLError
 from urllib.request import urlopen
 
 ROOT = Path(__file__).resolve().parent
@@ -1250,6 +1251,36 @@ def verify_google_id_token(id_token):
     try:
         with urlopen(f"https://oauth2.googleapis.com/tokeninfo?id_token={id_token}", timeout=8) as resp:
             data = json.loads(resp.read().decode("utf-8"))
+    except HTTPError as exc:
+        body_text = ""
+        try:
+            body_text = exc.read().decode("utf-8", errors="replace")
+        except Exception:
+            body_text = ""
+        parsed = {}
+        if body_text:
+            try:
+                parsed = json.loads(body_text)
+            except Exception:
+                parsed = {}
+        google_error = parsed.get("error")
+        google_description = parsed.get("error_description")
+        details = [
+            f"HTTP {exc.code}",
+            f"Google error={google_error}" if google_error else "",
+            f"Beschreibung={google_description}" if google_description else "",
+            f"Body={body_text[:280]}" if body_text and not parsed else "",
+        ]
+        return None, {
+            "code": "tokeninfo_http_error",
+            "message": "Google tokeninfo hat den Token abgelehnt: " + "; ".join([d for d in details if d]),
+        }
+    except URLError as exc:
+        reason = getattr(exc, "reason", exc)
+        return None, {
+            "code": "tokeninfo_network_error",
+            "message": f"Google tokeninfo Netzwerkfehler: {type(reason).__name__}: {reason}",
+        }
     except Exception as exc:
         return None, {
             "code": "tokeninfo_request_failed",
