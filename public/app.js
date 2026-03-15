@@ -123,6 +123,31 @@ function resetLocalUserState() {
   state.settings = null;
 }
 
+function runCordovaGooglePlus(method) {
+  return new Promise((resolve, reject) => {
+    if (!window.plugins || !window.plugins.googleplus || typeof window.plugins.googleplus[method] !== 'function') {
+      resolve();
+      return;
+    }
+    window.plugins.googleplus[method](resolve, reject);
+  });
+}
+
+async function resetCordovaGoogleSession() {
+  if (!state.isCordova) return;
+  try {
+    await runCordovaGooglePlus('logout');
+  } catch (_error) {
+    // Ignorieren: Einige Geräte liefern Fehler, wenn keine aktive Session mehr existiert.
+  }
+
+  try {
+    await runCordovaGooglePlus('disconnect');
+  } catch (_error) {
+    // Ignorieren: Falls disconnect nicht unterstützt wird, bleibt logout ausreichend.
+  }
+}
+
 const CORDOVA_GOOGLE_ERROR_HINTS = {
   10: 'DEVELOPER_ERROR: Meistens SHA-1/Fingerabdruck oder OAuth-Client in Firebase/Google Cloud falsch konfiguriert.',
   12500: 'SIGN_IN_FAILED: Häufig Konfigurationsproblem (SHA-1, Paketname oder fehlende Zustimmung im OAuth-Screen).',
@@ -648,6 +673,7 @@ function openSettings() {
   document.getElementById('saveSettings').onclick = async () => { await api.patch('/api/settings', { username: document.getElementById('username').value }); await reloadData(); closeModal(); };
   document.getElementById('logout').onclick = async () => {
     await api.post('/api/auth/logout');
+    await resetCordovaGoogleSession();
     state.token='';
     localStorage.removeItem('auth_token');
     resetLocalUserState();
@@ -666,6 +692,7 @@ function openSettings() {
     document.getElementById('cancelDeleteAccount').onclick = () => openSettings();
     document.getElementById('confirmDeleteAccount').onclick = async () => {
       await api.delete('/api/account');
+      await resetCordovaGoogleSession();
       state.token = '';
       localStorage.removeItem('auth_token');
       resetLocalUserState();
@@ -928,6 +955,7 @@ function authModal() {
         return;
       }
       try {
+        await resetCordovaGoogleSession();
         const loginData = await signInWithCordovaGoogle();
         const idToken = loginData && (loginData.idToken || loginData.id_token);
         if (!idToken) {
