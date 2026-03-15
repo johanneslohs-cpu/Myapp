@@ -39,10 +39,20 @@ async function request(url, options = {}) {
   if (state.token) headers.Authorization = `Bearer ${state.token}`;
   const response = await fetch(withApiBase(url), { ...options, headers });
   const raw = await response.text();
-  const data = raw ? JSON.parse(raw) : {};
+  let data = {};
+  try {
+    data = raw ? JSON.parse(raw) : {};
+  } catch (_error) {
+    data = { raw };
+  }
   if (!response.ok) {
-    const message = data.error || `HTTP ${response.status}`;
-    throw new Error(message);
+    const message = [data.error, data.details].filter(Boolean).join(': ') || `HTTP ${response.status}`;
+    const error = new Error(message);
+    error.status = response.status;
+    error.code = data.code;
+    error.details = data.details;
+    error.raw = data.raw;
+    throw error;
   }
   return data;
 }
@@ -111,6 +121,16 @@ function resetLocalUserState() {
   state.favorites = [];
   state.lists = [];
   state.settings = null;
+}
+
+function formatAuthError(error) {
+  const lines = ['Google Login fehlgeschlagen.'];
+  if (error && error.message) lines.push(`Fehler: ${error.message}`);
+  if (error && error.code) lines.push(`Code: ${error.code}`);
+  if (error && error.status) lines.push(`HTTP-Status: ${error.status}`);
+  if (error && error.raw) lines.push(`Antwort: ${error.raw}`);
+  lines.push('Bitte sende diesen Text inkl. Code weiter, damit wir die Ursache gezielt beheben können.');
+  return lines.join('\n');
 }
 
 function parseIngredientEntry(entry) {
@@ -841,7 +861,7 @@ function authModal() {
           closeModal();
           await startAuthFlow();
         } catch (error) {
-          alert(`Google Login fehlgeschlagen: ${error.message}`);
+          alert(formatAuthError(error));
         }
       }
     });
@@ -888,7 +908,7 @@ function authModal() {
         closeModal();
         await startAuthFlow();
       } catch (error) {
-        alert(`Google Login fehlgeschlagen: ${error.message}`);
+        alert(formatAuthError(error));
       }
     };
   }
