@@ -123,12 +123,29 @@ function resetLocalUserState() {
   state.settings = null;
 }
 
+const CORDOVA_GOOGLE_ERROR_HINTS = {
+  10: 'DEVELOPER_ERROR: Meistens SHA-1/Fingerabdruck oder OAuth-Client in Firebase/Google Cloud falsch konfiguriert.',
+  12500: 'SIGN_IN_FAILED: Häufig Konfigurationsproblem (SHA-1, Paketname oder fehlende Zustimmung im OAuth-Screen).',
+  12501: 'SIGN_IN_CANCELLED: Anmeldung wurde vom Nutzer abgebrochen.',
+  7: 'NETWORK_ERROR: Keine stabile Internetverbindung oder Google-Dienste nicht erreichbar.',
+  8: 'INTERNAL_ERROR: Google Play Services interner Fehler, oft temporär.'
+};
+
 function formatAuthError(error) {
   const lines = ['Google Login fehlgeschlagen.'];
+  if (error && error.stage) lines.push(`Schritt: ${error.stage}`);
   if (error && error.message) lines.push(`Fehler: ${error.message}`);
-  if (error && error.code) lines.push(`Code: ${error.code}`);
+  if (error && error.code) {
+    lines.push(`Code: ${error.code}`);
+    const numericCode = Number(error.code);
+    if (Number.isFinite(numericCode) && CORDOVA_GOOGLE_ERROR_HINTS[numericCode]) {
+      lines.push(`Hinweis: ${CORDOVA_GOOGLE_ERROR_HINTS[numericCode]}`);
+    }
+  }
   if (error && error.status) lines.push(`HTTP-Status: ${error.status}`);
+  if (error && error.details) lines.push(`Details: ${error.details}`);
   if (error && error.raw) lines.push(`Antwort: ${error.raw}`);
+  if (error && error.context) lines.push(`Kontext: ${error.context}`);
   lines.push('Bitte sende diesen Text inkl. Code weiter, damit wir die Ursache gezielt beheben können.');
   return lines.join('\n');
 }
@@ -873,7 +890,10 @@ function authModal() {
 
   const signInWithCordovaGoogle = () => new Promise((resolve, reject) => {
     if (!window.plugins || !window.plugins.googleplus) {
-      reject(new Error('Google Plugin wurde in der App nicht gefunden.'));
+      const pluginError = new Error('Google Plugin wurde in der App nicht gefunden.');
+      pluginError.code = 'plugin_missing';
+      pluginError.stage = 'cordova_plugin_check';
+      reject(pluginError);
       return;
     }
     window.plugins.googleplus.login(
@@ -884,14 +904,13 @@ function authModal() {
       },
       (userData) => resolve(userData),
       (error) => {
-        const message = typeof error === 'string'
-          ? error
-          : (error && (error.error || error.message)) || 'Google Login fehlgeschlagen';
+        const rawError = typeof error === 'string' ? { message: error } : (error || {});
+        const message = rawError.error || rawError.message || 'Google Plugin Login fehlgeschlagen';
         const normalizedError = new Error(message);
-        if (error && typeof error === 'object') {
-          normalizedError.code = error.code || error.status || '';
-          normalizedError.details = JSON.stringify(error);
-        }
+        normalizedError.stage = 'cordova_plugin_login';
+        normalizedError.code = rawError.code || rawError.status || '';
+        normalizedError.details = JSON.stringify(rawError);
+        normalizedError.context = `isCordova=${Boolean(state.isCordova)}, cordovaReady=${Boolean(state.cordovaReady)}, hasPlugin=${Boolean(window.plugins && window.plugins.googleplus)}, webClientId=${state.googleClientId || '-'}, errorKeys=${Object.keys(rawError).join(',') || '-'}`;
         reject(normalizedError);
       }
     );
@@ -915,6 +934,8 @@ function authModal() {
           const loginKeys = loginData ? Object.keys(loginData).join(', ') : 'keine Daten';
           const missingTokenError = new Error(`Kein Google ID-Token erhalten. Verfügbare Felder: ${loginKeys}`);
           missingTokenError.code = 'missing_id_token';
+          missingTokenError.stage = 'extract_id_token';
+          missingTokenError.details = loginData ? JSON.stringify(loginData) : '';
           throw missingTokenError;
         }
         const res = await api.post('/api/auth/google', { credential: idToken });
@@ -924,6 +945,7 @@ function authModal() {
         closeModal();
         await startAuthFlow();
       } catch (error) {
+        if (!error.stage) error.stage = 'unknown';
         alert(formatAuthError(error));
       }
     };
