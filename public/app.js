@@ -879,10 +879,21 @@ function authModal() {
     window.plugins.googleplus.login(
       {
         webClientId: state.googleClientId,
+        scopes: 'profile email',
         offline: false
       },
       (userData) => resolve(userData),
-      (error) => reject(new Error(typeof error === 'string' ? error : (error && error.error) || 'Google Login fehlgeschlagen'))
+      (error) => {
+        const message = typeof error === 'string'
+          ? error
+          : (error && (error.error || error.message)) || 'Google Login fehlgeschlagen';
+        const normalizedError = new Error(message);
+        if (error && typeof error === 'object') {
+          normalizedError.code = error.code || error.status || '';
+          normalizedError.details = JSON.stringify(error);
+        }
+        reject(normalizedError);
+      }
     );
   });
 
@@ -899,8 +910,13 @@ function authModal() {
       }
       try {
         const loginData = await signInWithCordovaGoogle();
-        const idToken = loginData && loginData.idToken;
-        if (!idToken) throw new Error('Kein Google ID-Token erhalten.');
+        const idToken = loginData && (loginData.idToken || loginData.id_token);
+        if (!idToken) {
+          const loginKeys = loginData ? Object.keys(loginData).join(', ') : 'keine Daten';
+          const missingTokenError = new Error(`Kein Google ID-Token erhalten. Verfügbare Felder: ${loginKeys}`);
+          missingTokenError.code = 'missing_id_token';
+          throw missingTokenError;
+        }
         const res = await api.post('/api/auth/google', { credential: idToken });
         resetLocalUserState();
         state.token = res.token;

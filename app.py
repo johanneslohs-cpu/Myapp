@@ -19,6 +19,17 @@ GOOGLE_CLIENT_ID = os.getenv(
     "GOOGLE_CLIENT_ID",
     "1014015739173-sj85p3bdscndu859jtveok8kjrgfqr2q.apps.googleusercontent.com",
 ).strip()
+
+
+def parse_google_client_ids():
+    raw_ids = os.getenv("GOOGLE_CLIENT_IDS", "")
+    configured = [cid.strip() for cid in raw_ids.split(",") if cid.strip()]
+    if GOOGLE_CLIENT_ID and GOOGLE_CLIENT_ID not in configured:
+        configured.append(GOOGLE_CLIENT_ID)
+    return configured
+
+
+GOOGLE_ALLOWED_CLIENT_IDS = parse_google_client_ids()
 HOST = os.getenv("HOST", "0.0.0.0")
 PORT = int(os.getenv("PORT", "3000"))
 CORS_ALLOW_ORIGIN = os.getenv("CORS_ALLOW_ORIGIN", "*")
@@ -1233,8 +1244,8 @@ def init_db():
 def verify_google_id_token(id_token):
     if not id_token:
         return None, {"code": "missing_id_token", "message": "Kein ID-Token vom Google-Plugin erhalten."}
-    if not GOOGLE_CLIENT_ID:
-        return None, {"code": "missing_client_id", "message": "GOOGLE_CLIENT_ID ist im Backend nicht gesetzt."}
+    if not GOOGLE_ALLOWED_CLIENT_IDS:
+        return None, {"code": "missing_client_id", "message": "Kein gültiger Google Client im Backend gesetzt (GOOGLE_CLIENT_ID/GOOGLE_CLIENT_IDS)."}
 
     try:
         with urlopen(f"https://oauth2.googleapis.com/tokeninfo?id_token={id_token}", timeout=8) as resp:
@@ -1246,10 +1257,13 @@ def verify_google_id_token(id_token):
         }
 
     audience = data.get("aud")
-    if audience != GOOGLE_CLIENT_ID:
+    authorized_party = data.get("azp")
+    allowed = set(GOOGLE_ALLOWED_CLIENT_IDS)
+    if audience not in allowed and authorized_party not in allowed:
+        allowed_ids = ", ".join(GOOGLE_ALLOWED_CLIENT_IDS)
         return None, {
             "code": "audience_mismatch",
-            "message": f"Falsche Audience (aud). Erwartet: {GOOGLE_CLIENT_ID}, erhalten: {audience or '-'}",
+            "message": f"Falsche Audience/Authorized Party. Erlaubt: {allowed_ids}. Erhalten aud={audience or '-'}, azp={authorized_party or '-'}",
         }
 
     if data.get("email_verified") not in {"true", True}:
