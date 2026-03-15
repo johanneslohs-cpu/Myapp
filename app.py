@@ -1231,20 +1231,40 @@ def init_db():
 
 
 def verify_google_id_token(id_token):
-    if not id_token or not GOOGLE_CLIENT_ID:
-        return None
+    if not id_token:
+        return None, {"code": "missing_id_token", "message": "Kein ID-Token vom Google-Plugin erhalten."}
+    if not GOOGLE_CLIENT_ID:
+        return None, {"code": "missing_client_id", "message": "GOOGLE_CLIENT_ID ist im Backend nicht gesetzt."}
+
     try:
         with urlopen(f"https://oauth2.googleapis.com/tokeninfo?id_token={id_token}", timeout=8) as resp:
             data = json.loads(resp.read().decode("utf-8"))
-    except Exception:
-        return None
-    if data.get("aud") != GOOGLE_CLIENT_ID:
-        return None
+    except Exception as exc:
+        return None, {
+            "code": "tokeninfo_request_failed",
+            "message": f"Google tokeninfo Anfrage fehlgeschlagen: {type(exc).__name__}: {exc}",
+        }
+
+    audience = data.get("aud")
+    if audience != GOOGLE_CLIENT_ID:
+        return None, {
+            "code": "audience_mismatch",
+            "message": f"Falsche Audience (aud). Erwartet: {GOOGLE_CLIENT_ID}, erhalten: {audience or '-'}",
+        }
+
     if data.get("email_verified") not in {"true", True}:
-        return None
+        return None, {
+            "code": "email_not_verified",
+            "message": "Google-Konto hat keine verifizierte E-Mail-Adresse.",
+        }
+
     if not data.get("sub"):
-        return None
-    return data
+        return None, {
+            "code": "missing_sub",
+            "message": "Google Token enthält kein 'sub'-Feld.",
+        }
+
+    return data, None
 
 
 def matches_diet(recipe, diet):
@@ -1562,9 +1582,13 @@ class Handler(BaseHTTPRequestHandler):
 
             if p == "/api/auth/google":
                 id_token = b.get("credential") or b.get("id_token") or ""
-                payload = verify_google_id_token(id_token)
+                payload, token_error = verify_google_id_token(id_token)
                 if not payload:
-                    self.send_json({"error": "Google Login fehlgeschlagen"}, 401)
+                    self.send_json({
+                        "error": "Google Login fehlgeschlagen",
+                        "details": token_error["message"],
+                        "code": token_error["code"],
+                    }, 401)
                     return
                 sub = payload["sub"]
                 email = (payload.get("email") or "").strip().lower()
