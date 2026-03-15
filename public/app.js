@@ -29,7 +29,9 @@ const state = {
   dislikedRecipeIds: new Set(),
   token: localStorage.getItem('auth_token') || '',
   auth: null,
-  googleClientId: ''
+  googleClientId: '',
+  isCordova: Boolean(window.cordova) || isCordovaFileRuntime,
+  cordovaReady: !isCordovaFileRuntime
 };
 
 async function request(url, options = {}) {
@@ -799,13 +801,16 @@ function bind() {
 
 
 function authModal() {
+  const canUseGoogleWeb = !state.isCordova;
+  const canUseGoogleCordova = state.isCordova;
   modal(`<div class="auth-shell">
     <div class="auth-phone-frame">
       <div class="auth-modal">
         <div class="auth-brand">MyApp Rezepte</div>
         <h2>Willkommen zurück</h2>
         <p class="auth-copy">Melde dich an, um deine Favoriten, Einkaufslisten und Einstellungen auf allen Geräten zu nutzen.</p>
-        <div id="googleSignIn" class="auth-google-slot"></div>
+        ${canUseGoogleWeb ? '<div id="googleSignIn" class="auth-google-slot"></div>' : ''}
+        ${canUseGoogleCordova ? '<button class="btn auth-google-btn" id="googleSignInCordova">Mit Google anmelden</button>' : ''}
         ${state.googleClientId ? '' : '<p class="muted">Google-Login ist gerade nicht verfügbar.</p>'}
         <button class="btn auth-guest-btn" id="authGuest">Als Gast einloggen</button>
       </div>
@@ -821,7 +826,8 @@ function authModal() {
     state.token = res.token; localStorage.setItem('auth_token', res.token); closeModal(); await startAuthFlow();
   };
 
-  const initializeGoogle = () => {
+  const initializeGoogleWeb = () => {
+    if (state.isCordova) return;
     if (!state.googleClientId) return;
     if (!window.google || !window.google.accounts || !window.google.accounts.id) return;
     window.google.accounts.id.initialize({
@@ -845,12 +851,54 @@ function authModal() {
     );
   };
 
-  initializeGoogle();
-  if (!window.google) {
+  const signInWithCordovaGoogle = () => new Promise((resolve, reject) => {
+    if (!window.plugins || !window.plugins.googleplus) {
+      reject(new Error('Google Plugin wurde in der App nicht gefunden.'));
+      return;
+    }
+    window.plugins.googleplus.login(
+      {
+        webClientId: state.googleClientId,
+        offline: false
+      },
+      (userData) => resolve(userData),
+      (error) => reject(new Error(typeof error === 'string' ? error : (error && error.error) || 'Google Login fehlgeschlagen'))
+    );
+  });
+
+  const cordovaGoogleBtn = document.getElementById('googleSignInCordova');
+  if (cordovaGoogleBtn) {
+    cordovaGoogleBtn.onclick = async () => {
+      if (!state.googleClientId) {
+        alert('Google-Login ist gerade nicht verfügbar.');
+        return;
+      }
+      if (!state.cordovaReady) {
+        alert('App startet noch. Bitte versuche es in ein paar Sekunden erneut.');
+        return;
+      }
+      try {
+        const loginData = await signInWithCordovaGoogle();
+        const idToken = loginData && loginData.idToken;
+        if (!idToken) throw new Error('Kein Google ID-Token erhalten.');
+        const res = await api.post('/api/auth/google', { credential: idToken });
+        resetLocalUserState();
+        state.token = res.token;
+        localStorage.setItem('auth_token', res.token);
+        closeModal();
+        await startAuthFlow();
+      } catch (error) {
+        alert(`Google Login fehlgeschlagen: ${error.message}`);
+      }
+    };
+  }
+
+  initializeGoogleWeb();
+  if (!state.isCordova && !window.google) {
     const waitForGoogle = setInterval(() => {
       if (window.google) {
         clearInterval(waitForGoogle);
-        initializeGoogle();
+        initializeGoogleWeb();
       }
     }, 150);
     setTimeout(() => clearInterval(waitForGoogle), 5000);
@@ -902,4 +950,11 @@ async function bootstrap() {
   await startAuthFlow();
 }
 
-bootstrap();
+if (isCordovaFileRuntime) {
+  document.addEventListener('deviceready', () => {
+    state.cordovaReady = true;
+    bootstrap();
+  }, { once: true });
+} else {
+  bootstrap();
+}
