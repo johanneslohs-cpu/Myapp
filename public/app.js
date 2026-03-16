@@ -34,6 +34,8 @@ const state = {
   cordovaReady: !isCordovaFileRuntime
 };
 
+let searchReloadTimer = null;
+
 async function request(url, options = {}) {
   const headers = { ...(options.headers || {}) };
   if (state.token) headers.Authorization = `Bearer ${state.token}`;
@@ -837,21 +839,37 @@ async function openAddToList(ingredients) {
 }
 
 function bind() {
-  document.querySelectorAll('.nav-btn').forEach((btn) => btn.onclick = async () => { state.tab = btn.dataset.tab; await reloadData(false); });
+  document.querySelectorAll('.nav-btn').forEach((btn) => btn.onclick = () => {
+    state.tab = btn.dataset.tab;
+    render();
+  });
   const heroJump = document.querySelector('[data-tab-jump="swipe"]');
-  if (heroJump) heroJump.onclick = async () => { state.tab = 'swipe'; await reloadData(false); };
+  if (heroJump) heroJump.onclick = () => {
+    state.tab = 'swipe';
+    render();
+  };
   document.querySelectorAll('[data-recipe]').forEach((el) => {
     if (el.id === 'swipeCard') return;
     el.onclick = () => openRecipe(el.dataset.recipe);
   });
   const si = document.getElementById('searchInput');
-  if (si) si.oninput = async (e) => { state.search = e.target.value; await reloadData(false); };
+  if (si) si.oninput = (e) => {
+    state.search = e.target.value;
+    render();
+    if (searchReloadTimer) clearTimeout(searchReloadTimer);
+    searchReloadTimer = setTimeout(() => {
+      reloadData({ withRender: false, scope: 'recipes' });
+    }, 220);
+  };
   const openFilterBtn = document.getElementById('openFilter'); if (openFilterBtn) openFilterBtn.onclick = openFilter;
   const sl = document.getElementById('swipeLike'); if (sl) sl.onclick = async () => handleSwipeAction('like');
   const sd = document.getElementById('swipeDislike'); if (sd) sd.onclick = async () => handleSwipeAction('skip');
   const sii = document.getElementById('swipeInfo'); if (sii) sii.onclick = () => currentSwipeRecipe() && openRecipe(currentSwipeRecipe().id);
   const rd = document.getElementById('resetDislikes'); if (rd) rd.onclick = async () => { await api.post('/api/dislikes/reset'); state.swipedRecipeIds.clear(); state.dislikedRecipeIds.clear(); await reloadData(); };
-  const ts = document.getElementById('toSwipe'); if (ts) ts.onclick = async () => { state.tab = 'swipe'; await reloadData(false); };
+  const ts = document.getElementById('toSwipe'); if (ts) ts.onclick = () => {
+    state.tab = 'swipe';
+    render();
+  };
   document.querySelectorAll('[data-list]').forEach((el) => el.onclick = () => openListEditor(el.dataset.list));
   const nl = document.getElementById('newList'); if (nl) nl.onclick = openNewList;
   const os = document.getElementById('openSettings'); if (os) os.onclick = openSettings;
@@ -1005,16 +1023,34 @@ async function startAuthFlow() {
   }
 }
 
-async function reloadData(withRender = true) {
+async function reloadData(options = {}) {
+  const { withRender = true, scope = 'all' } = options;
   try {
     const q = new URLSearchParams({ search: state.search, ...Object.fromEntries(Object.entries(state.filters).map(([k, v]) => [k, String(v)])) });
-    state.recipes = await api.get(`/api/recipes?${q}`);
-    state.swipeRecipes = await api.get(`/api/swipe-recipes?${q}`);
-    state.favorites = await api.get('/api/favorites');
-    state.dislikedRecipeIds = new Set(await api.get('/api/dislikes'));
-    state.lists = await api.get('/api/lists');
-    state.settings = await api.get('/api/settings');
-    if (withRender) render(); else render();
+
+    if (scope === 'all' || scope === 'recipes') {
+      const [recipes, swipeRecipes] = await Promise.all([
+        api.get(`/api/recipes?${q}`),
+        api.get(`/api/swipe-recipes?${q}`)
+      ]);
+      state.recipes = recipes;
+      state.swipeRecipes = swipeRecipes;
+    }
+
+    if (scope === 'all') {
+      const [favorites, dislikes, lists, settings] = await Promise.all([
+        api.get('/api/favorites'),
+        api.get('/api/dislikes'),
+        api.get('/api/lists'),
+        api.get('/api/settings')
+      ]);
+      state.favorites = favorites;
+      state.dislikedRecipeIds = new Set(dislikes);
+      state.lists = lists;
+      state.settings = settings;
+    }
+
+    if (withRender) render();
   } catch (error) {
     console.error('Fehler beim Laden der Daten:', error);
     alert(`Daten konnten nicht geladen werden: ${error.message}`);
