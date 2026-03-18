@@ -1786,25 +1786,33 @@ class Handler(BaseHTTPRequestHandler):
                 subject = (b.get("subject") or "").strip()
                 message = (b.get("message") or "").strip()
 
+                def reject_feedback(reason, error_message):
+                    print(
+                        f"Feedback validation failed: {reason} | "
+                        f"email={email!r} subject_len={len(subject)} message_len={len(message)}"
+                    )
+                    self.send_json({"error": error_message}, 400)
+
                 if not email or "@" not in email:
-                    self.send_json({"error": "Bitte gib eine gültige E-Mail-Adresse ein."}, 400)
+                    reject_feedback("invalid_email", "Bitte gib eine gültige E-Mail-Adresse ein.")
                     return
                 if not subject:
-                    self.send_json({"error": "Bitte gib einen Betreff ein."}, 400)
+                    reject_feedback("missing_subject", "Bitte gib einen Betreff ein.")
                     return
                 if len(subject) > 30:
-                    self.send_json({"error": "Der Betreff darf maximal 30 Zeichen lang sein."}, 400)
+                    reject_feedback("subject_too_long", "Der Betreff darf maximal 30 Zeichen lang sein.")
                     return
                 if not message:
-                    self.send_json({"error": "Bitte gib eine Nachricht ein."}, 400)
+                    reject_feedback("missing_message", "Bitte gib eine Nachricht ein.")
                     return
                 if len(message) > 250:
-                    self.send_json({"error": "Die Nachricht darf maximal 250 Zeichen lang sein."}, 400)
+                    reject_feedback("message_too_long", "Die Nachricht darf maximal 250 Zeichen lang sein.")
                     return
 
                 try:
                     send_feedback_email(email, subject, message)
                 except Exception as exc:
+                    print(f"Feedback email delivery failed: {exc}")
                     self.send_json({"error": "Feedback konnte nicht per E-Mail versendet werden.", "details": str(exc)}, 500)
                     return
 
