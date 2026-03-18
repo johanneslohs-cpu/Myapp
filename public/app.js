@@ -987,6 +987,10 @@ function openFeedback() {
       alert('Bitte gib deine E-Mail-Adresse ein.');
       return;
     }
+    if (!email.includes('@')) {
+      alert('Bitte gib eine gültige E-Mail-Adresse ein.');
+      return;
+    }
     if (!subject) {
       alert('Bitte gib einen Betreff ein.');
       return;
