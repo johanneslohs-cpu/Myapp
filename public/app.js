@@ -427,7 +427,7 @@ function fullStepText(step) {
 }
 
 function renderDiscover() {
-  return `${header('Heute kochen', `<button class="btn" id="openFilter">▼ Filter</button>`)}
+  return `${header('Entdecken', `<button class="btn" id="openFilter">▼ Filter</button>`)}
     <input class="search" placeholder="Rezept suchen" value="${state.search}" id="searchInput" />
     <div class="hero" data-tab-jump="swipe">
       <div class="hero-image"><h2 class="hero-title">Swipe dich zu deinem nächsten Lieblingsgericht</h2></div>
@@ -1111,7 +1111,14 @@ function bind() {
   const si = document.getElementById('searchInput');
   if (si) si.oninput = (e) => {
     state.search = e.target.value;
+    const caretStart = e.target.selectionStart ?? state.search.length;
+    const caretEnd = e.target.selectionEnd ?? state.search.length;
     render();
+    const nextSearchInput = document.getElementById('searchInput');
+    if (nextSearchInput) {
+      nextSearchInput.focus();
+      nextSearchInput.setSelectionRange(caretStart, caretEnd);
+    }
     if (searchReloadTimer) clearTimeout(searchReloadTimer);
     searchReloadTimer = setTimeout(() => {
       reloadData({ withRender: false, scope: 'recipes' });
