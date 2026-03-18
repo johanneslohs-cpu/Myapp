@@ -3,6 +3,7 @@ import hmac
 import json
 import os
 import secrets
+import smtplib
 import sqlite3
 from datetime import datetime
 from http.server import BaseHTTPRequestHandler, HTTPServer
@@ -10,6 +11,7 @@ from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 from urllib.error import HTTPError, URLError
 from urllib.request import urlopen
+from email.message import EmailMessage
 
 ROOT = Path(__file__).resolve().parent
 PUBLIC = ROOT / "public"
@@ -34,6 +36,35 @@ GOOGLE_ALLOWED_CLIENT_IDS = parse_google_client_ids()
 HOST = os.getenv("HOST", "0.0.0.0")
 PORT = int(os.getenv("PORT", "3000"))
 CORS_ALLOW_ORIGIN = os.getenv("CORS_ALLOW_ORIGIN", "*")
+
+
+
+FEEDBACK_RECIPIENT = os.getenv("FEEDBACK_RECIPIENT", "bitematch.de@gmail.com").strip()
+FEEDBACK_SMTP_HOST = os.getenv("FEEDBACK_SMTP_HOST", "smtp.gmail.com").strip()
+FEEDBACK_SMTP_PORT = int(os.getenv("FEEDBACK_SMTP_PORT", "465"))
+FEEDBACK_SMTP_USER = os.getenv("FEEDBACK_SMTP_USER", FEEDBACK_RECIPIENT).strip()
+FEEDBACK_SMTP_PASSWORD = os.getenv("FEEDBACK_SMTP_PASSWORD", os.getenv("GMAIL_APP_PASSWORD", "dylb zmrf hcmp buxo")).strip()
+
+
+def send_feedback_email(sender_email, subject, message):
+    if not FEEDBACK_SMTP_PASSWORD:
+        raise RuntimeError("Feedback-E-Mail ist nicht konfiguriert")
+
+    reply_to = sender_email or FEEDBACK_RECIPIENT
+    msg = EmailMessage()
+    msg["Subject"] = subject
+    msg["From"] = FEEDBACK_SMTP_USER
+    msg["To"] = FEEDBACK_RECIPIENT
+    msg["Reply-To"] = reply_to
+    msg.set_content(
+        f"Feedback von: {sender_email} (für Rückfragen)\n\n"
+        f"Betreff: {subject}\n\n"
+        f"Nachricht:\n{message}"
+    )
+
+    with smtplib.SMTP_SSL(FEEDBACK_SMTP_HOST, FEEDBACK_SMTP_PORT, timeout=15) as smtp:
+        smtp.login(FEEDBACK_SMTP_USER, FEEDBACK_SMTP_PASSWORD)
+        smtp.send_message(msg)
 
 
 def conn():
@@ -1731,8 +1762,34 @@ class Handler(BaseHTTPRequestHandler):
                 return
 
             if p == "/api/feedback":
+                email = (b.get("email") or "").strip()
+                subject = (b.get("subject") or "").strip()
+                message = (b.get("message") or "").strip()
+
+                if not email or "@" not in email:
+                    self.send_json({"error": "Bitte gib eine gültige E-Mail-Adresse ein."}, 400)
+                    return
+                if not subject:
+                    self.send_json({"error": "Bitte gib einen Betreff ein."}, 400)
+                    return
+                if len(subject) > 30:
+                    self.send_json({"error": "Der Betreff darf maximal 30 Zeichen lang sein."}, 400)
+                    return
+                if not message:
+                    self.send_json({"error": "Bitte gib eine Nachricht ein."}, 400)
+                    return
+                if len(message) > 250:
+                    self.send_json({"error": "Die Nachricht darf maximal 250 Zeichen lang sein."}, 400)
+                    return
+
+                try:
+                    send_feedback_email(email, subject, message)
+                except Exception as exc:
+                    self.send_json({"error": "Feedback konnte nicht per E-Mail versendet werden.", "details": str(exc)}, 500)
+                    return
+
                 if not ident["is_guest"]:
-                    db.execute("INSERT INTO feedback_messages (email,subject,message,user_id) VALUES (?,?,?,?)", (b.get("email"), b.get("subject"), b.get("message"), ident["user_id"]))
+                    db.execute("INSERT INTO feedback_messages (email,subject,message,user_id) VALUES (?,?,?,?)", (email, subject, message, ident["user_id"]))
                 self.send_json({"ok": True})
                 return
 

@@ -375,6 +375,9 @@ textarea{min-height:100px}
 }
 .feedback-form label{font-size:13px;color:#d7e6da;font-weight:600;margin-top:2px}
 .feedback-form input,.feedback-form textarea{background:#111a14}
+.feedback-label-note{color:#a9bbaf;font-weight:500}
+.feedback-hint,.feedback-counter{font-size:12px;color:#a9bbaf;margin-top:-4px}
+.feedback-counter{text-align:right}
 
 .legal-modal{display:flex;flex-direction:column;gap:14px}
 .legal-topbar{display:flex;justify-content:space-between;align-items:center;gap:12px}
