@@ -115,12 +115,42 @@ Bei Fehlern wie **`Error 400: origin_mismatch`** muss die Render-Domain in der G
 
 Wichtig: Frontend und Backend müssen dieselbe Google-Client-ID verwenden.
 
+## Feedback-E-Mails (wichtig für Gmail)
+
+Damit der Feedback-Button wirklich E-Mails versendet, müssen auf dem Server die SMTP-Variablen gesetzt sein.
+
+Für Gmail funktioniert das typischerweise so:
+
+- `FEEDBACK_SMTP_USER=bitematch.de@gmail.com`
+- `FEEDBACK_SMTP_PASSWORD=<dein Google App-Passwort>`
+- optional `GMAIL_APP_PASSWORD=<dein Google App-Passwort>` statt `FEEDBACK_SMTP_PASSWORD`
+- `FEEDBACK_SMTP_HOST=smtp.gmail.com`
+- `FEEDBACK_SMTP_PORT=465`
+- optional `FEEDBACK_SMTP_SECURITY=ssl`
+
+Alternativ für STARTTLS:
+
+- `FEEDBACK_SMTP_PORT=587`
+- `FEEDBACK_SMTP_SECURITY=starttls`
+
+Wichtig:
+
+- Nach dem Setzen der Variablen auf Render muss der Service neu deployt bzw. neu gestartet werden.
+- Das Gmail-App-Passwort darf aus 16 Zeichen bestehen; Leerzeichen in der Eingabe sind zwar zur Lesbarkeit üblich, werden serverseitig jetzt automatisch entfernt.
+- `FEEDBACK_SMTP_USER` muss das Gmail-Konto sein, für das das App-Passwort erzeugt wurde.
+
 ## Konfigurierbare Umgebungsvariablen
 
 - `HOST` (Default: `0.0.0.0`)
 - `PORT` (Default: `3000`)
 - `CORS_ALLOW_ORIGIN` (Default: `*`)
 - `GOOGLE_CLIENT_ID` (Default: eingebauter Web-Client; für Deployments auf Render explizit setzen)
+- `FEEDBACK_RECIPIENT` (Default: `bitematch.de@gmail.com`)
+- `FEEDBACK_SMTP_HOST` (Default: `smtp.gmail.com`)
+- `FEEDBACK_SMTP_PORT` (Default: `465`)
+- `FEEDBACK_SMTP_USER` (Default: Wert von `FEEDBACK_RECIPIENT`)
+- `FEEDBACK_SMTP_PASSWORD` (alternativ `GMAIL_APP_PASSWORD`)
+- `FEEDBACK_SMTP_SECURITY` (`auto`, `ssl` oder `starttls`; Default: `auto`)
 
 Beispiel lokal:
 
