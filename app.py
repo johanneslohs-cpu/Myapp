@@ -43,12 +43,15 @@ FEEDBACK_RECIPIENT = os.getenv("FEEDBACK_RECIPIENT", "bitematch.de@gmail.com").s
 FEEDBACK_SMTP_HOST = os.getenv("FEEDBACK_SMTP_HOST", "smtp.gmail.com").strip()
 FEEDBACK_SMTP_PORT = int(os.getenv("FEEDBACK_SMTP_PORT", "465"))
 FEEDBACK_SMTP_USER = os.getenv("FEEDBACK_SMTP_USER", FEEDBACK_RECIPIENT).strip()
-FEEDBACK_SMTP_PASSWORD = os.getenv("FEEDBACK_SMTP_PASSWORD", os.getenv("GMAIL_APP_PASSWORD", "dylb zmrf hcmp buxo")).strip()
+FEEDBACK_SMTP_PASSWORD = os.getenv("FEEDBACK_SMTP_PASSWORD", os.getenv("GMAIL_APP_PASSWORD", "")).replace(" ", "").strip()
+FEEDBACK_SMTP_SECURITY = os.getenv("FEEDBACK_SMTP_SECURITY", "auto").strip().lower()
 
 
 def send_feedback_email(sender_email, subject, message):
+    if not FEEDBACK_SMTP_USER:
+        raise RuntimeError("FEEDBACK_SMTP_USER ist nicht konfiguriert")
     if not FEEDBACK_SMTP_PASSWORD:
-        raise RuntimeError("Feedback-E-Mail ist nicht konfiguriert")
+        raise RuntimeError("FEEDBACK_SMTP_PASSWORD oder GMAIL_APP_PASSWORD ist nicht konfiguriert")
 
     reply_to = sender_email or FEEDBACK_RECIPIENT
     msg = EmailMessage()
@@ -62,9 +65,26 @@ def send_feedback_email(sender_email, subject, message):
         f"Nachricht:\n{message}"
     )
 
-    with smtplib.SMTP_SSL(FEEDBACK_SMTP_HOST, FEEDBACK_SMTP_PORT, timeout=15) as smtp:
-        smtp.login(FEEDBACK_SMTP_USER, FEEDBACK_SMTP_PASSWORD)
-        smtp.send_message(msg)
+    security_mode = FEEDBACK_SMTP_SECURITY
+    if security_mode == "auto":
+        security_mode = "ssl" if FEEDBACK_SMTP_PORT == 465 else "starttls"
+
+    if security_mode == "ssl":
+        with smtplib.SMTP_SSL(FEEDBACK_SMTP_HOST, FEEDBACK_SMTP_PORT, timeout=15) as smtp:
+            smtp.login(FEEDBACK_SMTP_USER, FEEDBACK_SMTP_PASSWORD)
+            smtp.send_message(msg)
+        return
+
+    if security_mode == "starttls":
+        with smtplib.SMTP(FEEDBACK_SMTP_HOST, FEEDBACK_SMTP_PORT, timeout=15) as smtp:
+            smtp.ehlo()
+            smtp.starttls()
+            smtp.ehlo()
+            smtp.login(FEEDBACK_SMTP_USER, FEEDBACK_SMTP_PASSWORD)
+            smtp.send_message(msg)
+        return
+
+    raise RuntimeError("FEEDBACK_SMTP_SECURITY muss auto, ssl oder starttls sein")
 
 
 def conn():
