@@ -43,7 +43,7 @@ FEEDBACK_RECIPIENT = os.getenv("FEEDBACK_RECIPIENT", "bitematch.de@gmail.com").s
 FEEDBACK_SMTP_HOST = os.getenv("FEEDBACK_SMTP_HOST", "smtp.gmail.com").strip()
 FEEDBACK_SMTP_PORT = int(os.getenv("FEEDBACK_SMTP_PORT", "465"))
 FEEDBACK_SMTP_USER = os.getenv("FEEDBACK_SMTP_USER", FEEDBACK_RECIPIENT).strip()
-FEEDBACK_SMTP_PASSWORD = os.getenv("FEEDBACK_SMTP_PASSWORD", os.getenv("GMAIL_APP_PASSWORD", "")).strip()
+FEEDBACK_SMTP_PASSWORD = os.getenv("FEEDBACK_SMTP_PASSWORD", os.getenv("GMAIL_APP_PASSWORD", "dylb zmrf hcmp buxo")).strip()
 
 
 def send_feedback_email(sender_email, subject, message):
