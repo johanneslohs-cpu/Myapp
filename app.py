@@ -5,6 +5,7 @@ import os
 import secrets
 import smtplib
 import sqlite3
+import traceback
 from datetime import datetime
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
@@ -47,6 +48,13 @@ FEEDBACK_SMTP_PASSWORD = os.getenv("FEEDBACK_SMTP_PASSWORD", os.getenv("GMAIL_AP
 FEEDBACK_SMTP_SECURITY = os.getenv("FEEDBACK_SMTP_SECURITY", "auto").strip().lower()
 
 
+def feedback_smtp_context(security_mode):
+    return (
+        f"host={FEEDBACK_SMTP_HOST} port={FEEDBACK_SMTP_PORT} "
+        f"security={security_mode} user={FEEDBACK_SMTP_USER} recipient={FEEDBACK_RECIPIENT}"
+    )
+
+
 def send_feedback_email(sender_email, subject, message):
     if not FEEDBACK_SMTP_USER:
         raise RuntimeError("FEEDBACK_SMTP_USER ist nicht konfiguriert")
@@ -69,20 +77,31 @@ def send_feedback_email(sender_email, subject, message):
     if security_mode == "auto":
         security_mode = "ssl" if FEEDBACK_SMTP_PORT == 465 else "starttls"
 
-    if security_mode == "ssl":
-        with smtplib.SMTP_SSL(FEEDBACK_SMTP_HOST, FEEDBACK_SMTP_PORT, timeout=15) as smtp:
-            smtp.login(FEEDBACK_SMTP_USER, FEEDBACK_SMTP_PASSWORD)
-            smtp.send_message(msg)
-        return
+    try:
+        if security_mode == "ssl":
+            with smtplib.SMTP_SSL(FEEDBACK_SMTP_HOST, FEEDBACK_SMTP_PORT, timeout=15) as smtp:
+                smtp.login(FEEDBACK_SMTP_USER, FEEDBACK_SMTP_PASSWORD)
+                smtp.send_message(msg)
+            return
 
-    if security_mode == "starttls":
-        with smtplib.SMTP(FEEDBACK_SMTP_HOST, FEEDBACK_SMTP_PORT, timeout=15) as smtp:
-            smtp.ehlo()
-            smtp.starttls()
-            smtp.ehlo()
-            smtp.login(FEEDBACK_SMTP_USER, FEEDBACK_SMTP_PASSWORD)
-            smtp.send_message(msg)
-        return
+        if security_mode == "starttls":
+            with smtplib.SMTP(FEEDBACK_SMTP_HOST, FEEDBACK_SMTP_PORT, timeout=15) as smtp:
+                smtp.ehlo()
+                smtp.starttls()
+                smtp.ehlo()
+                smtp.login(FEEDBACK_SMTP_USER, FEEDBACK_SMTP_PASSWORD)
+                smtp.send_message(msg)
+            return
+    except smtplib.SMTPException as exc:
+        raise RuntimeError(
+            f"SMTP-Versand fehlgeschlagen ({feedback_smtp_context(security_mode)}): "
+            f"{exc.__class__.__name__}: {exc}"
+        ) from exc
+    except OSError as exc:
+        raise RuntimeError(
+            f"SMTP-Verbindung fehlgeschlagen ({feedback_smtp_context(security_mode)}): "
+            f"{exc.__class__.__name__}: {exc}"
+        ) from exc
 
     raise RuntimeError("FEEDBACK_SMTP_SECURITY muss auto, ssl oder starttls sein")
 
@@ -1813,6 +1832,7 @@ class Handler(BaseHTTPRequestHandler):
                     send_feedback_email(email, subject, message)
                 except Exception as exc:
                     print(f"Feedback email delivery failed: {exc}")
+                    traceback.print_exc()
                     self.send_json({"error": "Feedback konnte nicht per E-Mail versendet werden.", "details": str(exc)}, 500)
                     return
 
