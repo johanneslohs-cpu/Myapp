@@ -271,6 +271,25 @@ function recipeFallbackImage(recipe) {
 const getSwipeQueue = () => state.swipeRecipes.filter((recipe) => !state.swipedRecipeIds.has(recipe.id));
 const currentSwipeRecipe = () => getSwipeQueue()[0];
 
+function syncRecipeCollections(recipe, action) {
+  if (!recipe) return;
+  if (action === 'like') {
+    state.dislikedRecipeIds.delete(recipe.id);
+    if (!state.favorites.some((entry) => entry.id === recipe.id)) state.favorites = [recipe, ...state.favorites];
+  }
+  if (action === 'skip') {
+    state.favorites = state.favorites.filter((entry) => entry.id !== recipe.id);
+    state.dislikedRecipeIds.add(recipe.id);
+  }
+  if (action === 'unlike') {
+    state.favorites = state.favorites.filter((entry) => entry.id !== recipe.id);
+  }
+  if (action === 'like' || action === 'skip') {
+    state.swipedRecipeIds.add(recipe.id);
+    state.swipeRecipes = state.swipeRecipes.filter((entry) => entry.id !== recipe.id);
+  }
+}
+
 function nav() {
   const tabs = [
     ['discover', '🌿', 'Entdecken'],
@@ -445,10 +464,28 @@ function recipeCard(r) {
   </div>`;
 }
 
+function renderSwipeCard(recipe, { top = false } = {}) {
+  if (!recipe) return '';
+  return `<div class="big-card${top ? ' swipe-card-active' : ' swipe-card-next'}" data-recipe="${recipe.id}" ${top ? 'id="swipeCard"' : ''}>
+    <div class="swipe-badge swipe-badge-like">LIKE</div>
+    <div class="swipe-badge swipe-badge-nope">NOPE</div>
+    <div class="big-media">${recipeImageMarkup(recipe, 'swipe-photo')}</div>
+    <div class="swipe-body">
+      <h2>${recipe.name}</h2>
+      <div class="big-meta">
+        <span>⏱ ${recipe.duration} Min</span>
+        <span>🧾 ${recipe.ingredients_count} Zutaten</span>
+        <span>🍽 ${recipe.cuisine}</span>
+      </div>
+    </div>
+  </div>`;
+}
+
 function renderSwipe() {
   const queue = getSwipeQueue();
-  const r = queue[0];
-  if (!r) {
+  const current = queue[0];
+  const next = queue[1];
+  if (!current) {
     return `${header('Menu-Swipe', `<button class="btn" id="openFilter">▼ Filter</button>`)}
       <div class="empty-state">
         <h3>Keine Karten mehr im Swipe-Deck</h3>
@@ -459,18 +496,9 @@ function renderSwipe() {
   return `${header('Menu-Swipe', `<button class="btn" id="openFilter">▼ Filter</button>`)}
     <p class="small">${queue.length} Rezepte im Swipe-Deck</p>
     <div class="swipe-stage">
-      <div class="big-card" data-recipe="${r.id}" id="swipeCard">
-        <div class="swipe-badge swipe-badge-like">LIKE</div>
-        <div class="swipe-badge swipe-badge-nope">NOPE</div>
-        <div class="big-media">${recipeImageMarkup(r, 'swipe-photo')}</div>
-        <div class="swipe-body">
-          <h2>${r.name}</h2>
-          <div class="big-meta">
-            <span>⏱ ${r.duration} Min</span>
-            <span>🧾 ${r.ingredients_count} Zutaten</span>
-            <span>🍽 ${r.cuisine}</span>
-          </div>
-        </div>
+      <div class="swipe-stack">
+        ${next ? renderSwipeCard(next) : '<div class="big-card swipe-card-placeholder"></div>'}
+        ${renderSwipeCard(current, { top: true })}
       </div>
     </div>
     <div class="actions">
@@ -634,7 +662,10 @@ function openRecipe(id) {
       </div>
     </div>`);
 
-    document.getElementById('closeModal').onclick = closeModal;
+    document.getElementById('closeModal').onclick = () => {
+      state.selectedRecipe = null;
+      closeModal();
+    };
     document.getElementById('plusPortion').onclick = () => { portions += 1; draw(); };
     document.getElementById('minusPortion').onclick = () => { portions = Math.max(1, portions - 1); draw(); };
     document.getElementById('jumpIngredients').onclick = () => document.getElementById('ingredients').scrollIntoView({ behavior: 'smooth' });
@@ -650,17 +681,14 @@ function openRecipe(id) {
     });
     document.getElementById('likeRecipe').onclick = async () => {
       const currentlyFavorite = state.favorites.some((recipe) => recipe.id === r.id);
-      if (currentlyFavorite) await api.delete(`/api/favorites/${r.id}`);
-      else await api.post(`/api/recipes/${r.id}/like`);
       if (currentlyFavorite) {
         await api.delete(`/api/favorites/${r.id}`);
-        state.favorites = state.favorites.filter((recipe) => recipe.id !== r.id);
+        syncRecipeCollections(r, 'unlike');
       } else {
         await api.post(`/api/recipes/${r.id}/like`);
-        if (!state.favorites.some((recipe) => recipe.id === r.id)) state.favorites = [...state.favorites, r];
+        syncRecipeCollections(r, 'like');
       }
-      state.swipedRecipeIds.add(r.id);
-      state.favorites = await api.get('/api/favorites');
+      if (state.tab === 'swipe') render();
       draw();
     };
     document.getElementById('addToList').onclick = () => openAddToList(r.ingredients);
@@ -676,17 +704,19 @@ async function handleSwipeAction(action) {
   const card = document.getElementById('swipeCard');
   if (card) {
     card.classList.add(action === 'like' ? 'fly-right' : 'fly-left');
-    await new Promise((resolve) => setTimeout(resolve, 260));
+    await new Promise((resolve) => setTimeout(resolve, 320));
   }
 
-  if (action === 'like') await api.post(`/api/recipes/${recipe.id}/like`);
-  if (action === 'skip') {
-    await api.post(`/api/recipes/${recipe.id}/dislike`);
-    state.dislikedRecipeIds.add(recipe.id);
+  syncRecipeCollections(recipe, action);
+  render();
+
+  try {
+    if (action === 'like') await api.post(`/api/recipes/${recipe.id}/like`);
+    if (action === 'skip') await api.post(`/api/recipes/${recipe.id}/dislike`);
+    await reloadData({ withRender: false });
+  } finally {
+    state.swipeBusy = false;
   }
-  state.swipedRecipeIds.add(recipe.id);
-  state.swipeBusy = false;
-  await reloadData();
 }
 
 function bindSwipeGestures() {
@@ -803,7 +833,10 @@ async function openListEditor(id) {
         <button class="btn" id="deleteList">Liste löschen</button>
       </div>
     </div>`);
-    document.getElementById('closeModal').onclick = closeModal;
+    document.getElementById('closeModal').onclick = () => {
+      state.selectedRecipe = null;
+      closeModal();
+    };
     document.querySelectorAll('[data-check]').forEach((c) => c.onchange = () => { list.items[c.dataset.check].checked = c.checked; });
     document.querySelectorAll('[data-remove]').forEach((b) => b.onclick = () => { list.items.splice(Number(b.dataset.remove), 1); draw(); });
     document.getElementById('addItem').onclick = () => { const name = prompt('Zutat'); if (name) { list.items.push({ name, checked: false }); draw(); } };
