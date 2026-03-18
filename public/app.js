@@ -945,22 +945,66 @@ function openFeedback() {
     <h2>Hilfe und Feedback</h2>
     <p class="small feedback-intro">Wir melden uns so schnell wie möglich bei dir zurück.</p>
     <div class="feedback-form">
-      <label for="fMail">E-Mail-Adresse</label>
+      <label for="fMail">E-Mail-Adresse <span class="feedback-label-note">(für Rückfragen)</span></label>
       <input id="fMail" type="email" placeholder="name@beispiel.de" autocomplete="email" />
       <label for="fSub">Betreff</label>
-      <input id="fSub" placeholder="Worum geht es?" />
+      <input id="fSub" placeholder="Worum geht es?" maxlength="30" />
+      <div class="feedback-hint">Maximal 30 Zeichen.</div>
       <label for="fMsg">Nachricht</label>
-      <textarea id="fMsg" placeholder="Beschreibe dein Anliegen oder Feedback..."></textarea>
+      <textarea id="fMsg" placeholder="Beschreibe dein Anliegen oder Feedback..." maxlength="250"></textarea>
+      <div class="feedback-counter" id="fMsgCounter">0/250</div>
     </div>
     <button class="btn" id="sendFeedback">Abschicken</button>
   </div>`);
   document.getElementById('closeModal').onclick = closeModal;
+
+  const mailInput = document.getElementById('fMail');
+  const subjectInput = document.getElementById('fSub');
+  const messageInput = document.getElementById('fMsg');
+  const counter = document.getElementById('fMsgCounter');
+
+  const clampValue = (input, maxLength) => {
+    if (input.value.length > maxLength) input.value = input.value.slice(0, maxLength);
+  };
+
+  const syncCounter = () => {
+    clampValue(messageInput, 250);
+    counter.textContent = `${messageInput.value.length}/250`;
+  };
+
+  subjectInput.addEventListener('input', () => clampValue(subjectInput, 30));
+  subjectInput.addEventListener('paste', () => setTimeout(() => clampValue(subjectInput, 30), 0));
+  messageInput.addEventListener('input', syncCounter);
+  messageInput.addEventListener('paste', () => setTimeout(syncCounter, 0));
+  syncCounter();
+
   document.getElementById('sendFeedback').onclick = async () => {
-    await api.post('/api/feedback', {
-      email: document.getElementById('fMail').value,
-      subject: document.getElementById('fSub').value,
-      message: document.getElementById('fMsg').value
-    });
+    const email = mailInput.value.trim();
+    const subject = subjectInput.value.trim();
+    const message = messageInput.value.trim();
+
+    if (!email) {
+      alert('Bitte gib deine E-Mail-Adresse ein.');
+      return;
+    }
+    if (!subject) {
+      alert('Bitte gib einen Betreff ein.');
+      return;
+    }
+    if (subject.length > 30) {
+      alert('Der Betreff darf maximal 30 Zeichen lang sein.');
+      return;
+    }
+    if (!message) {
+      alert('Bitte gib eine Nachricht ein.');
+      return;
+    }
+    if (message.length > 250) {
+      alert('Die Nachricht darf maximal 250 Zeichen lang sein.');
+      return;
+    }
+
+    await api.post('/api/feedback', { email, subject, message });
     alert('Danke für dein Feedback!');
     closeModal();
   };
