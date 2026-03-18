@@ -32,7 +32,7 @@ h1,h2,h3,p{margin:0}
 .phone{width:420px;min-height:100vh;padding:20px 18px 114px;position:relative}
 .phone-swipe{display:flex;flex-direction:column;min-height:calc(100vh - 14px)}
 
-.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
 .header h1{font-size:28px;letter-spacing:.01em}
 
 .btn{
@@ -49,7 +49,7 @@ h1,h2,h3,p{margin:0}
 
 .search{
   width:100%;padding:14px 16px;border:1px solid var(--line);border-radius:16px;
-  background:#1a241d;color:var(--text);margin-bottom:14px;outline:none
+  background:#1a241d;color:var(--text);margin-bottom:18px;outline:none
 }
 .search::placeholder{color:#86988a}
 
@@ -61,10 +61,10 @@ h1,h2,h3,p{margin:0}
   overflow:hidden;
   background:linear-gradient(145deg,#2f4c38,#1f3227 52%,#26372b);
   box-shadow:var(--glow);
-  margin-bottom:16px;
+  margin-bottom:20px;
 }
 .hero-image{
-  height:220px;
+  height:192px;
   background:radial-gradient(circle at 20% 20%,rgba(217,255,110,.25),transparent 45%),
     linear-gradient(130deg,#203227,#30573d);
   display:flex;
@@ -74,7 +74,7 @@ h1,h2,h3,p{margin:0}
 .hero-title{font-size:30px;font-weight:800;line-height:1.1}
 .hero-sub{padding:14px 18px;color:#d2e2d6;font-size:14px}
 
-.section-title{font-size:25px;font-weight:800;margin:8px 0 12px}
+.section-title{font-size:25px;font-weight:800;margin:14px 0 14px}
 
 .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
 .card{
