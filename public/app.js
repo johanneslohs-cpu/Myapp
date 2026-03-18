@@ -1142,17 +1142,25 @@ function authModal() {
   const canUseGoogleWeb = !state.isCordova;
   const canUseGoogleCordova = state.isCordova;
   modal(`<div class="auth-shell">
-    <div class="auth-phone-frame">
-      <div class="auth-modal">
-        <div class="auth-brand">MyApp Rezepte</div>
-        <h2>Willkommen zurück</h2>
-        <p class="auth-copy">Melde dich an, um deine Favoriten, Einkaufslisten und Einstellungen auf allen Geräten zu nutzen.</p>
+    <section class="auth-panel">
+      <div class="auth-hero">
+        <div class="auth-brand-row">
+          <div class="auth-brand-mark">B</div>
+          <div>
+            <div class="auth-brand">BiteMatch</div>
+            <p class="auth-kicker">Dein persönlicher Rezept-Match</p>
+          </div>
+        </div>
+        <h2>Schön, dass du wieder da bist.</h2>
+        <p class="auth-copy">Melde dich an und behalte Favoriten, Einkaufslisten und deine persönlichen Einstellungen immer griffbereit.</p>
+      </div>
+      <div class="auth-actions">
         ${canUseGoogleWeb ? '<div id="googleSignIn" class="auth-google-slot"></div>' : ''}
         ${canUseGoogleCordova ? '<button class="btn auth-google-btn" id="googleSignInCordova">Mit Google anmelden</button>' : ''}
-        ${state.googleClientId ? '' : '<p class="muted">Google-Login ist gerade nicht verfügbar.</p>'}
-        <button class="btn auth-guest-btn" id="authGuest">Als Gast einloggen</button>
+        ${state.googleClientId ? '' : '<p class="muted auth-note">Google-Login ist gerade nicht verfügbar.</p>'}
+        <button class="btn auth-guest-btn" id="authGuest">Ohne Konto fortfahren</button>
       </div>
-    </div>
+    </section>
   </div>`);
 
   const authBackdrop = document.querySelector('#modalRoot .modal');
