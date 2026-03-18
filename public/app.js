@@ -36,6 +36,187 @@ const state = {
 
 let searchReloadTimer = null;
 
+
+const LEGAL_DOCUMENTS = [
+  {
+    id: 'privacy',
+    title: 'Datenschutzerklärung',
+    subtitle: 'Stand: 18.03.2026',
+    icon: '🔒',
+    accent: 'privacy',
+    content: `Datenschutzerklärung für BiteMatch
+Stand: 18.03.2026
+
+1. Verantwortlicher
+Verantwortlich für die Verarbeitung personenbezogener Daten im Zusammenhang mit der Android-App BiteMatch ist:
+Johannes Lohs
+Steinfeldstraße 16
+6921 Kennelbach
+Österreich
+E-Mail: bitematch.de@gmail.com
+
+2. Allgemeines
+BiteMatch ist eine Android-App zur Entdeckung und Verwaltung von Kochrezepten. Nutzer können Rezepte ansehen, per Swipe bewerten, Favoriten speichern, nach Zutaten und Nährwerten filtern, Zutaten zu Einkaufslisten hinzufügen, Einkaufslisten verwalten sowie persönliche Einstellungen und Profildaten anpassen.
+
+3. Welche Daten verarbeitet werden
+Im Rahmen der Nutzung von BiteMatch können insbesondere folgende personenbezogene Daten verarbeitet werden:
+• Name
+• E-Mail-Adresse
+• Profilbild, sofern dieses über den Google-Login bereitgestellt oder vom Nutzer hochgeladen wird
+• Kontodaten und Profildaten
+• Favoriten, Filtereinstellungen, ausgeschlossene Zutaten, Ernährungspräferenzen und Einkaufslisten
+• Inhalte, die Nutzer innerhalb der App selbst speichern oder verwalten
+• Daten aus Support- oder Feedbackanfragen
+• technische Verbindungsdaten und Protokolldaten, soweit dies für Betrieb, Sicherheit und Stabilität der App erforderlich ist
+• Werbe- und gerätebezogene Daten im Zusammenhang mit eingeblendeter Werbung
+
+4. Zwecke der Verarbeitung
+Die Verarbeitung personenbezogener Daten erfolgt zu folgenden Zwecken:
+• Bereitstellung und Betrieb der App
+• Anmeldung und Verwaltung des Nutzerkontos
+• Speicherung und Verwaltung von Favoriten, Filtern, Einkaufslisten und Profileinstellungen
+• Personalisierung der App-Nutzung
+• Bearbeitung von Support- und Feedbackanfragen
+• Einblendung von Werbung
+• Sicherstellung der technischen Stabilität und Sicherheit der App
+• Verhinderung von Missbrauch
+
+5. Rechtsgrundlagen
+Die Verarbeitung personenbezogener Daten erfolgt, soweit anwendbar, auf folgenden Rechtsgrundlagen:
+• zur Erfüllung des Nutzungsverhältnisses und zur Bereitstellung der App-Funktionen
+• zur Wahrung berechtigter Interessen an einem sicheren, stabilen und wirtschaftlichen Betrieb der App
+• auf Grundlage einer Einwilligung, soweit eine solche erforderlich ist
+
+6. Anmeldung mit Google
+Für die Nutzung von BiteMatch wird ein Login über Google angeboten. Im Rahmen dieses Logins können insbesondere Name, E-Mail-Adresse und Profilbild übernommen werden, soweit diese Daten vom Nutzer im Rahmen des Google-Logins freigegeben werden.
+Diese Daten werden verwendet, um das Nutzerkonto anzulegen, die Anmeldung zu ermöglichen und die Nutzung der App bereitzustellen.
+
+7. Werbung
+In BiteMatch wird Werbung eingebunden. Im Zusammenhang mit der Anzeige von Werbung können durch eingesetzte Werbedienste personenbezogene Daten und gerätebezogene Informationen verarbeitet werden, soweit dies für die Ausspielung, Bereitstellung und technische Abwicklung von Werbung erforderlich ist.
+
+8. Hosting und technische Bereitstellung
+Zur technischen Bereitstellung der App und zugehöriger Dienste werden externe Hosting- und Infrastrukturdienstleister eingesetzt. Dabei können technisch notwendige Daten verarbeitet werden, insbesondere Verbindungs- und Serverprotokolldaten, soweit dies für Betrieb, Sicherheit und Stabilität erforderlich ist.
+
+9. Empfänger von Daten
+Personenbezogene Daten können an folgende Empfänger oder Kategorien von Empfängern übermittelt werden, soweit dies zur Bereitstellung der App erforderlich ist:
+• Login-Dienstleister
+• Werbedienstleister
+• Hosting- und Infrastrukturdienstleister
+• technische Auftragsverarbeiter, soweit diese für den Betrieb der App eingesetzt werden
+
+10. Drittlandübermittlung
+Es kann nicht ausgeschlossen werden, dass einzelne eingesetzte Dienste oder technische Anbieter Daten auch außerhalb der Europäischen Union oder des Europäischen Wirtschaftsraums verarbeiten. In solchen Fällen erfolgt die Verarbeitung nur im Rahmen der jeweils geltenden datenschutzrechtlichen Vorgaben.
+
+11. Speicherdauer
+Personenbezogene Daten werden nur so lange gespeichert, wie dies für die jeweiligen Zwecke erforderlich ist.
+Im Regelfall gilt:
+• Kontodaten werden bis zur Löschung des Nutzerkontos gespeichert
+• Profil-, Favoriten-, Filter- und Einkaufslistendaten werden bis zur Löschung des Kontos oder bis zur Entfernung durch den Nutzer gespeichert
+• Support- und Feedbackdaten werden so lange gespeichert, wie dies zur Bearbeitung und Nachverfolgung erforderlich ist
+• technische Protokolldaten werden nur so lange gespeichert, wie dies für Sicherheit, Fehlerbehebung und Stabilität notwendig ist
+• gesetzliche Aufbewahrungspflichten bleiben unberührt
+
+12. Kontolöschung und Datenlöschung
+Nutzer können ihr Konto innerhalb der App löschen.
+Zusätzlich kann die Löschung des Kontos und der damit verbundenen personenbezogenen Daten über die E-Mail bitematch.de@gmail.com beantragt werden.
+Mit der Löschung des Kontos werden die damit verbundenen personenbezogenen Daten gelöscht, soweit keine gesetzlichen Aufbewahrungspflichten oder zwingenden technischen Gründe entgegenstehen.
+
+13. Datensicherheit
+Es werden angemessene technische und organisatorische Maßnahmen getroffen, um personenbezogene Daten vor Verlust, Missbrauch, unbefugtem Zugriff, unbefugter Offenlegung oder unbefugter Veränderung zu schützen.
+
+14. Rechte der betroffenen Personen
+Betroffene Personen haben im Rahmen der gesetzlichen Vorschriften insbesondere folgende Rechte:
+• Recht auf Auskunft
+• Recht auf Berichtigung
+• Recht auf Löschung
+• Recht auf Einschränkung der Verarbeitung
+• Recht auf Datenübertragbarkeit
+• Recht auf Widerspruch
+• Recht auf Widerruf erteilter Einwilligungen mit Wirkung für die Zukunft
+• Recht auf Beschwerde bei einer zuständigen Aufsichtsbehörde
+
+15. Beschwerderecht
+Wenn du der Ansicht bist, dass die Verarbeitung deiner personenbezogenen Daten gegen geltendes Datenschutzrecht verstößt, kannst du dich bei einer zuständigen Datenschutzbehörde beschweren.
+
+16. Änderungen dieser Datenschutzerklärung
+Diese Datenschutzerklärung kann angepasst werden, wenn sich die App, ihre Funktionen, die eingesetzten Dienste oder die rechtlichen Anforderungen ändern.`,
+  },
+  {
+    id: 'imprint',
+    title: 'Impressum',
+    subtitle: 'Anbieterkennzeichnung',
+    icon: '📍',
+    accent: 'imprint',
+    content: `Impressum
+
+Johannes Lohs
+Steinfeldstraße 16
+6921 Kennelbach
+Österreich
+
+E-Mail: bitematch.de@gmail.com
+
+Medieninhaber und Herausgeber: Johannes Lohs
+App: BiteMatch
+Blattlinie: Informationen und Services rund um die Android-App BiteMatch zur Entdeckung und Verwaltung von Kochrezepten.`,
+  },
+  {
+    id: 'terms',
+    title: 'Nutzungsbedingungen',
+    subtitle: 'Stand: 18.03.2026',
+    icon: '📘',
+    accent: 'terms',
+    content: `Nutzungsbedingungen für BiteMatch
+Stand: 18.03.2026
+
+1. Geltungsbereich
+Diese Nutzungsbedingungen regeln die Nutzung der mobilen Android-App „BiteMatch“ durch ihre Nutzer.
+
+2. Leistungsbeschreibung
+BiteMatch ist eine App zur Entdeckung, Filterung und Verwaltung von Rezepten. Nutzer können Rezepte ansehen, per Swipe bewerten, Favoriten speichern, Einkaufslisten verwalten sowie persönliche Einstellungen wie Ernährungsform oder ausgeschlossene Zutaten festlegen.
+
+3. Nutzerkonto und Anmeldung
+Die Nutzung bestimmter Funktionen setzt ein Nutzerkonto bzw. eine Anmeldung per Google-Login voraus. Nutzer sind verpflichtet, nur korrekte Angaben zu machen und ihren Zugang nicht missbräuchlich zu verwenden.
+
+4. Zulässige Nutzung
+Die App darf nur im Rahmen der geltenden Gesetze und dieser Nutzungsbedingungen verwendet werden. Untersagt ist insbesondere jede Nutzung, die den technischen Betrieb beeinträchtigt, Sicherheitsmechanismen umgeht oder Inhalte bzw. Funktionen missbräuchlich verwendet.
+
+5. Verfügbarkeit
+Es besteht kein Anspruch auf eine jederzeit unterbrechungsfreie Verfügbarkeit der App. Wartungen, technische Störungen, Weiterentwicklungen oder externe Ausfälle können zu Einschränkungen führen.
+
+6. Inhalte und Haftung
+Die in der App dargestellten Rezepte und Informationen dienen allgemeinen Informationszwecken. Trotz sorgfältiger Aufbereitung wird keine Gewähr für Vollständigkeit, Richtigkeit oder ständige Verfügbarkeit übernommen. Nutzer sind selbst dafür verantwortlich, Zutaten, Allergene, Unverträglichkeiten und Nährwerte im Einzelfall zu prüfen.
+
+7. Werbung
+Die App kann Werbung enthalten, insbesondere über AdMob. Auf die Inhalte externer Werbeanzeigen besteht kein Einfluss; für Inhalte externer Anbieter wird keine Haftung übernommen.
+
+8. Änderungen der App
+Der Anbieter ist berechtigt, Funktionen der App zu ändern, zu erweitern, einzuschränken oder einzustellen, soweit dies unter Berücksichtigung der Nutzerinteressen zumutbar ist.
+
+9. Sperrung und Kündigung
+Der Anbieter kann Nutzerkonten sperren oder löschen, wenn ein Verstoß gegen diese Nutzungsbedingungen oder ein Missbrauch der App vorliegt. Nutzer können ihr Konto entsprechend der in der App bereitgestellten Funktion löschen.
+
+10. Datenschutz
+Informationen zur Verarbeitung personenbezogener Daten ergeben sich aus der Datenschutzerklärung der App.
+
+11. Schlussbestimmungen
+Es gilt österreichisches Recht unter Ausschluss der Kollisionsnormen, soweit dem keine zwingenden Verbraucherschutzvorschriften entgegenstehen. Sollten einzelne Bestimmungen unwirksam sein, bleibt die Wirksamkeit der übrigen Bestimmungen unberührt.`,
+  },
+];
+
+function legalPreview(text = '') {
+  return text.split('\n').filter(Boolean).slice(0, 2).join(' · ');
+}
+
+function legalContentToHtml(text = '') {
+  return text.split('\n').map((line) => {
+    const trimmed = line.trim();
+    if (!trimmed) return '<div class="legal-spacer"></div>';
+    if (/^•\s/.test(trimmed)) return `<li>${trimmed.replace(/^•\s*/, '')}</li>`;
+    return `<p>${trimmed}</p>`;
+  }).join('');
+}
+
 async function request(url, options = {}) {
   const headers = { ...(options.headers || {}) };
   if (state.token) headers.Authorization = `Bearer ${state.token}`;
@@ -786,30 +967,57 @@ function openFeedback() {
 }
 
 function openLegal() {
-  modal(`<div class="legal-modal">
-    <button class="btn" id="closeModal">← Zurück</button>
-    <h2>Sonstiges</h2>
-    <p class="small legal-intro">Hier findest du alle rechtlichen und administrativen Informationen übersichtlich gesammelt.</p>
+  modal(`<div class="legal-modal legal-overview">
+    <div class="legal-topbar">
+      <button class="btn" id="closeModal">← Zurück</button>
+      <div class="legal-badge">BiteMatch Legal</div>
+    </div>
+    <div class="legal-hero-card">
+      <div>
+        <p class="legal-eyebrow">Sonstiges</p>
+        <h2>Rechtliches klar, modern und schnell auffindbar.</h2>
+        <p class="small legal-intro">Hier findest du nur noch die drei wichtigen Dokumente. Tippe auf einen Eintrag, um ihn direkt in einer übersichtlichen Leseansicht zu öffnen.</p>
+      </div>
+      <div class="legal-summary-pill">3 Dokumente</div>
+    </div>
     <div class="legal-list">
-      <article class="legal-card">
-        <h3>Nutzungsbedingungen</h3>
-        <p>Dies ist ein Beispieltext für Nutzungsbedingungen.</p>
-      </article>
-      <article class="legal-card">
-        <h3>Datenschutzerklärung</h3>
-        <p>Dies ist ein Beispieltext zum Datenschutz und zur Datenverarbeitung.</p>
-      </article>
-      <article class="legal-card">
-        <h3>Datenschutzeinstellungen</h3>
-        <p>Hier könnten Cookie- und Tracking-Einstellungen verwaltet werden.</p>
-      </article>
-      <article class="legal-card">
-        <h3>AGB</h3>
-        <p>Dies ist ein Beispieltext für allgemeine Geschäftsbedingungen.</p>
-      </article>
+      ${LEGAL_DOCUMENTS.map((doc) => `<button class="legal-entry legal-${doc.accent}" data-legal-doc="${doc.id}">
+        <span class="legal-entry-icon">${doc.icon}</span>
+        <span class="legal-entry-copy">
+          <strong>${doc.title}</strong>
+          <span>${doc.subtitle}</span>
+          <small>${legalPreview(doc.content)}</small>
+        </span>
+        <span class="legal-entry-arrow">→</span>
+      </button>`).join('')}
     </div>
   </div>`);
   document.getElementById('closeModal').onclick = closeModal;
+  document.querySelectorAll('[data-legal-doc]').forEach((button) => {
+    button.onclick = () => openLegalDocument(button.dataset.legalDoc);
+  });
+}
+
+function openLegalDocument(docId) {
+  const doc = LEGAL_DOCUMENTS.find((entry) => entry.id === docId);
+  if (!doc) return;
+  modal(`<div class="legal-modal legal-reader legal-${doc.accent}">
+    <div class="legal-topbar">
+      <button class="btn" id="backToLegal">← Sonstiges</button>
+      <button class="btn" id="closeModal">✕</button>
+    </div>
+    <div class="legal-reader-hero">
+      <div class="legal-entry-icon">${doc.icon}</div>
+      <div>
+        <p class="legal-eyebrow">${doc.subtitle}</p>
+        <h2>${doc.title}</h2>
+        <p class="small legal-intro">Dieses Dokument kannst du jederzeit über den Bereich „Sonstiges“ erneut aufrufen.</p>
+      </div>
+    </div>
+    <div class="legal-reader-body">${legalContentToHtml(doc.content)}</div>
+  </div>`);
+  document.getElementById('closeModal').onclick = closeModal;
+  document.getElementById('backToLegal').onclick = openLegal;
 }
 
 async function openAddToList(ingredients) {
