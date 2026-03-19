@@ -191,7 +191,8 @@ textarea{min-height:100px}
 
 .favorite-add-card{display:flex;flex-direction:column;justify-content:flex-start}
 .add-favorite-media{display:flex;align-items:center;justify-content:center}
-.add-favorite-plus{font-size:72px;line-height:1;color:var(--primary)}
+.add-favorite-plus{font-size:84px;line-height:1;color:var(--primary);font-weight:800}
+.favorite-add-label{margin-top:10px}
 
 .list-overview-copy{color:#d3e3d6;line-height:1.45}
 
