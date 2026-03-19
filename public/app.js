@@ -529,8 +529,8 @@ function renderFavorites() {
   const favorites = filteredFavorites();
   return `${header('Deine Favoriten', `<button class="btn" id="openFilter">▼ Filter</button>`)}
     <input class="search" placeholder="Rezept suchen" value="${state.search}" id="searchInput" />
-    <div class="grid">${favorites.map(recipeCard).join('')}
-      <div class="card favorite-add-card" id="toSwipe"><div class="recipe-img add-favorite-media"><span class="add-favorite-plus">＋</span></div><div>Weitere Favoriten hinzufügen</div></div>
+    <div class="grid">
+      <div class="card favorite-add-card" id="toSwipe"><div class="recipe-img add-favorite-media"><span class="add-favorite-plus">＋</span></div><div class="favorite-add-label">Weitere Favoriten hinzufügen</div></div>${favorites.map(recipeCard).join('')}
     </div>`;
 }
 
