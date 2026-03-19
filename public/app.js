@@ -1245,13 +1245,12 @@ function authModal() {
     <section class="auth-panel">
       <div class="auth-hero">
         <div class="auth-brand-row">
-          <div class="auth-brand-mark">B</div>
+          <img class="auth-brand-logo" src="/assets/bitematch-logo.svg" alt="BiteMatch Logo" />
           <div>
             <div class="auth-brand">BiteMatch</div>
             <p class="auth-kicker">Dein persönlicher Rezept-Match</p>
           </div>
         </div>
-        <h2>Schön, dass du wieder da bist.</h2>
         <p class="auth-copy">Melde dich an und behalte Favoriten, Einkaufslisten und deine persönlichen Einstellungen immer griffbereit.</p>
       </div>
       <div class="auth-actions">

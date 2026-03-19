@@ -1,0 +1,46 @@
+<svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">BiteMatch Logo</title>
+  <desc id="desc">Green heart with fork, spoon and chef hat.</desc>
+  <defs>
+    <linearGradient id="bg" x1="24" y1="24" x2="232" y2="232" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#C7F54B"/>
+      <stop offset="1" stop-color="#4EAE20"/>
+    </linearGradient>
+    <linearGradient id="heartOuter" x1="42" y1="90" x2="216" y2="214" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#1B7A27"/>
+      <stop offset="1" stop-color="#0E4F1A"/>
+    </linearGradient>
+    <linearGradient id="heartInner" x1="58" y1="96" x2="196" y2="198" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFDF6"/>
+      <stop offset="1" stop-color="#D9F671"/>
+    </linearGradient>
+    <linearGradient id="utensil" x1="76" y1="104" x2="168" y2="188" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#A9EE00"/>
+      <stop offset="1" stop-color="#197B22"/>
+    </linearGradient>
+    <linearGradient id="hat" x1="88" y1="44" x2="168" y2="104" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFF9EC"/>
+      <stop offset="1" stop-color="#D6E0C4"/>
+    </linearGradient>
+    <filter id="shadow" x="24" y="36" width="208" height="196" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="12" stdDeviation="10" flood-color="#13561C" flood-opacity="0.24"/>
+    </filter>
+  </defs>
+  <circle cx="128" cy="128" r="120" fill="url(#bg)"/>
+  <g filter="url(#shadow)">
+    <path d="M128 220L116 210C74 173 48 149 48 114C48 86 70 66 98 66C114 66 124 73 128 81C132 73 142 66 158 66C186 66 208 86 208 114C208 149 182 173 140 210L128 220Z" fill="url(#heartOuter)"/>
+    <path d="M128 205L119 197C84 167 62 147 62 116C62 94 79 80 99 80C113 80 122 87 128 96C134 87 143 80 157 80C177 80 194 94 194 116C194 147 172 167 137 197L128 205Z" fill="url(#heartInner)"/>
+  </g>
+  <path d="M87 118C81 112 72 112 68 118C64 123 66 131 73 141L95 171C99 177 105 176 109 171C113 167 112 160 107 154L87 118Z" fill="url(#utensil)"/>
+  <path d="M89 112L74 95C71 92 66 92 63 95C60 98 60 103 63 106L78 123C81 126 86 126 89 123C92 120 92 115 89 112Z" fill="#B7F100"/>
+  <path d="M102 105L84 83C81 79 76 78 72 81C69 84 68 89 71 92L89 115C92 118 97 119 101 116C104 113 105 108 102 105Z" fill="#C4F52B"/>
+  <path d="M115 106L94 76C91 72 86 70 82 73C78 76 78 81 81 85L102 116C105 120 110 121 114 118C118 115 118 110 115 106Z" fill="#D4FA47"/>
+  <path d="M150 166C144 161 144 151 150 145L171 124C179 116 191 115 199 122C207 130 207 143 198 151L177 172C170 179 157 180 150 166Z" fill="url(#utensil)"/>
+  <ellipse cx="177" cy="132" rx="20" ry="25" transform="rotate(22 177 132)" fill="#A7ED00"/>
+  <path d="M90 184C87 180 87 175 91 172C95 168 101 169 104 173L134 215C137 219 136 225 132 228C128 231 122 230 119 225L90 184Z" fill="#166D20"/>
+  <path d="M150 162L170 188C173 192 173 197 169 201C165 204 159 203 156 199L136 173L150 162Z" fill="#166D20"/>
+  <path d="M82 85C86 65 108 52 128 57C136 43 151 36 166 36C187 36 204 51 207 72C216 73 223 81 223 91C223 102 214 111 202 111H90C74 111 64 101 64 89C64 79 72 71 82 70C83 75 83 80 82 85Z" fill="url(#hat)"/>
+  <path d="M87 106C98 95 113 98 120 107C126 98 141 95 152 106" stroke="#B5C8A4" stroke-width="8" stroke-linecap="round"/>
+  <path d="M214 98C225 88 238 95 239 109C230 110 220 106 214 98Z" fill="#8EDB1D"/>
+  <path d="M204 106C214 95 231 99 234 117C223 120 211 116 204 106Z" fill="#6CC518"/>
+</svg>

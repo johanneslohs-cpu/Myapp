@@ -378,17 +378,12 @@ textarea{min-height:100px}
 }
 .auth-hero{display:flex;flex-direction:column;gap:16px}
 .auth-brand-row{display:flex;align-items:center;gap:14px}
-.auth-brand-mark{
-  width:46px;
-  height:46px;
-  border-radius:16px;
-  display:grid;
-  place-items:center;
-  background:linear-gradient(135deg,rgba(87,216,144,.95),rgba(217,255,110,.78));
-  color:#10301c;
-  font-size:24px;
-  font-weight:800;
-  box-shadow:0 12px 24px rgba(57,148,98,.28);
+.auth-brand-logo{
+  width:54px;
+  height:54px;
+  object-fit:contain;
+  flex:0 0 auto;
+  filter:drop-shadow(0 12px 24px rgba(57,148,98,.22));
 }
 .auth-brand{
   font-size:15px;
