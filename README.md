@@ -116,6 +116,42 @@ Optional kannst du in `config.xml` zusätzlich eine immersive Darstellung erzwin
 Wenn du später einen anderen Server nutzen willst, setze vor dem Build die gewünschte URL
 über `window.MYAPP_API_BASE_URL` oder `localStorage` (siehe oben).
 
+### AdMob-Testanzeigen in Cordova aktivieren
+
+Die App ist jetzt auf **Cordova-Interstitials mit Google-Demo-Ad-Units** vorbereitet. Damit Testanzeigen auf Android wirklich erscheinen, muss das AdMob-Plugin im eigentlichen Cordova-Wrapper installiert werden.
+
+Verwende dafür im Wrapper-Projekt z. B.:
+
+```bash
+cordova plugin add admob-plus-cordova
+```
+
+Für Android muss außerdem die **AdMob App ID** als Preference in die `config.xml` des Wrappers eingetragen werden:
+
+```xml
+<preference name="ADMOB_APP_ID" value="ca-app-pub-3947032809384601~6467630252" />
+```
+
+Aktuelles Verhalten der App:
+
+- es werden ausschließlich Googles Demo-Interstitials verwendet
+- ein Interstitial wird nach jedem **10. abgeschlossenen Swipe** in der Swipe-Ansicht versucht
+- zusätzlich wird nach **mindestens 10 Minuten** beim nächsten sinnvollen Trigger (z. B. Tab-Wechsel, Rezept öffnen, Zurück in die Swipe-Ansicht) ein Interstitial versucht
+- wenn keine Anzeige geladen ist, wird sie **übersprungen** und im Hintergrund neu geladen
+- AdMob ist standardmäßig nur aktiv, wenn die App in einer **Cordova-Laufzeit** startet
+
+Optional kannst du AdMob lokal per `localStorage` deaktivieren:
+
+```js
+localStorage.setItem('myapp_admob_enabled', '0');
+```
+
+Und wieder aktivieren mit:
+
+```js
+localStorage.removeItem('myapp_admob_enabled');
+```
+
 
 ## Google-Login (Render + Google Cloud)
 
