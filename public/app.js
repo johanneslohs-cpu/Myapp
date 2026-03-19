@@ -401,16 +401,24 @@ function collectAdMobPluginShape(plugin) {
   };
 }
 
+function getAdMobPluginForInspection() {
+  if (state.admob.plugin) return state.admob.plugin;
+  const candidates = listAdMobPluginCandidates();
+  const firstPlugin = candidates.find(([, plugin]) => Boolean(plugin))?.[1];
+  return firstPlugin || null;
+}
+
 function getAdMobRuntimeSnapshot(extra = {}) {
   const waitingMs = Math.max(0, ADMOB_MIN_INTERVAL_MS - (Date.now() - state.admob.lastShownAt));
-  const pluginShape = collectAdMobPluginShape(state.admob.plugin);
+  const pluginForInspection = getAdMobPluginForInspection();
+  const pluginShape = collectAdMobPluginShape(pluginForInspection);
   const snapshot = {
     status: state.admob.status || 'Unbekannt',
     enabled: state.admob.enabled,
     isCordova: state.isCordova,
     cordovaReady: state.cordovaReady,
     pluginSource: detectAdMobPluginSource(),
-    pluginApi: collectPluginApiHints(state.admob.plugin) || '-',
+    pluginApi: collectPluginApiHints(pluginForInspection) || '-',
     hasInterstitial: Boolean(state.admob.interstitial),
     handle: getAdMobHandleDiagnostics(),
     loading: state.admob.loading,
@@ -829,12 +837,12 @@ async function initializeAdMob() {
 
     if (!state.admob.initialized) {
       const apiHints = pluginCandidates.map(([sourceLabel, plugin]) => `${sourceLabel}: ${collectPluginApiHints(plugin) || '-'}`).join(' | ');
-      state.admob.plugin = pluginCandidates[0][1] || null;
+      state.admob.plugin = pluginCandidates.find(([, plugin]) => Boolean(plugin))?.[1] || null;
       state.admob.pluginSource = attemptedSources.join(' | ');
       setAdMobDiagnosticStatus('Plugin erkannt, aber kein Interstitial-Handle', 'Aus erkanntem Plugin konnte kein Interstitial erstellt werden.', {
         attemptedSources: attemptedSources.join(' | '),
         apiHints: apiHints || '-',
-        ...collectAdMobPluginShape(state.admob.plugin)
+        ...collectAdMobPluginShape(getAdMobPluginForInspection())
       });
       console.info('AdMob: Plugin-Kandidaten gefunden, aber kein Interstitial-Handle verfügbar.', { attemptedSources, apiHints, pluginCandidates });
       return;
