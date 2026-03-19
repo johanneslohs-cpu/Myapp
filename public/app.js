@@ -603,6 +603,8 @@ function openRecipe(id) {
   state.selectedRecipe = r;
   let portions = 2;
   let pickedIngredients = new Set();
+  const MIN_PORTIONS = 1;
+  const MAX_PORTIONS = 10;
   const draw = () => {
     const isFavorite = state.favorites.some((recipe) => recipe.id === r.id);
     const detailedIngredients = formatIngredientsWithPortions(r.ingredients || [], portions);
@@ -632,8 +634,8 @@ function openRecipe(id) {
       <div class="portion-panel" id="ingredients">
         <div><span class="small">Portionen</span><h2>${portions}</h2></div>
         <div class="row">
-          <button class="btn" id="minusPortion">−</button>
-          <button class="btn" id="plusPortion">＋</button>
+          <button class="btn" id="minusPortion" ${portions <= MIN_PORTIONS ? 'disabled' : ''}>−</button>
+          <button class="btn" id="plusPortion" ${portions >= MAX_PORTIONS ? 'disabled' : ''}>＋</button>
         </div>
       </div>
 
@@ -666,17 +668,25 @@ function openRecipe(id) {
       state.selectedRecipe = null;
       closeModal();
     };
-    document.getElementById('plusPortion').onclick = () => { portions += 1; draw(); };
-    document.getElementById('minusPortion').onclick = () => { portions = Math.max(1, portions - 1); draw(); };
+    document.getElementById('plusPortion').onclick = () => {
+      portions = Math.min(MAX_PORTIONS, portions + 1);
+      draw();
+    };
+    document.getElementById('minusPortion').onclick = () => {
+      portions = Math.max(MIN_PORTIONS, portions - 1);
+      draw();
+    };
     document.getElementById('jumpIngredients').onclick = () => document.getElementById('ingredients').scrollIntoView({ behavior: 'smooth' });
     document.getElementById('jumpSteps').onclick = () => document.getElementById('steps').scrollIntoView({ behavior: 'smooth' });
     document.getElementById('jumpNutrition').onclick = () => document.getElementById('nutrition').scrollIntoView({ behavior: 'smooth' });
     document.querySelectorAll('[data-ingredient-pick]').forEach((button) => {
       button.onclick = () => {
+        const scrollY = window.scrollY;
         const index = Number(button.dataset.ingredientPick);
         if (pickedIngredients.has(index)) pickedIngredients.delete(index);
         else pickedIngredients.add(index);
         draw();
+        requestAnimationFrame(() => window.scrollTo({ top: scrollY, behavior: 'auto' }));
       };
     });
     document.getElementById('likeRecipe').onclick = async () => {
