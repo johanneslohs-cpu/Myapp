@@ -55,6 +55,8 @@ const state = {
     lastShownAt: 0,
     status: 'Nicht initialisiert',
     lastError: '',
+    lastErrorSummary: '',
+    lastErrorDetails: null,
     debugVisible: false
   }
 };
@@ -305,10 +307,154 @@ function persistAdMobState() {
   localStorage.setItem(ADMOB_STORAGE_KEYS.lastShownAt, String(state.admob.lastShownAt));
 }
 
-function setAdMobStatus(status, error = '') {
+function setAdMobStatus(status, error = '', details = null) {
   state.admob.status = status;
   state.admob.lastError = error ? String(error) : '';
+  state.admob.lastErrorSummary = error ? String(error) : '';
+  state.admob.lastErrorDetails = details && Object.keys(details).length ? details : null;
   if (state.tab === 'profile' || state.tab === 'swipe') render();
+}
+
+function escapeHtml(value) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function getAdMobHandleDiagnostics() {
+  const handle = state.admob.interstitial;
+  if (!handle) return 'kein Handle';
+  const methods = ['load', 'show', 'isLoaded'].filter((name) => typeof handle[name] === 'function');
+  return [
+    `loadedFlag=${handle.loaded === undefined ? 'unbekannt' : Boolean(handle.loaded)}`,
+    `methoden=${methods.length ? methods.join('/') : 'keine'}`
+  ].join(', ');
+}
+
+function collectObjectKeys(value) {
+  if (!value) return [];
+  const keys = new Set();
+  try {
+    Object.keys(value).forEach((key) => keys.add(key));
+    Object.getOwnPropertyNames(value).forEach((key) => keys.add(key));
+  } catch {
+    return [];
+  }
+  return Array.from(keys);
+}
+
+function collectPrototypeKeys(value) {
+  try {
+    const proto = Object.getPrototypeOf(value);
+    if (!proto) return [];
+    return Object.getOwnPropertyNames(proto).filter((key) => key !== 'constructor');
+  } catch {
+    return [];
+  }
+}
+
+function formatKeyList(keys, limit = 18) {
+  if (!keys?.length) return '-';
+  const uniqueKeys = Array.from(new Set(keys));
+  const visible = uniqueKeys.slice(0, limit);
+  return uniqueKeys.length > limit ? `${visible.join(', ')} … (+${uniqueKeys.length - limit})` : visible.join(', ');
+}
+
+function collectAdMobPluginShape(plugin) {
+  if (!plugin) {
+    return {
+      pluginKeys: '-',
+      pluginProtoKeys: '-',
+      nestedKeys: '-',
+      methodChecks: '-'
+    };
+  }
+
+  const nestedCandidates = [
+    ['default', plugin.default],
+    ['AdMob', plugin.AdMob],
+    ['admob', plugin.admob],
+    ['interstitial', plugin.interstitial]
+  ].filter(([, value]) => value);
+
+  const methodChecks = [
+    'start',
+    'InterstitialAd',
+    'interstitial',
+    'createInterstitial',
+    'prepareInterstitial',
+    'createInterstitialView',
+    'showInterstitial',
+    'showInterstitialAd'
+  ].map((name) => `${name}:${typeof plugin?.[name]}`);
+
+  return {
+    pluginKeys: formatKeyList(collectObjectKeys(plugin)),
+    pluginProtoKeys: formatKeyList(collectPrototypeKeys(plugin)),
+    nestedKeys: nestedCandidates.length
+      ? nestedCandidates.map(([label, value]) => `${label}=[${formatKeyList(collectObjectKeys(value), 8)}]`).join(' | ')
+      : '-',
+    methodChecks: methodChecks.join(' | ')
+  };
+}
+
+function getAdMobPluginForInspection() {
+  if (state.admob.plugin) return state.admob.plugin;
+  const candidates = listAdMobPluginCandidates();
+  const firstPlugin = candidates.find(([, plugin]) => Boolean(plugin))?.[1];
+  return firstPlugin || null;
+}
+
+function getAdMobRuntimeSnapshot(extra = {}) {
+  const waitingMs = Math.max(0, ADMOB_MIN_INTERVAL_MS - (Date.now() - state.admob.lastShownAt));
+  const pluginForInspection = getAdMobPluginForInspection();
+  const pluginShape = collectAdMobPluginShape(pluginForInspection);
+  const snapshot = {
+    status: state.admob.status || 'Unbekannt',
+    enabled: state.admob.enabled,
+    isCordova: state.isCordova,
+    cordovaReady: state.cordovaReady,
+    pluginSource: detectAdMobPluginSource(),
+    pluginApi: collectPluginApiHints(pluginForInspection) || '-',
+    hasInterstitial: Boolean(state.admob.interstitial),
+    handle: getAdMobHandleDiagnostics(),
+    loading: state.admob.loading,
+    showInProgress: state.admob.showInProgress,
+    swipeCount: state.admob.swipeCount,
+    lastShownAt: formatAdMobTime(state.admob.lastShownAt),
+    waitForTimeTriggerSec: Math.ceil(waitingMs / 1000),
+    pluginKeys: pluginShape.pluginKeys,
+    pluginProtoKeys: pluginShape.pluginProtoKeys,
+    nestedKeys: pluginShape.nestedKeys,
+    methodChecks: pluginShape.methodChecks
+  };
+  return { ...snapshot, ...extra };
+}
+
+function formatAdMobDiagnosticMessage(summary, details = {}) {
+  const entries = Object.entries(details).filter(([, value]) => value !== undefined && value !== null && value !== '');
+  if (!entries.length) return summary;
+  return `${summary} | ${entries.map(([key, value]) => `${key}=${value}`).join(' | ')}`;
+}
+
+function setAdMobDiagnosticStatus(status, summary, details = {}) {
+  setAdMobStatus(status, formatAdMobDiagnosticMessage(summary, details), {
+    summary,
+    ...details
+  });
+}
+
+function renderAdMobDiagnosticDetails() {
+  if (!state.admob.lastErrorDetails) return '';
+  const entries = Object.entries(state.admob.lastErrorDetails).filter(([, value]) => value !== undefined && value !== null && value !== '');
+  if (!entries.length) return '';
+  return `<div class="admob-debug-diagnostics">
+    <div class="admob-debug-diagnostics-head">Fehler-Details</div>
+    <div class="admob-debug-diagnostics-list">${entries.map(([key, value]) => `<div><span>${escapeHtml(key)}</span><strong>${escapeHtml(value)}</strong></div>`).join('')}</div>
+  </div>`;
 }
 
 function formatAdMobTime(timestamp) {
@@ -411,8 +557,9 @@ function renderAdMobDebugCard() {
       <div><span>Nächster Swipe-Trigger</span><strong>${nextSwipeMilestone}</strong></div>
       <div><span>Letzte Anzeige</span><strong>${formatAdMobTime(state.admob.lastShownAt)}</strong></div>
       <div><span>Wartezeit bis Zeit-Trigger</span><strong>${waitingMs ? `ca. ${waitingMinutes} Min` : 'Bereit'}</strong></div>
-      <div><span>Letzter Fehler</span><strong>${state.admob.lastError || 'Keiner'}</strong></div>
+      <div><span>Letzter Fehler</span><strong>${state.admob.lastErrorSummary || state.admob.lastError || 'Keiner'}</strong></div>
     </div>
+    ${renderAdMobDiagnosticDetails()}
     <div class="admob-debug-actions">
       <button class="btn" id="admobReloadInterstitial" type="button">Interstitial neu laden</button>
       <button class="btn" id="admobShowInterstitial" type="button">Test-Werbung jetzt zeigen</button>
@@ -554,18 +701,26 @@ async function ensureInterstitialLoaded() {
 
   state.admob.loading = true;
   try {
-    if (typeof state.admob.interstitial.load !== 'function') return false;
+    if (typeof state.admob.interstitial.load !== 'function') {
+      setAdMobDiagnosticStatus('Interstitial-Laden nicht möglich', 'Handle hat keine load()-Methode.', getAdMobRuntimeSnapshot());
+      return false;
+    }
     await state.admob.interstitial.load();
     const ready = await getInterstitialReadyState();
     if (ready) {
       setAdMobStatus('Interstitial geladen');
       return true;
     }
-    setAdMobStatus('Interstitial lädt noch', 'Plugin meldet nach load() noch nicht bereit. Bitte kurz warten und erneut testen.');
+    setAdMobDiagnosticStatus('Interstitial lädt noch', 'Plugin meldet nach load() noch nicht bereit.', getAdMobRuntimeSnapshot({
+      stage: 'post-load',
+      readyAfterLoad: ready
+    }));
     return false;
   } catch (error) {
     state.admob.interstitial.loaded = false;
-    setAdMobStatus('Interstitial-Laden fehlgeschlagen', normalizeAdMobError(error));
+    setAdMobDiagnosticStatus('Interstitial-Laden fehlgeschlagen', normalizeAdMobError(error), getAdMobRuntimeSnapshot({
+      stage: 'load-catch'
+    }));
     console.warn('AdMob: Interstitial konnte nicht geladen werden.', error);
     return false;
   } finally {
@@ -578,11 +733,14 @@ async function showInterstitialIfAvailable(reason = 'general') {
   const loaded = await ensureInterstitialLoaded();
   if (!loaded) {
     const ready = await getInterstitialReadyState();
-    const message = ready
-      ? 'Interstitial ist zwar vorhanden, konnte aber noch nicht sauber angezeigt werden.'
-      : 'Interstitial ist noch nicht bereit. Bitte zuerst laden und 1-2 Sekunden warten.';
-    setAdMobStatus(`Interstitial übersprungen (${reason})`, message);
-    console.info(`AdMob: Interstitial übersprungen (${reason}), da noch nicht geladen.`);
+    setAdMobDiagnosticStatus(`Interstitial übersprungen (${reason})`, ready
+      ? 'Interstitial ist vorhanden, aber show() wurde noch nicht ausgeführt.'
+      : 'Interstitial ist noch nicht bereit.', getAdMobRuntimeSnapshot({
+        reason,
+        stage: 'show-precheck',
+        readyState: ready
+      }));
+    console.info(`AdMob: Interstitial übersprungen (${reason}), da noch nicht geladen.`, getAdMobRuntimeSnapshot({ reason, readyState: ready }));
     return false;
   }
 
@@ -598,8 +756,11 @@ async function showInterstitialIfAvailable(reason = 'general') {
     return true;
   } catch (error) {
     state.admob.interstitial.loaded = false;
-    setAdMobStatus(`Interstitial-Anzeige fehlgeschlagen (${reason})`, normalizeAdMobError(error));
-    console.warn(`AdMob: Interstitial konnte nicht angezeigt werden (${reason}).`, error);
+    setAdMobDiagnosticStatus(`Interstitial-Anzeige fehlgeschlagen (${reason})`, normalizeAdMobError(error), getAdMobRuntimeSnapshot({
+      reason,
+      stage: 'show-catch'
+    }));
+    console.warn(`AdMob: Interstitial konnte nicht angezeigt werden (${reason}).`, error, getAdMobRuntimeSnapshot({ reason }));
     void ensureInterstitialLoaded();
     return false;
   } finally {
@@ -676,9 +837,13 @@ async function initializeAdMob() {
 
     if (!state.admob.initialized) {
       const apiHints = pluginCandidates.map(([sourceLabel, plugin]) => `${sourceLabel}: ${collectPluginApiHints(plugin) || '-'}`).join(' | ');
-      state.admob.plugin = pluginCandidates[0][1] || null;
+      state.admob.plugin = pluginCandidates.find(([, plugin]) => Boolean(plugin))?.[1] || null;
       state.admob.pluginSource = attemptedSources.join(' | ');
-      setAdMobStatus('Plugin erkannt, aber kein Interstitial-Handle', `Geprüft: ${attemptedSources.join(' | ')}. API: ${apiHints || '-'}`);
+      setAdMobDiagnosticStatus('Plugin erkannt, aber kein Interstitial-Handle', 'Aus erkanntem Plugin konnte kein Interstitial erstellt werden.', {
+        attemptedSources: attemptedSources.join(' | '),
+        apiHints: apiHints || '-',
+        ...collectAdMobPluginShape(getAdMobPluginForInspection())
+      });
       console.info('AdMob: Plugin-Kandidaten gefunden, aber kein Interstitial-Handle verfügbar.', { attemptedSources, apiHints, pluginCandidates });
       return;
     }
@@ -1719,9 +1884,13 @@ function bind() {
     const shown = await showInterstitialIfAvailable('manual-debug');
     if (!shown && !state.admob.lastError) {
       const ready = await getInterstitialReadyState();
-      setAdMobStatus('Keine Werbung angezeigt', ready
-        ? 'Interstitial war bereit, aber show() lieferte keine Anzeige. Bitte Plugin-Events/Logcat prüfen.'
-        : 'Interstitial ist noch nicht bereit. Bitte zuerst „Interstitial neu laden“ tippen und kurz warten.');
+      setAdMobDiagnosticStatus('Keine Werbung angezeigt', ready
+          ? 'Interstitial war bereit, aber show() lieferte keine sichtbare Anzeige.'
+          : 'Interstitial ist noch nicht bereit.', getAdMobRuntimeSnapshot({
+          reason: 'manual-debug',
+          stage: 'manual-debug-fallback',
+          readyState: ready
+        }));
     }
   };
   document.querySelectorAll('[data-list]').forEach((el) => el.onclick = () => openListEditor(el.dataset.list));
