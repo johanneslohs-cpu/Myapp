@@ -724,8 +724,35 @@ async function getInterstitialReadyState() {
   return Boolean(state.admob.interstitial.loaded);
 }
 
+async function ensureInterstitialHandleAvailable() {
+  if (!state.admob.enabled) return false;
+  if (state.admob.interstitial) return true;
+  const plugin = getAdMobPluginForInspection();
+  if (!plugin) {
+    state.admob.handleProbe = 'Kein Plugin für Handle-Rebuild gefunden';
+    return false;
+  }
+  try {
+    const interstitial = await createInterstitialHandle(plugin);
+    if (!interstitial) return false;
+    state.admob.plugin = plugin;
+    state.admob.interstitial = interstitial;
+    return true;
+  } catch (error) {
+    state.admob.handleProbe = `Handle-Rebuild fehlgeschlagen: ${normalizeAdMobError(error)}`;
+    return false;
+  }
+}
+
 async function ensureInterstitialLoaded() {
-  if (!state.admob.enabled || !state.admob.interstitial || state.admob.loading) return false;
+  if (!state.admob.enabled || state.admob.loading) return false;
+  const hasHandle = await ensureInterstitialHandleAvailable();
+  if (!hasHandle || !state.admob.interstitial) {
+    setAdMobDiagnosticStatus('Interstitial-Handle fehlt', 'Es konnte kein Interstitial-Handle erzeugt werden.', getAdMobRuntimeSnapshot({
+      stage: 'ensure-handle'
+    }));
+    return false;
+  }
   if (await getInterstitialReadyState()) return true;
 
   state.admob.loading = true;
@@ -758,7 +785,7 @@ async function ensureInterstitialLoaded() {
 }
 
 async function showInterstitialIfAvailable(reason = 'general') {
-  if (!state.admob.enabled || !state.admob.interstitial || state.admob.showInProgress) return false;
+  if (!state.admob.enabled || state.admob.showInProgress) return false;
   const loaded = await ensureInterstitialLoaded();
   if (!loaded) {
     const ready = await getInterstitialReadyState();
