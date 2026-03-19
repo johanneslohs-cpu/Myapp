@@ -37,7 +37,10 @@ const state = {
   adMob: {
     lastError: '',
     lastShownAt: '',
-    usingTestIds: false
+    usingTestIds: false,
+    isBusy: false,
+    isReady: false,
+    statusMessage: ''
   }
 };
 
@@ -610,13 +613,22 @@ function renderProfile() {
   const avatarContent = hasImageUrl
     ? `<img src="${profileImage}" alt="${s.username}" class="avatar-image" loading="lazy">`
     : (s.username || '?').trim().charAt(0).toUpperCase() || '?';
+  const adButtonLabel = !state.isCordova
+    ? 'Werbung nur in App'
+    : (!state.cordovaReady
+      ? 'App wird vorbereitet …'
+      : (state.adMob.isBusy
+        ? 'Werbung lädt …'
+        : (state.adMob.isReady ? 'Werbung jetzt anzeigen' : 'Werbung laden und anzeigen')));
+  const adButtonDisabled = !state.isCordova || !state.cordovaReady || state.adMob.isBusy;
 
   return `${header('Profil', `<button class="btn profile-settings-btn" id="openSettings" aria-label="Einstellungen öffnen">⚙</button>`)}
   <div class="profile profile-hero"><div class="avatar" id="changeAvatar">${avatarContent}</div><h2>${s.username}</h2><p class="small profile-subtitle">Smart Meal Matching</p></div>
   <div class="stats profile-stats profile-stats-primary"><div class="card profile-card"><h2>${state.favorites.length} ♥</h2><div>Favoriten</div></div><div class="card profile-card"><h2>${state.lists.length} 🛒</h2><div>Einkaufslisten</div></div></div>
   <div class="stats profile-stats profile-stats-secondary"><div class="card profile-card profile-action-card" id="openExcluded">Das esse ich nicht</div><div class="card profile-card profile-action-card" id="openDiet">${s.diet}</div></div>
-  <button class="btn profile-admob-btn" id="showAdButton" type="button">Werbung anzeigen</button>
+  <button class="btn profile-admob-btn" id="showAdButton" type="button" ${adButtonDisabled ? 'disabled' : ''}>${adButtonLabel}</button>
   <p class="small profile-admob-hint">${state.isCordova ? (state.adMob.usingTestIds ? 'AdMob ist aktiv und verwendet aktuell Test-Anzeigen.' : 'AdMob ist vorbereitet. Beim Tippen wird eine Interstitial-Anzeige geladen und angezeigt.') : 'AdMob-Anzeigen funktionieren nur in der installierten Cordova-App.'}</p>
+  ${state.adMob.statusMessage ? `<p class="small profile-admob-status">${state.adMob.statusMessage}</p>` : ''}
   ${state.adMob.lastError ? `<p class="small profile-admob-status error">${state.adMob.lastError}</p>` : ''}
   ${state.adMob.lastShownAt ? `<p class="small profile-admob-status">Letzte Anzeige: ${new Date(state.adMob.lastShownAt).toLocaleString('de-DE')}</p>` : ''}
   <div class="list-item profile-list-item" id="openFeedback"><span>❓</span><span>Hilfe und Feedback</span></div>
@@ -703,25 +715,65 @@ async function ensureAdMobInterstitial() {
 
   const { interstitialAdUnitId } = readAdMobConfig();
   if (!admobInterstitial || admobInterstitial.id !== interstitialAdUnitId) {
-    admobInterstitial = new admob.InterstitialAd({ adUnitId: interstitialAdUnitId });
+    admobInterstitial = new admob.InterstitialAd({ adUnitId: interstitialAdUnitId, id: interstitialAdUnitId });
     admobInterstitial.id = interstitialAdUnitId;
   }
   return admobInterstitial;
 }
 
-async function showProfileAd() {
+async function preloadProfileAd(options = {}) {
+  const { silent = false } = options;
   try {
-    state.adMob.lastError = '';
+    if (!silent) {
+      state.adMob.lastError = '';
+      state.adMob.statusMessage = 'Werbung wird geladen …';
+      render();
+    }
     const interstitial = await ensureAdMobInterstitial();
     await interstitial.load();
-    await interstitial.show();
-    state.adMob.lastShownAt = new Date().toISOString();
+    state.adMob.isReady = true;
+    state.adMob.statusMessage = 'Werbung ist bereit.';
+    if (!silent) render();
+    return interstitial;
+  } catch (error) {
+    state.adMob.isReady = false;
+    state.adMob.statusMessage = '';
+    if (!silent) {
+      state.adMob.lastError = error && error.message ? error.message : 'Anzeige konnte nicht geladen werden.';
+      render();
+    }
+    throw error;
+  }
+}
+
+async function showProfileAd() {
+  if (state.adMob.isBusy) return;
+  try {
+    state.adMob.isBusy = true;
+    state.adMob.lastError = '';
+    state.adMob.statusMessage = state.adMob.isReady ? 'Werbung wird angezeigt …' : 'Werbung wird geladen …';
     render();
+    const interstitial = state.adMob.isReady ? await ensureAdMobInterstitial() : await preloadProfileAd({ silent: true });
+    state.adMob.statusMessage = 'Werbung wird angezeigt …';
+    render();
+    await interstitial.show();
+    state.adMob.isReady = false;
+    state.adMob.lastShownAt = new Date().toISOString();
+    state.adMob.statusMessage = 'Werbung wurde angezeigt.';
+    render();
+    preloadProfileAd({ silent: true }).catch((error) => {
+      console.warn('Nächste AdMob-Anzeige konnte nicht vorgeladen werden:', error);
+    });
   } catch (error) {
     console.error('AdMob konnte nicht angezeigt werden:', error);
+    state.adMob.isReady = false;
     state.adMob.lastError = error && error.message ? error.message : 'Anzeige konnte nicht geladen werden.';
+    state.adMob.statusMessage = '';
     render();
     alert(state.adMob.lastError);
+  } finally {
+    state.adMob.isBusy = false;
+    render();
   }
 }
 
@@ -1572,6 +1624,7 @@ if (isCordovaFileRuntime) {
   document.addEventListener('deviceready', () => {
     state.cordovaReady = true;
     syncSystemUiTheme();
+    preloadProfileAd({ silent: true }).catch(() => {});
     bootstrap();
   }, { once: true });
 } else {
