@@ -330,12 +330,14 @@ function collectPluginApiHints(plugin) {
   try {
     Object.keys(plugin).forEach(add);
     Object.getOwnPropertyNames(plugin).forEach(add);
+    Object.getOwnPropertyNames(Object.getOwnPropertyDescriptors(plugin)).forEach(add);
     const proto = Object.getPrototypeOf(plugin);
     if (proto) Object.getOwnPropertyNames(proto).forEach(add);
     if (plugin.interstitial) {
       add('interstitial');
       Object.keys(plugin.interstitial).forEach((key) => add(`interstitial.${key}`));
       Object.getOwnPropertyNames(plugin.interstitial).forEach((key) => add(`interstitial.${key}`));
+      Object.getOwnPropertyNames(Object.getOwnPropertyDescriptors(plugin.interstitial)).forEach((key) => add(`interstitial.${key}`));
       const interstitialProto = Object.getPrototypeOf(plugin.interstitial);
       if (interstitialProto) Object.getOwnPropertyNames(interstitialProto).forEach((key) => add(`interstitial.${key}`));
     }
@@ -345,8 +347,24 @@ function collectPluginApiHints(plugin) {
   return Array.from(hints).slice(0, 12).join(', ') || '-';
 }
 
+function listAdMobPluginCandidates() {
+  return [
+    ['window.admob', window.admob],
+    ['window.AdMob', window.AdMob],
+    ['window.plugins.admob', window.plugins?.admob],
+    ['window.plugins.AdMob', window.plugins?.AdMob],
+    ['window.cordova.plugins.AdMob', window.cordova?.plugins?.AdMob],
+    ['window.cordova.plugins.admob', window.cordova?.plugins?.admob]
+  ].filter(([, value]) => Boolean(value));
+}
+
+function detectAdMobPluginSource() {
+  const matches = listAdMobPluginCandidates().map(([label]) => label);
+  return matches.length ? matches.join(' | ') : 'Kein Plugin gefunden';
+}
+
 function renderAdMobDebugCard() {
-  const pluginSource = window.admob ? 'window.admob' : (window.AdMob ? 'window.AdMob' : (window.plugins?.admob ? 'window.plugins.admob' : 'Kein Plugin gefunden'));
+  const pluginSource = detectAdMobPluginSource();
   const pluginApi = collectPluginApiHints(state.admob.plugin);
   const nextSwipeMilestone = Math.ceil((Math.max(state.admob.swipeCount, 0) + 1) / ADMOB_SWIPE_INTERVAL) * ADMOB_SWIPE_INTERVAL;
   const waitingMs = Math.max(0, ADMOB_MIN_INTERVAL_MS - (Date.now() - state.admob.lastShownAt));
@@ -388,11 +406,65 @@ function isAdMobEnabled() {
 }
 
 function getAdMobPlugin() {
-  return window.admob || window.AdMob || window.plugins?.admob;
+  const candidates = listAdMobPluginCandidates();
+  if (!candidates.length) return null;
+  const looksUsable = (plugin) => Boolean(plugin) && (
+    typeof plugin.start === 'function'
+    || typeof plugin.InterstitialAd === 'function'
+    || typeof plugin.createInterstitial === 'function'
+    || typeof plugin.interstitial === 'function'
+    || typeof plugin.prepareInterstitial === 'function'
+    || typeof plugin.showInterstitialAd === 'function'
+    || typeof plugin.showInterstitial === 'function'
+    || typeof plugin.createInterstitialView === 'function'
+    || (plugin.interstitial && (
+      typeof plugin.interstitial.load === 'function'
+      || typeof plugin.interstitial.prepare === 'function'
+      || typeof plugin.interstitial.show === 'function'
+    ))
+  );
+  const preferred = candidates.find(([, plugin]) => looksUsable(plugin));
+  return (preferred || candidates[0])[1];
 }
 
 async function createInterstitialHandle(plugin) {
   if (!plugin) return null;
+
+  const createLegacyPrepareHandle = (api) => ({
+    loaded: false,
+    async load() {
+      const options = {
+        id: ADMOB_INTERSTITIAL_DEMO_AD_UNIT_ID,
+        adUnitId: ADMOB_INTERSTITIAL_DEMO_AD_UNIT_ID,
+        autoShow: false,
+        isTesting: true,
+        testAd: true
+      };
+      if (typeof api.prepare === 'function') {
+        await api.prepare(options);
+      } else if (typeof api.prepareInterstitial === 'function') {
+        await api.prepareInterstitial(options);
+      } else if (typeof api.createInterstitialView === 'function') {
+        await api.createInterstitialView(options);
+      }
+      this.loaded = true;
+    },
+    async show() {
+      if (typeof api.show === 'function') {
+        await api.show();
+      } else if (typeof api.showInterstitial === 'function') {
+        await api.showInterstitial();
+      } else if (typeof api.showInterstitialAd === 'function') {
+        await api.showInterstitialAd();
+      }
+      this.loaded = false;
+    },
+    async isLoaded() {
+      if (typeof api.isReady === 'function') return api.isReady();
+      if (typeof api.isLoaded === 'function') return api.isLoaded();
+      return this.loaded;
+    }
+  });
 
   if (typeof plugin.InterstitialAd === 'function') {
     const interstitial = new plugin.InterstitialAd({
@@ -436,26 +508,11 @@ async function createInterstitialHandle(plugin) {
   }
 
   if (plugin.interstitial && typeof plugin.interstitial.prepare === 'function' && typeof plugin.interstitial.show === 'function') {
-    return {
-      loaded: false,
-      async load() {
-        await plugin.interstitial.prepare({ id: ADMOB_INTERSTITIAL_DEMO_AD_UNIT_ID, adUnitId: ADMOB_INTERSTITIAL_DEMO_AD_UNIT_ID, autoShow: false });
-        this.loaded = true;
-      },
-      async show() {
-        await plugin.interstitial.show();
-        this.loaded = false;
-      },
-      async isLoaded() {
-        if (typeof plugin.interstitial.isReady === 'function') {
-          return plugin.interstitial.isReady();
-        }
-        if (typeof plugin.interstitial.isLoaded === 'function') {
-          return plugin.interstitial.isLoaded();
-        }
-        return this.loaded;
-      }
-    };
+    return createLegacyPrepareHandle(plugin.interstitial);
+  }
+
+  if (typeof plugin.prepareInterstitial === 'function' || typeof plugin.showInterstitialAd === 'function' || typeof plugin.showInterstitial === 'function' || typeof plugin.createInterstitialView === 'function') {
+    return createLegacyPrepareHandle(plugin);
   }
 
   return null;
@@ -574,8 +631,10 @@ async function initializeAdMob() {
     state.admob.interstitial = await createInterstitialHandle(plugin);
     state.admob.initialized = Boolean(state.admob.interstitial);
     if (!state.admob.initialized) {
-      setAdMobStatus('Plugin erkannt, aber kein Interstitial-Handle');
-      console.info('AdMob: Plugin gefunden, aber kein Interstitial-Handle verfügbar.');
+      const sources = detectAdMobPluginSource();
+      const apiHints = collectPluginApiHints(plugin);
+      setAdMobStatus('Plugin erkannt, aber kein Interstitial-Handle', `Quelle: ${sources}. API: ${apiHints || '-'}`);
+      console.info('AdMob: Plugin gefunden, aber kein Interstitial-Handle verfügbar.', { sources, apiHints, plugin });
       return;
     }
     await ensureInterstitialLoaded();
