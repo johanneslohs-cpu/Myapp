@@ -15,6 +15,14 @@ function withApiBase(url) {
 
 const MAX_SHOPPING_LISTS = 10;
 const MAX_LIST_NAME_LENGTH = 30;
+const ADMOB_INTERSTITIAL_DEMO_AD_UNIT_ID = 'ca-app-pub-3940256099942544/1033173712';
+const ADMOB_SWIPE_INTERVAL = 10;
+const ADMOB_MIN_INTERVAL_MS = 10 * 60 * 1000;
+const ADMOB_STORAGE_KEYS = {
+  enabled: 'myapp_admob_enabled',
+  swipeCount: 'myapp_admob_swipe_count',
+  lastShownAt: 'myapp_admob_last_shown_at'
+};
 
 const state = {
   tab: 'discover',
@@ -34,7 +42,17 @@ const state = {
   auth: null,
   googleClientId: '',
   isCordova: Boolean(window.cordova) || isCordovaFileRuntime,
-  cordovaReady: !isCordovaFileRuntime
+  cordovaReady: !isCordovaFileRuntime,
+  admob: {
+    enabled: false,
+    plugin: null,
+    interstitial: null,
+    initialized: false,
+    loading: false,
+    showInProgress: false,
+    swipeCount: 0,
+    lastShownAt: 0
+  }
 };
 
 let searchReloadTimer = null;
@@ -273,6 +291,149 @@ function recipeFallbackImage(recipe) {
   return FALLBACK_FOOD_IMAGES[hashString(key) % FALLBACK_FOOD_IMAGES.length];
 }
 
+function parseStoredNumber(key) {
+  const value = Number(localStorage.getItem(key) || '0');
+  return Number.isFinite(value) ? value : 0;
+}
+
+function persistAdMobState() {
+  localStorage.setItem(ADMOB_STORAGE_KEYS.swipeCount, String(state.admob.swipeCount));
+  localStorage.setItem(ADMOB_STORAGE_KEYS.lastShownAt, String(state.admob.lastShownAt));
+}
+
+function isAdMobEnabled() {
+  const override = localStorage.getItem(ADMOB_STORAGE_KEYS.enabled);
+  return override === null ? state.isCordova : override !== '0';
+}
+
+function getAdMobPlugin() {
+  return window.admob || window.AdMob || window.plugins?.admob;
+}
+
+async function createInterstitialHandle(plugin) {
+  if (!plugin) return null;
+  if (typeof plugin.interstitial === 'function') {
+    const interstitial = plugin.interstitial({
+      adUnitId: ADMOB_INTERSTITIAL_DEMO_AD_UNIT_ID
+    });
+    if (interstitial && typeof interstitial.load === 'function') return interstitial;
+  }
+  if (typeof plugin.createInterstitial === 'function') {
+    return plugin.createInterstitial({
+      adUnitId: ADMOB_INTERSTITIAL_DEMO_AD_UNIT_ID
+    });
+  }
+  return null;
+}
+
+async function ensureInterstitialLoaded() {
+  if (!state.admob.enabled || !state.admob.interstitial || state.admob.loading) return false;
+  if (state.admob.interstitial.loaded) return true;
+  if (typeof state.admob.interstitial.isLoaded === 'function') {
+    try {
+      if (await state.admob.interstitial.isLoaded()) {
+        state.admob.interstitial.loaded = true;
+        return true;
+      }
+    } catch (error) {
+      console.warn('AdMob: Konnte Ladestatus nicht prüfen.', error);
+    }
+  }
+
+  state.admob.loading = true;
+  try {
+    if (typeof state.admob.interstitial.load === 'function') {
+      await state.admob.interstitial.load();
+      state.admob.interstitial.loaded = true;
+      return true;
+    }
+  } catch (error) {
+    state.admob.interstitial.loaded = false;
+    console.warn('AdMob: Interstitial konnte nicht geladen werden.', error);
+    return false;
+  } finally {
+    state.admob.loading = false;
+  }
+  return false;
+}
+
+async function showInterstitialIfAvailable(reason = 'general') {
+  if (!state.admob.enabled || !state.admob.interstitial || state.admob.showInProgress) return false;
+  const loaded = await ensureInterstitialLoaded();
+  if (!loaded) {
+    console.info(`AdMob: Interstitial übersprungen (${reason}), da noch nicht geladen.`);
+    return false;
+  }
+
+  state.admob.showInProgress = true;
+  try {
+    await state.admob.interstitial.show();
+    state.admob.interstitial.loaded = false;
+    state.admob.lastShownAt = Date.now();
+    persistAdMobState();
+    console.info(`AdMob: Interstitial angezeigt (${reason}).`);
+    ensureInterstitialLoaded();
+    return true;
+  } catch (error) {
+    state.admob.interstitial.loaded = false;
+    console.warn(`AdMob: Interstitial konnte nicht angezeigt werden (${reason}).`, error);
+    ensureInterstitialLoaded();
+    return false;
+  } finally {
+    state.admob.showInProgress = false;
+  }
+}
+
+async function maybeShowInterstitial(trigger = 'general') {
+  if (!state.admob.enabled) return false;
+  const elapsed = Date.now() - state.admob.lastShownAt;
+  const dueByTime = elapsed >= ADMOB_MIN_INTERVAL_MS;
+  const dueBySwipe = trigger === 'swipe' && state.admob.swipeCount > 0 && state.admob.swipeCount % ADMOB_SWIPE_INTERVAL === 0;
+  if (!dueByTime && !dueBySwipe) return false;
+  return showInterstitialIfAvailable(dueBySwipe ? 'swipe-threshold' : 'time-threshold');
+}
+
+async function registerSwipeForAdMob() {
+  if (!state.admob.enabled) return;
+  state.admob.swipeCount += 1;
+  persistAdMobState();
+  await maybeShowInterstitial('swipe');
+}
+
+function registerAdMobTrigger(trigger = 'general') {
+  if (!state.admob.enabled) return;
+  void maybeShowInterstitial(trigger);
+}
+
+async function initializeAdMob() {
+  state.admob.enabled = isAdMobEnabled();
+  state.admob.swipeCount = parseStoredNumber(ADMOB_STORAGE_KEYS.swipeCount);
+  state.admob.lastShownAt = parseStoredNumber(ADMOB_STORAGE_KEYS.lastShownAt) || Date.now();
+  persistAdMobState();
+  if (!state.admob.enabled || !state.isCordova || !state.cordovaReady) return;
+
+  const plugin = getAdMobPlugin();
+  if (!plugin) {
+    console.info('AdMob: Kein Cordova-Plugin gefunden, Werbung bleibt deaktiviert.');
+    return;
+  }
+
+  try {
+    if (!state.admob.initialized && typeof plugin.start === 'function') {
+      await plugin.start();
+    }
+    state.admob.plugin = plugin;
+    state.admob.interstitial = await createInterstitialHandle(plugin);
+    state.admob.initialized = Boolean(state.admob.interstitial);
+    if (!state.admob.initialized) {
+      console.info('AdMob: Plugin gefunden, aber kein Interstitial-Handle verfügbar.');
+      return;
+    }
+    await ensureInterstitialLoaded();
+  } catch (error) {
+    console.warn('AdMob: Initialisierung fehlgeschlagen.', error);
+  }
+}
 
 const getSwipeQueue = () => state.swipeRecipes.filter((recipe) => !state.swipedRecipeIds.has(recipe.id));
 const currentSwipeRecipe = () => getSwipeQueue()[0];
@@ -370,6 +531,8 @@ function resetLocalUserState() {
   state.favorites = [];
   state.lists = [];
   state.settings = null;
+  state.admob.swipeCount = 0;
+  persistAdMobState();
 }
 
 function runCordovaGooglePlus(method) {
@@ -651,6 +814,7 @@ function ensureModalRoot() {
 function closeModal() { ensureModalRoot().innerHTML = ''; }
 
 function openRecipe(id) {
+  registerAdMobTrigger('open-recipe');
   const r = [...state.recipes, ...state.favorites].find((x) => x.id === Number(id));
   if (!r) return;
   state.selectedRecipe = r;
@@ -775,6 +939,7 @@ async function handleSwipeAction(action) {
     if (action === 'like') await api.post(`/api/recipes/${recipe.id}/like`);
     if (action === 'skip') await api.post(`/api/recipes/${recipe.id}/dislike`);
     await reloadData({ withRender: false });
+    await registerSwipeForAdMob();
   } finally {
     state.swipeBusy = false;
   }
@@ -1248,11 +1413,13 @@ function bind() {
   document.querySelectorAll('.nav-btn').forEach((btn) => btn.onclick = () => {
     state.tab = btn.dataset.tab;
     render();
+    registerAdMobTrigger(`tab-${btn.dataset.tab}`);
   });
   const heroJump = document.querySelector('[data-tab-jump="swipe"]');
   if (heroJump) heroJump.onclick = () => {
     state.tab = 'swipe';
     render();
+    registerAdMobTrigger('hero-swipe');
   };
   document.querySelectorAll('[data-recipe]').forEach((el) => {
     if (el.id === 'swipeCard') return;
@@ -1282,6 +1449,7 @@ function bind() {
   const ts = document.getElementById('toSwipe'); if (ts) ts.onclick = () => {
     state.tab = 'swipe';
     render();
+    registerAdMobTrigger('favorites-to-swipe');
   };
   document.querySelectorAll('[data-list]').forEach((el) => el.onclick = () => openListEditor(el.dataset.list));
   const nl = document.getElementById('newList'); if (nl) nl.onclick = openNewList;
@@ -1488,6 +1656,7 @@ async function loadPublicConfig() {
 }
 
 async function bootstrap() {
+  await initializeAdMob();
   await loadPublicConfig();
   await startAuthFlow();
 }
