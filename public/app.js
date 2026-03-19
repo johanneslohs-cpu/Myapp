@@ -271,14 +271,6 @@ function recipeFallbackImage(recipe) {
   return FALLBACK_FOOD_IMAGES[hashString(key) % FALLBACK_FOOD_IMAGES.length];
 }
 
-function shuffleRecipes(recipes = []) {
-  const shuffled = [...recipes];
-  for (let index = shuffled.length - 1; index > 0; index -= 1) {
-    const swapIndex = Math.floor(Math.random() * (index + 1));
-    [shuffled[index], shuffled[swapIndex]] = [shuffled[swapIndex], shuffled[index]];
-  }
-  return shuffled;
-}
 
 const getSwipeQueue = () => state.swipeRecipes.filter((recipe) => !state.swipedRecipeIds.has(recipe.id));
 const currentSwipeRecipe = () => getSwipeQueue()[0];
@@ -1419,7 +1411,7 @@ async function reloadData(options = {}) {
         api.get(`/api/swipe-recipes?${q}`)
       ]);
       state.recipes = recipes;
-      state.swipeRecipes = shuffleRecipes(swipeRecipes);
+      state.swipeRecipes = swipeRecipes;
     }
 
     if (scope === 'all') {

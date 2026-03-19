@@ -5,7 +5,6 @@ import os
 import secrets
 import smtplib
 import sqlite3
-import random
 import traceback
 from datetime import datetime
 from http.server import BaseHTTPRequestHandler, HTTPServer
@@ -1500,7 +1499,7 @@ class Handler(BaseHTTPRequestHandler):
                 ident = None
 
             if p == "/api/recipes":
-                rows = [row_to_recipe(r) for r in db.execute("SELECT * FROM recipes WHERE name LIKE ?", (f"%{q.get('search', [''])[0]}%",)).fetchall()]
+                rows = [row_to_recipe(r) for r in db.execute("SELECT * FROM recipes WHERE name LIKE ? ORDER BY id", (f"%{q.get('search', [''])[0]}%",)).fetchall()]
                 if ident["is_guest"]:
                     guest = ensure_guest(ident["token"])
                     favs = guest["favorites"]
@@ -1530,12 +1529,11 @@ class Handler(BaseHTTPRequestHandler):
                     return not any(e in ing for e in excludes)
 
                 filtered_rows = [r for r in rows if ok(r)]
-                random.shuffle(filtered_rows)
                 self.send_json(filtered_rows)
                 return
 
             if p == "/api/swipe-recipes":
-                rows = [row_to_recipe(r) for r in db.execute("SELECT * FROM recipes WHERE name LIKE ?", (f"%{q.get('search', [''])[0]}%",)).fetchall()]
+                rows = [row_to_recipe(r) for r in db.execute("SELECT * FROM recipes WHERE name LIKE ? ORDER BY id", (f"%{q.get('search', [''])[0]}%",)).fetchall()]
                 if ident["is_guest"]:
                     guest = ensure_guest(ident["token"])
                     disliked, favs = guest["dislikes"], guest["favorites"]
@@ -1583,10 +1581,10 @@ class Handler(BaseHTTPRequestHandler):
                         self.send_json([])
                         return
                     marks = ",".join(["?"] * len(favs))
-                    rows = [row_to_recipe(r) for r in db.execute(f"SELECT * FROM recipes WHERE id IN ({marks})", tuple(favs)).fetchall()]
+                    rows = [row_to_recipe(r) for r in db.execute(f"SELECT * FROM recipes WHERE id IN ({marks}) ORDER BY id", tuple(favs)).fetchall()]
                 else:
                     uid = ident["user_id"]
-                    rows = [row_to_recipe(r) for r in db.execute("SELECT r.* FROM recipes r JOIN favorites f ON f.recipe_id=r.id WHERE f.user_id=?", (uid,)).fetchall()]
+                    rows = [row_to_recipe(r) for r in db.execute("SELECT r.* FROM recipes r JOIN favorites f ON f.recipe_id=r.id WHERE f.user_id=? ORDER BY r.id", (uid,)).fetchall()]
                 self.send_json(rows)
                 return
 
