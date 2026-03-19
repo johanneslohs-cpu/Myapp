@@ -99,34 +99,12 @@ h1,h2,h3,p{margin:0}
 .small{font-size:12px;color:var(--muted);margin-top:6px}
 
 .bottom-nav{
-  position:fixed;
-  left:50%;
-  bottom:0;
-  transform:translateX(-50%);
-  width:min(312px,calc(100% - 28px));
-  display:grid;
-  grid-template-columns:repeat(5,minmax(0,52px));
-  justify-content:center;
-  align-items:center;
-  gap:8px;
-  padding:10px 12px calc(10px + env(safe-area-inset-bottom,0px));
-  background:rgba(13,20,15,.98);
-  backdrop-filter:blur(18px);
-  -webkit-backdrop-filter:blur(18px);
-  border:0;
-  border-radius:26px 26px 0 0;
-  box-shadow:0 -14px 30px rgba(0,0,0,.36);
+  position:fixed;bottom:14px;left:50%;transform:translateX(-50%);width:420px;display:grid;grid-template-columns:repeat(5,1fr);
+  gap:8px;padding:8px 10px;background:rgba(17,25,19,.92);backdrop-filter:blur(8px);border:1px solid var(--line);border-radius:20px;
+  box-shadow:0 10px 30px rgba(0,0,0,.45)
 }
-.nav-btn{appearance:none;border:0;background:transparent;border-radius:18px;padding:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;text-align:center;cursor:pointer;color:#a5b5a8;transition:.22s ease;font-weight:600;min-height:52px;min-width:52px}
-.nav-btn:hover{background:rgba(255,255,255,.04);transform:none}
-.nav-btn.active{background:linear-gradient(180deg,rgba(250,252,250,.1),rgba(255,255,255,.03));color:var(--text);box-shadow:inset 0 0 0 1px rgba(165,205,179,.18)}
-.nav-icon{font-size:20px;line-height:1;filter:saturate(.88)}
-.nav-copy{display:none}
-.nav-title{font-size:11px;line-height:1.1}
-.nav-hint{font-size:9px;line-height:1;color:#7f9184;font-weight:500;letter-spacing:.01em}
-.nav-btn.active .nav-icon{transform:translateY(-1px)}
-.nav-btn.active .nav-title{font-weight:700}
-.nav-btn.active .nav-hint{color:#c8d7cb}
+.nav-btn{border-radius:14px;padding:8px 6px;text-align:center;font-size:11px;cursor:pointer;color:var(--muted);transition:.2s ease;font-weight:600}
+.nav-btn.active{background:linear-gradient(135deg,var(--primary),#7ce3a7);color:#072212;box-shadow:0 8px 16px rgba(73,219,136,.3)}
 
 .swipe-stage{display:flex;align-items:flex-start;justify-content:center;margin-top:12px;flex:1 1 auto;min-height:0}
 .phone-swipe .small{margin-bottom:2px;padding-left:2px}

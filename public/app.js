@@ -298,13 +298,13 @@ function syncRecipeCollections(recipe, action) {
 
 function nav() {
   const tabs = [
-    ['discover', '🌿', 'Entdecken', 'Rezepte'],
-    ['swipe', '🔥', 'Swipe', 'Match'],
-    ['favorites', '💚', 'Favoriten', 'Gespeichert'],
-    ['lists', '🛒', 'Listen', 'Einkauf'],
-    ['profile', '👤', 'Profil', 'Konto']
+    ['discover', '🌿', 'Entdecken'],
+    ['swipe', '🔥', 'Swipe'],
+    ['favorites', '💚', 'Favoriten'],
+    ['lists', '🛒', 'Listen'],
+    ['profile', '👤', 'Profil']
   ];
-  return `<nav class="bottom-nav" aria-label="Hauptnavigation">${tabs.map(([id, icon, title, hint]) => `<button class="nav-btn ${state.tab === id ? 'active' : ''}" data-tab="${id}" aria-label="${title}" aria-current="${state.tab === id ? 'page' : 'false'}"><span class="nav-icon" aria-hidden="true">${icon}</span><span class="nav-copy"><span class="nav-title">${title}</span><span class="nav-hint">${hint}</span></span></button>`).join('')}</nav>`;
+  return `<div class="bottom-nav">${tabs.map(([id, icon, title]) => `<div class="nav-btn ${state.tab === id ? 'active' : ''}" data-tab="${id}">${icon}<br>${title}</div>`).join('')}</div>`;
 }
 
 function syncNavigationBarTheme(themeColor) {
