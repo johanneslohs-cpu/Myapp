@@ -16,7 +16,7 @@
 }
 
 *{box-sizing:border-box;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
-html{background:#0f1511}
+html{background:#0f1511;height:100%}
 body{
   margin:0;
   min-height:100vh;
@@ -28,6 +28,11 @@ body{
     linear-gradient(180deg,#0a100c,#101812 30%,#0f1511);
   display:flex;
   justify-content:center;
+}
+body.cordova-immersive{
+  display:block;
+  min-height:100%;
+  overflow:hidden;
 }
 
 h1,h2,h3,p{margin:0}
@@ -94,9 +99,9 @@ h1,h2,h3,p{margin:0}
 .small{font-size:12px;color:var(--muted);margin-top:6px}
 
 .bottom-nav{
-  position:fixed;bottom:env(safe-area-inset-bottom,0px);left:50%;transform:translateX(-50%);width:min(358px,calc(100% - 18px));display:grid;grid-template-columns:repeat(5,minmax(0,1fr));
-  gap:5px;padding:8px;background:rgba(13,20,15,.96);backdrop-filter:blur(16px);border:1px solid rgba(188,209,193,.14);border-radius:24px;
-  box-shadow:0 16px 34px rgba(0,0,0,.33), inset 0 1px 0 rgba(255,255,255,.04)
+  position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:min(358px,calc(100% - 18px));display:grid;grid-template-columns:repeat(5,minmax(0,1fr));
+  gap:5px;padding:8px 8px calc(8px + env(safe-area-inset-bottom,0px));background:rgba(13,20,15,.96);backdrop-filter:blur(16px);border:1px solid rgba(188,209,193,.14);border-bottom:0;border-radius:24px 24px 0 0;
+  box-shadow:0 -10px 26px rgba(0,0,0,.33), inset 0 1px 0 rgba(255,255,255,.04)
 }
 .nav-btn{appearance:none;border:0;background:transparent;border-radius:16px;padding:8px 5px 7px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;text-align:center;cursor:pointer;color:#a5b5a8;transition:.22s ease;font-weight:600;min-height:58px}
 .nav-btn:hover{background:rgba(255,255,255,.04);transform:none}
@@ -302,7 +307,7 @@ textarea{min-height:100px}
 @media (pointer:coarse){
   body{display:block}
   .phone,.phone-swipe,.swipe-stack{max-width:none}
-  .bottom-nav{width:calc(100% - 10px);max-width:none;bottom:env(safe-area-inset-bottom,0px);}
+  .bottom-nav{left:0;right:0;bottom:0;transform:none;width:100%;max-width:none;border-left:0;border-right:0;border-radius:24px 24px 0 0;}
   .modal-content{width:min(calc(100% - 20px),520px)}
 }
 
@@ -311,7 +316,7 @@ textarea{min-height:100px}
   .phone-swipe{width:100%;padding:calc(12px + env(safe-area-inset-top)) 12px calc(96px + env(safe-area-inset-bottom))}
   .header{margin-bottom:14px}
   .header h1{font-size:clamp(24px,7vw,34px)}
-  .bottom-nav{width:calc(100% - 10px);bottom:env(safe-area-inset-bottom,0px);}
+  .bottom-nav{left:0;right:0;bottom:0;transform:none;width:100%;border-left:0;border-right:0;border-radius:24px 24px 0 0;}
   .swipe-stack{width:100%;height:clamp(420px,calc(100dvh - 290px),580px)}
   .big-card{border-radius:30px}
   .swipe-body{padding:18px 16px 18px}
@@ -346,7 +351,7 @@ textarea{min-height:100px}
 
 @media (max-width:440px){
   .phone,.bottom-nav,.modal-content{width:100%}
-  .bottom-nav{width:calc(100% - 8px)}
+  .bottom-nav{width:100%}
 }
 
 @media (min-width:700px){
@@ -619,4 +624,10 @@ textarea{min-height:100px}
   padding:5px 9px;
   border-radius:999px;
   white-space:nowrap;
+}
+
+body.cordova-immersive .phone,
+body.cordova-immersive .phone-swipe{
+  min-height:100%;
+  min-height:100dvh;
 }

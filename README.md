@@ -98,6 +98,21 @@ cordova platform add android
 cordova build android --release -- --packageType=apk
 ```
 
+### Statusleiste in Cordova ausblenden
+
+Damit die Android-Statusleiste (Uhrzeit/Akku/weißer Balken oben) wirklich verschwindet, reicht reines Frontend-CSS nicht aus.
+Die App nutzt dafür in Cordova die StatusBar-API. Falls das Plugin in deinem Cordova-Projekt noch fehlt, ergänze es zusätzlich im eigentlichen Cordova-Wrapper:
+
+```bash
+cordova plugin add cordova-plugin-statusbar
+```
+
+Optional kannst du in `config.xml` zusätzlich eine immersive Darstellung erzwingen, z. B. mit:
+
+```xml
+<preference name="Fullscreen" value="true" />
+```
+
 Wenn du später einen anderen Server nutzen willst, setze vor dem Build die gewünschte URL
 über `window.MYAPP_API_BASE_URL` oder `localStorage` (siehe oben).
 

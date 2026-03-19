@@ -311,12 +311,24 @@ function syncSystemUiTheme() {
   const themeColor = '#0f1511';
   const metaTheme = document.querySelector('meta[name="theme-color"]');
   if (metaTheme) metaTheme.setAttribute('content', themeColor);
-  if (document.body) document.body.style.backgroundColor = themeColor;
-  if (window.StatusBar && typeof window.StatusBar.backgroundColorByHexString === 'function') {
-    window.StatusBar.backgroundColorByHexString(themeColor);
-    if (typeof window.StatusBar.styleLightContent === 'function') window.StatusBar.styleLightContent();
-    if (typeof window.StatusBar.overlaysWebView === 'function') window.StatusBar.overlaysWebView(false);
+  if (document.body) {
+    document.body.style.backgroundColor = themeColor;
+    document.body.classList.toggle('cordova-immersive', false);
   }
+
+  const statusBar = window.StatusBar;
+  if (!statusBar) return;
+
+  if (typeof statusBar.backgroundColorByHexString === 'function') statusBar.backgroundColorByHexString(themeColor);
+  if (typeof statusBar.styleLightContent === 'function') statusBar.styleLightContent();
+
+  const canHideStatusBar = typeof statusBar.hide === 'function';
+  const canOverlayWebView = typeof statusBar.overlaysWebView === 'function';
+
+  if (canOverlayWebView) statusBar.overlaysWebView(canHideStatusBar);
+  if (canHideStatusBar) statusBar.hide();
+
+  if (document.body) document.body.classList.toggle('cordova-immersive', canHideStatusBar);
 }
 
 function header(title, right = '') { return `<div class="header"><h1>${title}</h1><div>${right}</div></div>`; }
@@ -1466,6 +1478,7 @@ async function bootstrap() {
 if (isCordovaFileRuntime) {
   document.addEventListener('deviceready', () => {
     state.cordovaReady = true;
+    syncSystemUiTheme();
     bootstrap();
   }, { once: true });
 } else {
