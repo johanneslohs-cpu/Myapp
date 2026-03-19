@@ -309,18 +309,13 @@ function nav() {
 
 function syncSystemUiTheme() {
   const themeColor = '#0f1511';
-  const root = document.documentElement;
   const metaTheme = document.querySelector('meta[name="theme-color"]');
   if (metaTheme) metaTheme.setAttribute('content', themeColor);
-  if (root) root.style.backgroundColor = themeColor;
   if (document.body) document.body.style.backgroundColor = themeColor;
-  const appRoot = document.getElementById('app');
-  if (appRoot) appRoot.style.backgroundColor = themeColor;
-  if (window.StatusBar) {
-    if (typeof window.StatusBar.overlaysWebView === 'function') window.StatusBar.overlaysWebView(true);
-    if (typeof window.StatusBar.backgroundColorByHexString === 'function') window.StatusBar.backgroundColorByHexString(themeColor);
+  if (window.StatusBar && typeof window.StatusBar.backgroundColorByHexString === 'function') {
+    window.StatusBar.backgroundColorByHexString(themeColor);
     if (typeof window.StatusBar.styleLightContent === 'function') window.StatusBar.styleLightContent();
-    if (typeof window.StatusBar.show === 'function') window.StatusBar.show();
+    if (typeof window.StatusBar.overlaysWebView === 'function') window.StatusBar.overlaysWebView(false);
   }
 }
 
@@ -1471,7 +1466,6 @@ async function bootstrap() {
 if (isCordovaFileRuntime) {
   document.addEventListener('deviceready', () => {
     state.cordovaReady = true;
-    syncSystemUiTheme();
     bootstrap();
   }, { once: true });
 } else {

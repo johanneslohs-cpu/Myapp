@@ -16,10 +16,11 @@
 }
 
 *{box-sizing:border-box;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
-html,body{min-height:100%;background:#0f1511}
-html{color-scheme:dark}
+html{background:#0f1511}
 body{
   margin:0;
+  min-height:100vh;
+  min-height:100dvh;
   color:var(--text);
   background:
     radial-gradient(1200px 800px at 8% -20%,rgba(103,219,146,.22),transparent 55%),
@@ -31,8 +32,8 @@ body{
 
 h1,h2,h3,p{margin:0}
 
-.phone{width:100%;max-width:420px;min-height:100vh;padding:calc(20px + env(safe-area-inset-top)) 18px calc(100px + env(safe-area-inset-bottom)) ;position:relative}
-.phone-swipe{display:flex;flex-direction:column;width:100%;max-width:420px;min-height:100vh;padding:calc(16px + env(safe-area-inset-top)) 16px calc(102px + env(safe-area-inset-bottom))}
+.phone{width:100%;max-width:420px;min-height:100vh;min-height:100dvh;padding:calc(20px + env(safe-area-inset-top)) 18px calc(100px + env(safe-area-inset-bottom)) ;position:relative}
+.phone-swipe{display:flex;flex-direction:column;width:100%;max-width:420px;min-height:100vh;min-height:100dvh;padding:calc(16px + env(safe-area-inset-top)) 16px calc(102px + env(safe-area-inset-bottom))}
 
 .header{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;gap:12px}
 .header h1{font-size:28px;letter-spacing:.01em}
@@ -93,7 +94,7 @@ h1,h2,h3,p{margin:0}
 .small{font-size:12px;color:var(--muted);margin-top:6px}
 
 .bottom-nav{
-  position:fixed;bottom:max(2px,env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);width:min(358px,calc(100% - 18px));display:grid;grid-template-columns:repeat(5,minmax(0,1fr));
+  position:fixed;bottom:env(safe-area-inset-bottom,0px);left:50%;transform:translateX(-50%);width:min(358px,calc(100% - 18px));display:grid;grid-template-columns:repeat(5,minmax(0,1fr));
   gap:5px;padding:8px;background:rgba(13,20,15,.96);backdrop-filter:blur(16px);border:1px solid rgba(188,209,193,.14);border-radius:24px;
   box-shadow:0 16px 34px rgba(0,0,0,.33), inset 0 1px 0 rgba(255,255,255,.04)
 }
@@ -110,7 +111,7 @@ h1,h2,h3,p{margin:0}
 
 .swipe-stage{display:flex;align-items:flex-start;justify-content:center;margin-top:12px;flex:1 1 auto;min-height:0}
 .phone-swipe .small{margin-bottom:2px;padding-left:2px}
-.swipe-stack{position:relative;width:100%;max-width:420px;height:clamp(500px,calc(100vh - 280px),700px)}
+.swipe-stack{position:relative;width:100%;max-width:420px;height:clamp(500px,calc(100dvh - 280px),700px)}
 .big-card{
   width:100%;height:100%;border:1px solid var(--line);background:linear-gradient(160deg,#24382d,#1d2b23 40%,#18221c);min-height:0;
   border-radius:34px;box-shadow:0 28px 50px rgba(2,8,5,.6);position:absolute;inset:0;touch-action:none;transition:transform .32s cubic-bezier(.22,.8,.23,1),opacity .32s ease,box-shadow .32s ease;overflow:hidden
@@ -301,7 +302,7 @@ textarea{min-height:100px}
 @media (pointer:coarse){
   body{display:block}
   .phone,.phone-swipe,.swipe-stack{max-width:none}
-  .bottom-nav{width:calc(100% - 10px);max-width:none;bottom:max(2px,env(safe-area-inset-bottom));}
+  .bottom-nav{width:calc(100% - 10px);max-width:none;bottom:env(safe-area-inset-bottom,0px);}
   .modal-content{width:min(calc(100% - 20px),520px)}
 }
 
@@ -310,8 +311,8 @@ textarea{min-height:100px}
   .phone-swipe{width:100%;padding:calc(12px + env(safe-area-inset-top)) 12px calc(96px + env(safe-area-inset-bottom))}
   .header{margin-bottom:14px}
   .header h1{font-size:clamp(24px,7vw,34px)}
-  .bottom-nav{width:calc(100% - 10px);bottom:max(2px,env(safe-area-inset-bottom));}
-  .swipe-stack{width:100%;height:clamp(420px,calc(100vh - 290px),580px)}
+  .bottom-nav{width:calc(100% - 10px);bottom:env(safe-area-inset-bottom,0px);}
+  .swipe-stack{width:100%;height:clamp(420px,calc(100dvh - 290px),580px)}
   .big-card{border-radius:30px}
   .swipe-body{padding:18px 16px 18px}
   .big-card h2{font-size:clamp(24px,8.6vw,38px)}
@@ -327,7 +328,7 @@ textarea{min-height:100px}
 
 @media (max-height:860px){
   .phone-swipe{padding-bottom:calc(92px + env(safe-area-inset-bottom))}
-  .swipe-stack{height:clamp(400px,calc(100vh - 300px),540px)}
+  .swipe-stack{height:clamp(400px,calc(100dvh - 300px),540px)}
   .big-card h2{font-size:clamp(25px,5vw,32px)}
   .swipe-body{padding:18px 16px 16px}
 }
@@ -335,7 +336,7 @@ textarea{min-height:100px}
 @media (max-height:760px){
   .phone{padding-bottom:calc(94px + env(safe-area-inset-bottom))}
   .phone-swipe{padding-bottom:calc(90px + env(safe-area-inset-bottom))}
-  .swipe-stack{height:clamp(360px,calc(100vh - 280px),470px)}
+  .swipe-stack{height:clamp(360px,calc(100dvh - 280px),470px)}
   .big-card h2{font-size:clamp(22px,4vw,26px);margin-bottom:4px}
   .swipe-body{padding:14px 14px 14px;gap:10px}
   .big-meta span{padding:6px 10px;font-size:12px}
