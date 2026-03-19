@@ -590,12 +590,18 @@ function render() {
   bind();
 }
 
-function modal(html) {
+function modal(html, options = {}) {
   const root = ensureModalRoot();
+  const previousModal = root.querySelector('.modal');
+  const preservedScrollTop = options.preserveScroll ? (previousModal?.scrollTop || 0) : 0;
   root.innerHTML = `<div class="modal"><div class="modal-content">${html}</div></div>`;
-  document.querySelector('.modal').onclick = (e) => {
+  const modalElement = root.querySelector('.modal');
+  modalElement.onclick = (e) => {
     if (e.target.classList.contains('modal')) closeModal();
   };
+  if (options.preserveScroll) {
+    requestAnimationFrame(() => { modalElement.scrollTop = preservedScrollTop; });
+  }
 }
 function ensureModalRoot() {
   let root = document.getElementById('modalRoot');
@@ -622,8 +628,8 @@ function openRecipe(id) {
     const detailedIngredients = formatIngredientsWithPortions(r.ingredients || [], portions);
     modal(`<div class="recipe-detail">
       <div class="recipe-detail-top">
-        <button class="btn" id="closeModal">← Zurück</button>
-        <button class="btn recipe-like-btn ${isFavorite ? 'active' : ''}" id="likeRecipe" aria-label="Rezept liken">♥</button>
+        <button class="btn" id="closeModal" type="button">← Zurück</button>
+        <button class="btn recipe-like-btn ${isFavorite ? 'active' : ''}" id="likeRecipe" type="button" aria-label="Rezept liken">♥</button>
       </div>
       <div class="recipe-hero">
         <div class="recipe-hero-media">${recipeImageMarkup(r, 'detail-photo')}</div>
@@ -638,16 +644,16 @@ function openRecipe(id) {
       </div>
 
       <div class="recipe-tabs">
-        <button class="btn" id="jumpIngredients">Zutaten</button>
-        <button class="btn" id="jumpNutrition">Nährwerte</button>
-        <button class="btn" id="jumpSteps">Zubereitung</button>
+        <button class="btn" id="jumpIngredients" type="button">Zutaten</button>
+        <button class="btn" id="jumpNutrition" type="button">Nährwerte</button>
+        <button class="btn" id="jumpSteps" type="button">Zubereitung</button>
       </div>
 
       <div class="portion-panel" id="ingredients">
         <div><span class="small">Portionen</span><h2>${portions}</h2></div>
         <div class="row">
-          <button class="btn" id="minusPortion" ${portions <= MIN_PORTIONS ? 'disabled' : ''}>−</button>
-          <button class="btn" id="plusPortion" ${portions >= MAX_PORTIONS ? 'disabled' : ''}>＋</button>
+          <button class="btn" id="minusPortion" type="button" ${portions <= MIN_PORTIONS ? 'disabled' : ''}>−</button>
+          <button class="btn" id="plusPortion" type="button" ${portions >= MAX_PORTIONS ? 'disabled' : ''}>＋</button>
         </div>
       </div>
 
@@ -655,12 +661,12 @@ function openRecipe(id) {
       <div class="recipe-ingredients">
         ${detailedIngredients.map((i, index) => {
           const picked = pickedIngredients.has(index);
-          return `<div class="ingredient ingredient-card ${picked ? 'picked' : ''}"><span class="ingredient-text">${i}</span><button class="ingredient-pick ${picked ? 'picked' : ''}" data-ingredient-pick="${index}" title="Als gekauft markieren">${picked ? '✓' : '○'}</button></div>`;
+          return `<div class="ingredient ingredient-card ${picked ? 'picked' : ''}"><span class="ingredient-text">${i}</span><button class="ingredient-pick ${picked ? 'picked' : ''}" type="button" data-ingredient-pick="${index}" title="Als gekauft markieren">${picked ? '✓' : '○'}</button></div>`;
         }).join('')}
       </div>
 
-      <div class="tip-banner">Zutaten dabei, die du nicht magst? Über "Das esse ich nicht" im Profil kannst du sie ausblenden.</div>
-      <button class="btn" id="addToList">Zur Einkaufsliste hinzufügen</button>
+      <div class="tip-banner">Zutaten dabei, die du nicht magst? Über "Das esse ich nicht" im Profil kannst du Rezepte die sie enthalten ausblenden.</div>
+      <button class="btn" id="addToList" type="button">Zur Einkaufsliste hinzufügen</button>
 
       <h2 class="recipe-section-title" id="nutrition">Nährwerte pro Portion</h2>
       <div class="nutrition-grid">
@@ -674,7 +680,7 @@ function openRecipe(id) {
       <div class="steps-list">
         ${r.steps.map((s, i) => `<div class="step-card"><div class="step-index">${String(i + 1).padStart(2, '0')}</div><div><h3>Schritt ${i + 1}</h3><p>${fullStepText(s)}</p></div></div>`).join('')}
       </div>
-    </div>`);
+    </div>`, { preserveScroll: true });
 
     document.getElementById('closeModal').onclick = () => {
       state.selectedRecipe = null;
@@ -693,12 +699,10 @@ function openRecipe(id) {
     document.getElementById('jumpNutrition').onclick = () => document.getElementById('nutrition').scrollIntoView({ behavior: 'smooth' });
     document.querySelectorAll('[data-ingredient-pick]').forEach((button) => {
       button.onclick = () => {
-        const scrollY = window.scrollY;
         const index = Number(button.dataset.ingredientPick);
         if (pickedIngredients.has(index)) pickedIngredients.delete(index);
         else pickedIngredients.add(index);
         draw();
-        requestAnimationFrame(() => window.scrollTo({ top: scrollY, behavior: 'auto' }));
       };
     });
     document.getElementById('likeRecipe').onclick = async () => {
@@ -835,7 +839,7 @@ async function openListEditor(id) {
     const doneCount = list.items.filter((item) => item.checked).length;
     modal(`<div class="list-editor">
       <div class="header">
-        <button class="btn" id="closeModal">← Zurück</button>
+        <button class="btn" id="closeModal" type="button">← Zurück</button>
         <button class="btn" id="saveList">Speichern</button>
       </div>
       <h2>${list.name}</h2>
@@ -1174,7 +1178,7 @@ async function openAddToList(ingredients) {
   const lists = await api.get('/api/lists');
   modal(`<div class="add-to-list-modal">
     <div class="add-to-list-head">
-      <button class="btn" id="closeModal">← Zurück</button>
+      <button class="btn" id="closeModal" type="button">← Zurück</button>
       <h2>Zu Einkaufsliste hinzufügen</h2>
       <p class="small">Wähle eine Liste. Gleiche Zutaten werden zusammengeführt und Mengen addiert.</p>
     </div>

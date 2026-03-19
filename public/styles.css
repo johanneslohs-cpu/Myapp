@@ -219,7 +219,7 @@ textarea{min-height:100px}
 
 .recipe-detail{display:flex;flex-direction:column;gap:14px}
 .recipe-detail-top{display:flex;justify-content:space-between;align-items:center}
-.recipe-like-btn{font-size:26px;line-height:1;padding:8px 12px;color:#fff;min-width:66px;min-height:56px;display:flex;align-items:center;justify-content:center}
+.recipe-like-btn{font-size:34px;line-height:1;padding:12px 18px;color:#fff;min-width:92px;min-height:84px;display:flex;align-items:center;justify-content:center;border-radius:22px}
 .recipe-dislike-btn{font-size:30px;line-height:1;padding:8px 14px;color:#fff;min-width:74px;min-height:62px;display:flex;align-items:center;justify-content:center}
 .recipe-like-btn.active{color:var(--primary)}
 
