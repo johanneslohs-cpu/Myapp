@@ -57,6 +57,7 @@ const state = {
     lastError: '',
     lastErrorSummary: '',
     lastErrorDetails: null,
+    handleProbe: '-',
     debugVisible: false
   }
 };
@@ -334,6 +335,13 @@ function getAdMobHandleDiagnostics() {
   ].join(', ');
 }
 
+function describeAdMobObject(value) {
+  if (!value) return 'null';
+  const ownKeys = formatKeyList(collectObjectKeys(value), 10);
+  const protoKeys = formatKeyList(collectPrototypeKeys(value), 10);
+  return `type=${typeof value}, own=${ownKeys}, proto=${protoKeys}, load=${typeof value?.load}, show=${typeof value?.show}, isLoaded=${typeof value?.isLoaded}`;
+}
+
 function collectObjectKeys(value) {
   if (!value) return [];
   const keys = new Set();
@@ -429,7 +437,8 @@ function getAdMobRuntimeSnapshot(extra = {}) {
     pluginKeys: pluginShape.pluginKeys,
     pluginProtoKeys: pluginShape.pluginProtoKeys,
     nestedKeys: pluginShape.nestedKeys,
-    methodChecks: pluginShape.methodChecks
+    methodChecks: pluginShape.methodChecks,
+    handleProbe: state.admob.handleProbe || '-'
   };
   return { ...snapshot, ...extra };
 }
@@ -578,6 +587,7 @@ function getAdMobPluginCandidates() {
 
 async function createInterstitialHandle(plugin) {
   if (!plugin) return null;
+  state.admob.handleProbe = 'Kein Handle-Versuch gestartet';
 
   const createLegacyPrepareHandle = (api) => ({
     loaded: false,
@@ -616,27 +626,43 @@ async function createInterstitialHandle(plugin) {
   });
 
   if (typeof plugin.InterstitialAd === 'function') {
-    const interstitial = new plugin.InterstitialAd({
-      adUnitId: ADMOB_INTERSTITIAL_DEMO_AD_UNIT_ID
-    });
-    if (interstitial && typeof interstitial.load === 'function') return interstitial;
+    try {
+      const interstitial = new plugin.InterstitialAd({
+        adUnitId: ADMOB_INTERSTITIAL_DEMO_AD_UNIT_ID
+      });
+      state.admob.handleProbe = `plugin.InterstitialAd => ${describeAdMobObject(interstitial)}`;
+      if (interstitial && typeof interstitial.load === 'function') return interstitial;
+    } catch (error) {
+      state.admob.handleProbe = `plugin.InterstitialAd warf Fehler: ${normalizeAdMobError(error)}`;
+    }
   }
 
   if (typeof plugin.interstitial === 'function') {
-    const interstitial = plugin.interstitial({
-      adUnitId: ADMOB_INTERSTITIAL_DEMO_AD_UNIT_ID
-    });
-    if (interstitial && typeof interstitial.load === 'function') return interstitial;
+    try {
+      const interstitial = plugin.interstitial({
+        adUnitId: ADMOB_INTERSTITIAL_DEMO_AD_UNIT_ID
+      });
+      state.admob.handleProbe = `plugin.interstitial() => ${describeAdMobObject(interstitial)}`;
+      if (interstitial && typeof interstitial.load === 'function') return interstitial;
+    } catch (error) {
+      state.admob.handleProbe = `plugin.interstitial() warf Fehler: ${normalizeAdMobError(error)}`;
+    }
   }
 
   if (typeof plugin.createInterstitial === 'function') {
-    const interstitial = await plugin.createInterstitial({
-      adUnitId: ADMOB_INTERSTITIAL_DEMO_AD_UNIT_ID
-    });
-    if (interstitial && typeof interstitial.load === 'function') return interstitial;
+    try {
+      const interstitial = await plugin.createInterstitial({
+        adUnitId: ADMOB_INTERSTITIAL_DEMO_AD_UNIT_ID
+      });
+      state.admob.handleProbe = `plugin.createInterstitial() => ${describeAdMobObject(interstitial)}`;
+      if (interstitial && typeof interstitial.load === 'function') return interstitial;
+    } catch (error) {
+      state.admob.handleProbe = `plugin.createInterstitial() warf Fehler: ${normalizeAdMobError(error)}`;
+    }
   }
 
   if (plugin.interstitial && typeof plugin.interstitial.load === 'function' && typeof plugin.interstitial.show === 'function') {
+    state.admob.handleProbe = `plugin.interstitial Objekt => ${describeAdMobObject(plugin.interstitial)}`;
     return {
       loaded: false,
       async load() {
@@ -657,13 +683,16 @@ async function createInterstitialHandle(plugin) {
   }
 
   if (plugin.interstitial && typeof plugin.interstitial.prepare === 'function' && typeof plugin.interstitial.show === 'function') {
+    state.admob.handleProbe = `plugin.interstitial Legacy-Objekt => ${describeAdMobObject(plugin.interstitial)}`;
     return createLegacyPrepareHandle(plugin.interstitial);
   }
 
   if (typeof plugin.prepareInterstitial === 'function' || typeof plugin.showInterstitialAd === 'function' || typeof plugin.showInterstitial === 'function' || typeof plugin.createInterstitialView === 'function') {
+    state.admob.handleProbe = `plugin Legacy-API => ${describeAdMobObject(plugin)}`;
     return createLegacyPrepareHandle(plugin);
   }
 
+  state.admob.handleProbe = `Kein passender Handle-Pfad gefunden. Plugin => ${describeAdMobObject(plugin)}`;
   return null;
 }
 
@@ -796,6 +825,7 @@ async function initializeAdMob() {
   state.admob.pluginSource = '';
   state.admob.interstitial = null;
   state.admob.initialized = false;
+  state.admob.handleProbe = '-';
   setAdMobStatus(state.admob.enabled ? 'AdMob aktiviert' : 'AdMob deaktiviert');
   state.admob.swipeCount = parseStoredNumber(ADMOB_STORAGE_KEYS.swipeCount);
   state.admob.lastShownAt = parseStoredNumber(ADMOB_STORAGE_KEYS.lastShownAt) || Date.now();
