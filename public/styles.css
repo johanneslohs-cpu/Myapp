@@ -160,6 +160,9 @@ h1,h2,h3,p{margin:0}
 .profile-list-item{padding:18px 20px;border-radius:20px;gap:14px;justify-content:flex-start;font-size:18px}
 .profile-list-item span:first-child{font-size:26px;line-height:1}
 .profile-settings-btn{min-width:54px;min-height:54px;font-size:25px;border-radius:17px;padding:10px 15px}
+.profile-admob-btn{width:100%;margin:10px 0 8px;font-size:18px;font-weight:700;padding:15px 18px}
+.profile-admob-hint,.profile-admob-status{margin:0 0 10px;text-align:left;color:#d7e5db;line-height:1.45}
+.profile-admob-status.error{color:#ffb1b1}
 .modal-back-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px}
 .compact-back-btn{width:auto;max-width:max-content;padding:11px 16px;border-radius:16px}
 
