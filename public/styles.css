@@ -231,7 +231,6 @@ textarea{min-height:100px}
 .recipe-dislike-btn{font-size:30px;line-height:1;padding:8px 14px;color:#fff;min-width:74px;min-height:62px;display:flex;align-items:center;justify-content:center}
 .recipe-like-btn.active{color:var(--primary)}
 
-
 .recipe-hero{
   border:1px solid var(--line);
   background:linear-gradient(140deg,#2c4336,#1b2a22);
@@ -294,8 +293,6 @@ textarea{min-height:100px}
 .shopping-check input:checked + .shopping-dot{border-color:var(--primary);background:rgba(87,216,144,.15)}
 .shopping-check input:checked + .shopping-dot::after{content:'✓';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--primary);font-size:14px}
 
-
-
 @media (pointer:coarse){
   body{display:block}
   .phone,.phone-swipe,.swipe-stack{max-width:none}
@@ -355,7 +352,6 @@ textarea{min-height:100px}
 .color-pick{width:32px;height:32px;border-radius:999px;border:2px solid rgba(255,255,255,.25);cursor:pointer;box-shadow:0 6px 14px rgba(0,0,0,.25)}
 .color-pick.active{transform:scale(1.08);border-color:#fff;box-shadow:0 0 0 3px rgba(126,214,223,.35)}
 
-
 .settings-modal{display:flex;flex-direction:column;gap:16px}
 .settings-topbar{display:flex;justify-content:space-between;align-items:center;gap:12px}
 .settings-topbar h2{font-size:28px;line-height:1.1}
@@ -369,7 +365,6 @@ textarea{min-height:100px}
 .settings-actions{display:flex;flex-direction:column;gap:10px;margin-top:2px}
 .settings-actions .btn{width:100%}
 .settings-danger{color:#ff9ba8}
-
 
 .excluded-modal{display:flex;flex-direction:column;gap:14px}
 .excluded-hero{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;padding:16px 18px;border:1px solid rgba(126,225,165,.24);border-radius:20px;background:radial-gradient(circle at top right,rgba(87,216,144,.16),transparent 34%),linear-gradient(145deg,#203027,#17211b 60%,#141d17)}
@@ -621,21 +616,3 @@ body.cordova-immersive .phone-swipe{
   min-height:100%;
   min-height:100dvh;
 }
-
-.admob-debug-card{margin:12px 0 16px;padding:16px;border-radius:18px;background:linear-gradient(180deg,#223328,#18241d 55%,#162019);border:1px solid var(--line)}
-.admob-debug-head{display:flex;gap:12px;justify-content:space-between;align-items:flex-start}
-.admob-debug-head h3{margin:2px 0 0;font-size:18px}
-.admob-debug-summary{margin:10px 0 0}
-.admob-debug-toggle{min-width:auto;padding:10px 12px}
-.admob-debug-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:14px}
-.admob-debug-grid div{padding:12px;border-radius:14px;background:#161f1a;border:1px solid var(--line);display:flex;flex-direction:column;gap:6px}
-.admob-debug-grid span{font-size:12px;color:#b8c9bc}
-.admob-debug-grid strong{font-size:14px;line-height:1.35;word-break:break-word}
-.admob-debug-diagnostics{margin-top:14px;padding:12px;border-radius:14px;background:#131b16;border:1px solid var(--line)}
-.admob-debug-diagnostics-head{font-size:12px;letter-spacing:.04em;text-transform:uppercase;color:#b8c9bc;margin-bottom:10px}
-.admob-debug-diagnostics-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-.admob-debug-diagnostics-list div{padding:10px 12px;border-radius:12px;background:#161f1a;border:1px solid rgba(202,227,209,.08);display:flex;flex-direction:column;gap:6px}
-.admob-debug-diagnostics-list span{font-size:12px;color:#b8c9bc}
-.admob-debug-diagnostics-list strong{font-size:14px;line-height:1.35;word-break:break-word}
-.admob-debug-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
-@media (max-width: 520px){.admob-debug-grid,.admob-debug-actions,.admob-debug-diagnostics-list{grid-template-columns:1fr}}

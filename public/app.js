@@ -15,15 +15,6 @@ function withApiBase(url) {
 
 const MAX_SHOPPING_LISTS = 10;
 const MAX_LIST_NAME_LENGTH = 30;
-const ADMOB_INTERSTITIAL_DEMO_AD_UNIT_ID = 'ca-app-pub-3940256099942544/1033173712';
-const ADMOB_SWIPE_INTERVAL = 10;
-const ADMOB_MIN_INTERVAL_MS = 10 * 60 * 1000;
-const ADMOB_STORAGE_KEYS = {
-  enabled: 'myapp_admob_enabled',
-  swipeCount: 'myapp_admob_swipe_count',
-  lastShownAt: 'myapp_admob_last_shown_at'
-};
-
 const state = {
   tab: 'discover',
   recipes: [],
@@ -42,24 +33,7 @@ const state = {
   auth: null,
   googleClientId: '',
   isCordova: Boolean(window.cordova) || isCordovaFileRuntime,
-  cordovaReady: !isCordovaFileRuntime,
-  admob: {
-    enabled: false,
-    plugin: null,
-    pluginSource: '',
-    interstitial: null,
-    initialized: false,
-    loading: false,
-    showInProgress: false,
-    swipeCount: 0,
-    lastShownAt: 0,
-    status: 'Nicht initialisiert',
-    lastError: '',
-    lastErrorSummary: '',
-    lastErrorDetails: null,
-    handleProbe: '-',
-    debugVisible: false
-  }
+  cordovaReady: !isCordovaFileRuntime
 };
 
 let searchReloadTimer = null;
@@ -96,7 +70,6 @@ Im Rahmen der Nutzung von BiteMatch können insbesondere folgende personenbezoge
 • Inhalte, die Nutzer innerhalb der App selbst speichern oder verwalten
 • Daten aus Support- oder Feedbackanfragen
 • technische Verbindungsdaten und Protokolldaten, soweit dies für Betrieb, Sicherheit und Stabilität der App erforderlich ist
-• Werbe- und gerätebezogene Daten im Zusammenhang mit eingeblendeter Werbung
 
 4. Zwecke der Verarbeitung
 Die Verarbeitung personenbezogener Daten erfolgt zu folgenden Zwecken:
@@ -105,7 +78,6 @@ Die Verarbeitung personenbezogener Daten erfolgt zu folgenden Zwecken:
 • Speicherung und Verwaltung von Favoriten, Filtern, Einkaufslisten und Profileinstellungen
 • Personalisierung der App-Nutzung
 • Bearbeitung von Support- und Feedbackanfragen
-• Einblendung von Werbung
 • Sicherstellung der technischen Stabilität und Sicherheit der App
 • Verhinderung von Missbrauch
 
@@ -119,23 +91,19 @@ Die Verarbeitung personenbezogener Daten erfolgt, soweit anwendbar, auf folgende
 Für die Nutzung von BiteMatch wird ein Login über Google angeboten. Im Rahmen dieses Logins können insbesondere Name, E-Mail-Adresse und Profilbild übernommen werden, soweit diese Daten vom Nutzer im Rahmen des Google-Logins freigegeben werden.
 Diese Daten werden verwendet, um das Nutzerkonto anzulegen, die Anmeldung zu ermöglichen und die Nutzung der App bereitzustellen.
 
-7. Werbung
-In BiteMatch wird Werbung eingebunden. Im Zusammenhang mit der Anzeige von Werbung können durch eingesetzte Werbedienste personenbezogene Daten und gerätebezogene Informationen verarbeitet werden, soweit dies für die Ausspielung, Bereitstellung und technische Abwicklung von Werbung erforderlich ist.
-
-8. Hosting und technische Bereitstellung
+7. Hosting und technische Bereitstellung
 Zur technischen Bereitstellung der App und zugehöriger Dienste werden externe Hosting- und Infrastrukturdienstleister eingesetzt. Dabei können technisch notwendige Daten verarbeitet werden, insbesondere Verbindungs- und Serverprotokolldaten, soweit dies für Betrieb, Sicherheit und Stabilität erforderlich ist.
 
-9. Empfänger von Daten
+8. Empfänger von Daten
 Personenbezogene Daten können an folgende Empfänger oder Kategorien von Empfängern übermittelt werden, soweit dies zur Bereitstellung der App erforderlich ist:
 • Login-Dienstleister
-• Werbedienstleister
 • Hosting- und Infrastrukturdienstleister
 • technische Auftragsverarbeiter, soweit diese für den Betrieb der App eingesetzt werden
 
-10. Drittlandübermittlung
+9. Drittlandübermittlung
 Es kann nicht ausgeschlossen werden, dass einzelne eingesetzte Dienste oder technische Anbieter Daten auch außerhalb der Europäischen Union oder des Europäischen Wirtschaftsraums verarbeiten. In solchen Fällen erfolgt die Verarbeitung nur im Rahmen der jeweils geltenden datenschutzrechtlichen Vorgaben.
 
-11. Speicherdauer
+10. Speicherdauer
 Personenbezogene Daten werden nur so lange gespeichert, wie dies für die jeweiligen Zwecke erforderlich ist.
 Im Regelfall gilt:
 • Kontodaten werden bis zur Löschung des Nutzerkontos gespeichert
@@ -144,15 +112,15 @@ Im Regelfall gilt:
 • technische Protokolldaten werden nur so lange gespeichert, wie dies für Sicherheit, Fehlerbehebung und Stabilität notwendig ist
 • gesetzliche Aufbewahrungspflichten bleiben unberührt
 
-12. Kontolöschung und Datenlöschung
+11. Kontolöschung und Datenlöschung
 Nutzer können ihr Konto innerhalb der App löschen.
 Zusätzlich kann die Löschung des Kontos und der damit verbundenen personenbezogenen Daten über die E-Mail bitematch.de@gmail.com beantragt werden.
 Mit der Löschung des Kontos werden die damit verbundenen personenbezogenen Daten gelöscht, soweit keine gesetzlichen Aufbewahrungspflichten oder zwingenden technischen Gründe entgegenstehen.
 
-13. Datensicherheit
+12. Datensicherheit
 Es werden angemessene technische und organisatorische Maßnahmen getroffen, um personenbezogene Daten vor Verlust, Missbrauch, unbefugtem Zugriff, unbefugter Offenlegung oder unbefugter Veränderung zu schützen.
 
-14. Rechte der betroffenen Personen
+13. Rechte der betroffenen Personen
 Betroffene Personen haben im Rahmen der gesetzlichen Vorschriften insbesondere folgende Rechte:
 • Recht auf Auskunft
 • Recht auf Berichtigung
@@ -163,10 +131,10 @@ Betroffene Personen haben im Rahmen der gesetzlichen Vorschriften insbesondere f
 • Recht auf Widerruf erteilter Einwilligungen mit Wirkung für die Zukunft
 • Recht auf Beschwerde bei einer zuständigen Aufsichtsbehörde
 
-15. Beschwerderecht
+14. Beschwerderecht
 Wenn du der Ansicht bist, dass die Verarbeitung deiner personenbezogenen Daten gegen geltendes Datenschutzrecht verstößt, kannst du dich bei einer zuständigen Datenschutzbehörde beschweren.
 
-16. Änderungen dieser Datenschutzerklärung
+15. Änderungen dieser Datenschutzerklärung
 Diese Datenschutzerklärung kann angepasst werden, wenn sich die App, ihre Funktionen, die eingesetzten Dienste oder die rechtlichen Anforderungen ändern.`,
   },
   {
@@ -215,19 +183,16 @@ Es besteht kein Anspruch auf eine jederzeit unterbrechungsfreie Verfügbarkeit d
 6. Inhalte und Haftung
 Die in der App dargestellten Rezepte und Informationen dienen allgemeinen Informationszwecken. Trotz sorgfältiger Aufbereitung wird keine Gewähr für Vollständigkeit, Richtigkeit oder ständige Verfügbarkeit übernommen. Nutzer sind selbst dafür verantwortlich, Zutaten, Allergene, Unverträglichkeiten und Nährwerte im Einzelfall zu prüfen.
 
-7. Werbung
-Die App kann Werbung enthalten, insbesondere über AdMob. Auf die Inhalte externer Werbeanzeigen besteht kein Einfluss; für Inhalte externer Anbieter wird keine Haftung übernommen.
-
-8. Änderungen der App
+7. Änderungen der App
 Der Anbieter ist berechtigt, Funktionen der App zu ändern, zu erweitern, einzuschränken oder einzustellen, soweit dies unter Berücksichtigung der Nutzerinteressen zumutbar ist.
 
-9. Sperrung und Kündigung
+8. Sperrung und Kündigung
 Der Anbieter kann Nutzerkonten sperren oder löschen, wenn ein Verstoß gegen diese Nutzungsbedingungen oder ein Missbrauch der App vorliegt. Nutzer können ihr Konto entsprechend der in der App bereitgestellten Funktion löschen.
 
-10. Datenschutz
+9. Datenschutz
 Informationen zur Verarbeitung personenbezogener Daten ergeben sich aus der Datenschutzerklärung der App.
 
-11. Schlussbestimmungen
+10. Schlussbestimmungen
 Es gilt österreichisches Recht unter Ausschluss der Kollisionsnormen, soweit dem keine zwingenden Verbraucherschutzvorschriften entgegenstehen. Sollten einzelne Bestimmungen unwirksam sein, bleibt die Wirksamkeit der übrigen Bestimmungen unberührt.`,
   },
 ];
@@ -296,634 +261,6 @@ function hashString(value = '') {
 function recipeFallbackImage(recipe) {
   const key = `${recipe.name || ''}-${recipe.cuisine || ''}-${recipe.category || ''}`;
   return FALLBACK_FOOD_IMAGES[hashString(key) % FALLBACK_FOOD_IMAGES.length];
-}
-
-function parseStoredNumber(key) {
-  const value = Number(localStorage.getItem(key) || '0');
-  return Number.isFinite(value) ? value : 0;
-}
-
-function persistAdMobState() {
-  localStorage.setItem(ADMOB_STORAGE_KEYS.swipeCount, String(state.admob.swipeCount));
-  localStorage.setItem(ADMOB_STORAGE_KEYS.lastShownAt, String(state.admob.lastShownAt));
-}
-
-function setAdMobStatus(status, error = '', details = null) {
-  state.admob.status = status;
-  state.admob.lastError = error ? String(error) : '';
-  state.admob.lastErrorSummary = error ? String(error) : '';
-  state.admob.lastErrorDetails = details && Object.keys(details).length ? details : null;
-  if (state.tab === 'profile' || state.tab === 'swipe') render();
-}
-
-function escapeHtml(value) {
-  return String(value ?? '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
-}
-
-function getAdMobHandleDiagnostics() {
-  const handle = state.admob.interstitial;
-  if (!handle) return 'kein Handle';
-  const methods = ['load', 'show', 'isLoaded'].filter((name) => typeof handle[name] === 'function');
-  return [
-    `loadedFlag=${handle.loaded === undefined ? 'unbekannt' : Boolean(handle.loaded)}`,
-    `methoden=${methods.length ? methods.join('/') : 'keine'}`
-  ].join(', ');
-}
-
-function describeAdMobObject(value) {
-  if (!value) return 'null';
-  const ownKeys = formatKeyList(collectObjectKeys(value), 10);
-  const protoKeys = formatKeyList(collectPrototypeKeys(value), 10);
-  return `type=${typeof value}, own=${ownKeys}, proto=${protoKeys}, load=${typeof value?.load}, show=${typeof value?.show}, isLoaded=${typeof value?.isLoaded}`;
-}
-
-function collectObjectKeys(value) {
-  if (!value) return [];
-  const keys = new Set();
-  try {
-    Object.keys(value).forEach((key) => keys.add(key));
-    Object.getOwnPropertyNames(value).forEach((key) => keys.add(key));
-  } catch {
-    return [];
-  }
-  return Array.from(keys);
-}
-
-function collectPrototypeKeys(value) {
-  try {
-    const proto = Object.getPrototypeOf(value);
-    if (!proto) return [];
-    return Object.getOwnPropertyNames(proto).filter((key) => key !== 'constructor');
-  } catch {
-    return [];
-  }
-}
-
-function formatKeyList(keys, limit = 18) {
-  if (!keys?.length) return '-';
-  const uniqueKeys = Array.from(new Set(keys));
-  const visible = uniqueKeys.slice(0, limit);
-  return uniqueKeys.length > limit ? `${visible.join(', ')} … (+${uniqueKeys.length - limit})` : visible.join(', ');
-}
-
-function collectAdMobPluginShape(plugin) {
-  if (!plugin) {
-    return {
-      pluginKeys: '-',
-      pluginProtoKeys: '-',
-      nestedKeys: '-',
-      methodChecks: '-'
-    };
-  }
-
-  const nestedCandidates = [
-    ['default', plugin.default],
-    ['AdMob', plugin.AdMob],
-    ['admob', plugin.admob],
-    ['interstitial', plugin.interstitial]
-  ].filter(([, value]) => value);
-
-  const methodChecks = [
-    'start',
-    'InterstitialAd',
-    'interstitial',
-    'createInterstitial',
-    'prepareInterstitial',
-    'createInterstitialView',
-    'showInterstitial',
-    'showInterstitialAd'
-  ].map((name) => `${name}:${typeof plugin?.[name]}`);
-
-  return {
-    pluginKeys: formatKeyList(collectObjectKeys(plugin)),
-    pluginProtoKeys: formatKeyList(collectPrototypeKeys(plugin)),
-    nestedKeys: nestedCandidates.length
-      ? nestedCandidates.map(([label, value]) => `${label}=[${formatKeyList(collectObjectKeys(value), 8)}]`).join(' | ')
-      : '-',
-    methodChecks: methodChecks.join(' | ')
-  };
-}
-
-function getAdMobPluginForInspection() {
-  if (state.admob.plugin) return state.admob.plugin;
-  const candidates = listAdMobPluginCandidates();
-  const firstPlugin = candidates.find(([, plugin]) => Boolean(plugin))?.[1];
-  return firstPlugin || null;
-}
-
-function getAdMobRuntimeSnapshot(extra = {}) {
-  const waitingMs = Math.max(0, ADMOB_MIN_INTERVAL_MS - (Date.now() - state.admob.lastShownAt));
-  const pluginForInspection = getAdMobPluginForInspection();
-  const pluginShape = collectAdMobPluginShape(pluginForInspection);
-  const snapshot = {
-    status: state.admob.status || 'Unbekannt',
-    enabled: state.admob.enabled,
-    isCordova: state.isCordova,
-    cordovaReady: state.cordovaReady,
-    pluginSource: detectAdMobPluginSource(),
-    pluginApi: collectPluginApiHints(pluginForInspection) || '-',
-    hasInterstitial: Boolean(state.admob.interstitial),
-    handle: getAdMobHandleDiagnostics(),
-    loading: state.admob.loading,
-    showInProgress: state.admob.showInProgress,
-    swipeCount: state.admob.swipeCount,
-    lastShownAt: formatAdMobTime(state.admob.lastShownAt),
-    waitForTimeTriggerSec: Math.ceil(waitingMs / 1000),
-    pluginKeys: pluginShape.pluginKeys,
-    pluginProtoKeys: pluginShape.pluginProtoKeys,
-    nestedKeys: pluginShape.nestedKeys,
-    methodChecks: pluginShape.methodChecks,
-    handleProbe: state.admob.handleProbe || '-'
-  };
-  return { ...snapshot, ...extra };
-}
-
-function formatAdMobDiagnosticMessage(summary, details = {}) {
-  const entries = Object.entries(details).filter(([, value]) => value !== undefined && value !== null && value !== '');
-  if (!entries.length) return summary;
-  return `${summary} | ${entries.map(([key, value]) => `${key}=${value}`).join(' | ')}`;
-}
-
-function setAdMobDiagnosticStatus(status, summary, details = {}) {
-  setAdMobStatus(status, formatAdMobDiagnosticMessage(summary, details), {
-    summary,
-    ...details
-  });
-}
-
-function renderAdMobDiagnosticDetails() {
-  if (!state.admob.lastErrorDetails) return '';
-  const entries = Object.entries(state.admob.lastErrorDetails).filter(([, value]) => value !== undefined && value !== null && value !== '');
-  if (!entries.length) return '';
-  return `<div class="admob-debug-diagnostics">
-    <div class="admob-debug-diagnostics-head">Fehler-Details</div>
-    <div class="admob-debug-diagnostics-list">${entries.map(([key, value]) => `<div><span>${escapeHtml(key)}</span><strong>${escapeHtml(value)}</strong></div>`).join('')}</div>
-  </div>`;
-}
-
-function formatAdMobTime(timestamp) {
-  if (!timestamp) return 'Noch nie';
-  try {
-    return new Date(timestamp).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-  } catch {
-    return 'Unbekannt';
-  }
-}
-
-
-function collectPluginApiHints(plugin) {
-  if (!plugin) return '-';
-  const hints = new Set();
-  const add = (value) => {
-    if (!value || value === 'constructor') return;
-    hints.add(String(value));
-  };
-  try {
-    Object.keys(plugin).forEach(add);
-    Object.getOwnPropertyNames(plugin).forEach(add);
-    Object.getOwnPropertyNames(Object.getOwnPropertyDescriptors(plugin)).forEach(add);
-    const proto = Object.getPrototypeOf(plugin);
-    if (proto) Object.getOwnPropertyNames(proto).forEach(add);
-    if (plugin.interstitial) {
-      add('interstitial');
-      Object.keys(plugin.interstitial).forEach((key) => add(`interstitial.${key}`));
-      Object.getOwnPropertyNames(plugin.interstitial).forEach((key) => add(`interstitial.${key}`));
-      Object.getOwnPropertyNames(Object.getOwnPropertyDescriptors(plugin.interstitial)).forEach((key) => add(`interstitial.${key}`));
-      const interstitialProto = Object.getPrototypeOf(plugin.interstitial);
-      if (interstitialProto) Object.getOwnPropertyNames(interstitialProto).forEach((key) => add(`interstitial.${key}`));
-    }
-  } catch {
-    return '-';
-  }
-  return Array.from(hints).slice(0, 12).join(', ') || '-';
-}
-
-function normalizeAdMobPluginCandidate(plugin) {
-  if (!plugin) return null;
-  const nested = [
-    plugin.AdMob,
-    plugin.admob,
-    plugin.default,
-    plugin.default?.AdMob,
-    plugin.default?.admob
-  ].find((candidate) => candidate && candidate !== plugin);
-  return nested || plugin;
-}
-
-function listAdMobPluginCandidates() {
-  const rawCandidates = [
-    ['window.cordova.plugins.AdMob', window.cordova?.plugins?.AdMob],
-    ['window.cordova.plugins.admob', window.cordova?.plugins?.admob],
-    ['window.plugins.AdMob', window.plugins?.AdMob],
-    ['window.plugins.admob', window.plugins?.admob],
-    ['window.AdMob', window.AdMob],
-    ['window.admob', window.admob]
-  ];
-  return rawCandidates
-    .map(([label, value]) => [label, normalizeAdMobPluginCandidate(value)])
-    .filter(([, value]) => Boolean(value));
-}
-
-function detectAdMobPluginSource() {
-  if (state?.admob?.pluginSource) return state.admob.pluginSource;
-  const matches = listAdMobPluginCandidates().map(([label, plugin]) => {
-    const normalized = plugin && plugin !== (label === 'window.admob' ? window.admob : label === 'window.AdMob' ? window.AdMob : null);
-    return normalized ? `${label} (normalisiert)` : label;
-  });
-  return matches.length ? matches.join(' | ') : 'Kein Plugin gefunden';
-}
-
-function renderAdMobDebugCard() {
-  const pluginSource = detectAdMobPluginSource();
-  const pluginApi = collectPluginApiHints(state.admob.plugin);
-  const nextSwipeMilestone = Math.ceil((Math.max(state.admob.swipeCount, 0) + 1) / ADMOB_SWIPE_INTERVAL) * ADMOB_SWIPE_INTERVAL;
-  const waitingMs = Math.max(0, ADMOB_MIN_INTERVAL_MS - (Date.now() - state.admob.lastShownAt));
-  const waitingMinutes = Math.ceil(waitingMs / 60000);
-  return `<div class="card admob-debug-card">
-    <div class="admob-debug-head">
-      <div>
-        <div class="small">AdMob Debug</div>
-        <h3>${state.admob.status || 'Unbekannt'}</h3>
-      </div>
-      <button class="btn admob-debug-toggle" id="toggleAdmobDebug" type="button">${state.admob.debugVisible ? 'Debug ausblenden' : 'Debug anzeigen'}</button>
-    </div>
-    <p class="small admob-debug-summary">Hier siehst du direkt in der App, ob das Plugin erkannt wurde und warum keine Werbung kommt.</p>
-    ${state.admob.debugVisible ? `<div class="admob-debug-grid">
-      <div><span>AdMob aktiv</span><strong>${state.admob.enabled ? 'Ja' : 'Nein'}</strong></div>
-      <div><span>Cordova erkannt</span><strong>${state.isCordova ? 'Ja' : 'Nein'}</strong></div>
-      <div><span>deviceready</span><strong>${state.cordovaReady ? 'Ja' : 'Nein'}</strong></div>
-      <div><span>Plugin-Quelle</span><strong>${pluginSource}</strong></div>
-      <div><span>Plugin-API</span><strong>${pluginApi || '-'}</strong></div>
-      <div><span>Interstitial-Handle</span><strong>${state.admob.interstitial ? 'Vorhanden' : 'Fehlt'}</strong></div>
-      <div><span>Ladevorgang</span><strong>${state.admob.loading ? 'Lädt' : 'Idle'}</strong></div>
-      <div><span>Anzeigen-Lock</span><strong>${state.admob.showInProgress ? 'Ja' : 'Nein'}</strong></div>
-      <div><span>Swipe-Zähler</span><strong>${state.admob.swipeCount}</strong></div>
-      <div><span>Nächster Swipe-Trigger</span><strong>${nextSwipeMilestone}</strong></div>
-      <div><span>Letzte Anzeige</span><strong>${formatAdMobTime(state.admob.lastShownAt)}</strong></div>
-      <div><span>Wartezeit bis Zeit-Trigger</span><strong>${waitingMs ? `ca. ${waitingMinutes} Min` : 'Bereit'}</strong></div>
-      <div><span>Letzter Fehler</span><strong>${state.admob.lastErrorSummary || state.admob.lastError || 'Keiner'}</strong></div>
-    </div>
-    ${renderAdMobDiagnosticDetails()}
-    <div class="admob-debug-actions">
-      <button class="btn" id="admobReloadInterstitial" type="button">Interstitial neu laden</button>
-      <button class="btn" id="admobShowInterstitial" type="button">Test-Werbung jetzt zeigen</button>
-    </div>` : ''}
-  </div>`;
-}
-
-function isAdMobEnabled() {
-  const override = localStorage.getItem(ADMOB_STORAGE_KEYS.enabled);
-  return override === null ? state.isCordova : override !== '0';
-}
-
-function getAdMobPluginCandidates() {
-  return listAdMobPluginCandidates();
-}
-
-async function createInterstitialHandle(plugin) {
-  if (!plugin) return null;
-  state.admob.handleProbe = 'Kein Handle-Versuch gestartet';
-
-  const createLegacyPrepareHandle = (api) => ({
-    loaded: false,
-    async load() {
-      const options = {
-        id: ADMOB_INTERSTITIAL_DEMO_AD_UNIT_ID,
-        adUnitId: ADMOB_INTERSTITIAL_DEMO_AD_UNIT_ID,
-        autoShow: false,
-        isTesting: true,
-        testAd: true
-      };
-      if (typeof api.prepare === 'function') {
-        await api.prepare(options);
-      } else if (typeof api.prepareInterstitial === 'function') {
-        await api.prepareInterstitial(options);
-      } else if (typeof api.createInterstitialView === 'function') {
-        await api.createInterstitialView(options);
-      }
-      this.loaded = true;
-    },
-    async show() {
-      if (typeof api.show === 'function') {
-        await api.show();
-      } else if (typeof api.showInterstitial === 'function') {
-        await api.showInterstitial();
-      } else if (typeof api.showInterstitialAd === 'function') {
-        await api.showInterstitialAd();
-      }
-      this.loaded = false;
-    },
-    async isLoaded() {
-      if (typeof api.isReady === 'function') return api.isReady();
-      if (typeof api.isLoaded === 'function') return api.isLoaded();
-      return this.loaded;
-    }
-  });
-
-  if (typeof plugin.InterstitialAd === 'function') {
-    try {
-      const interstitial = new plugin.InterstitialAd({
-        adUnitId: ADMOB_INTERSTITIAL_DEMO_AD_UNIT_ID
-      });
-      state.admob.handleProbe = `plugin.InterstitialAd => ${describeAdMobObject(interstitial)}`;
-      if (interstitial && typeof interstitial.load === 'function') return interstitial;
-    } catch (error) {
-      state.admob.handleProbe = `plugin.InterstitialAd warf Fehler: ${normalizeAdMobError(error)}`;
-    }
-  }
-
-  if (typeof plugin.interstitial === 'function') {
-    try {
-      const interstitial = plugin.interstitial({
-        adUnitId: ADMOB_INTERSTITIAL_DEMO_AD_UNIT_ID
-      });
-      state.admob.handleProbe = `plugin.interstitial() => ${describeAdMobObject(interstitial)}`;
-      if (interstitial && typeof interstitial.load === 'function') return interstitial;
-    } catch (error) {
-      state.admob.handleProbe = `plugin.interstitial() warf Fehler: ${normalizeAdMobError(error)}`;
-    }
-  }
-
-  if (typeof plugin.createInterstitial === 'function') {
-    try {
-      const interstitial = await plugin.createInterstitial({
-        adUnitId: ADMOB_INTERSTITIAL_DEMO_AD_UNIT_ID
-      });
-      state.admob.handleProbe = `plugin.createInterstitial() => ${describeAdMobObject(interstitial)}`;
-      if (interstitial && typeof interstitial.load === 'function') return interstitial;
-    } catch (error) {
-      state.admob.handleProbe = `plugin.createInterstitial() warf Fehler: ${normalizeAdMobError(error)}`;
-    }
-  }
-
-  if (plugin.interstitial && typeof plugin.interstitial.load === 'function' && typeof plugin.interstitial.show === 'function') {
-    state.admob.handleProbe = `plugin.interstitial Objekt => ${describeAdMobObject(plugin.interstitial)}`;
-    return {
-      loaded: false,
-      async load() {
-        await plugin.interstitial.load({ adUnitId: ADMOB_INTERSTITIAL_DEMO_AD_UNIT_ID });
-        this.loaded = true;
-      },
-      async show() {
-        await plugin.interstitial.show();
-        this.loaded = false;
-      },
-      async isLoaded() {
-        if (typeof plugin.interstitial.isLoaded === 'function') {
-          return plugin.interstitial.isLoaded();
-        }
-        return this.loaded;
-      }
-    };
-  }
-
-  if (plugin.interstitial && typeof plugin.interstitial.prepare === 'function' && typeof plugin.interstitial.show === 'function') {
-    state.admob.handleProbe = `plugin.interstitial Legacy-Objekt => ${describeAdMobObject(plugin.interstitial)}`;
-    return createLegacyPrepareHandle(plugin.interstitial);
-  }
-
-  if (typeof plugin.prepareInterstitial === 'function' || typeof plugin.showInterstitialAd === 'function' || typeof plugin.showInterstitial === 'function' || typeof plugin.createInterstitialView === 'function') {
-    state.admob.handleProbe = `plugin Legacy-API => ${describeAdMobObject(plugin)}`;
-    return createLegacyPrepareHandle(plugin);
-  }
-
-  state.admob.handleProbe = `Kein passender Handle-Pfad gefunden. Plugin => ${describeAdMobObject(plugin)}`;
-  return null;
-}
-
-function normalizeAdMobError(error, fallback = 'Unbekannter Fehler') {
-  if (!error) return fallback;
-  if (typeof error === 'string') return error;
-  if (error?.message) return String(error.message);
-  try {
-    return JSON.stringify(error);
-  } catch {
-    return String(error);
-  }
-}
-
-async function getInterstitialReadyState() {
-  if (!state.admob.enabled || !state.admob.interstitial) return false;
-  if (typeof state.admob.interstitial.isLoaded === 'function') {
-    try {
-      const ready = await state.admob.interstitial.isLoaded();
-      state.admob.interstitial.loaded = Boolean(ready);
-      return Boolean(ready);
-    } catch (error) {
-      setAdMobStatus('Ladestatus-Prüfung fehlgeschlagen', normalizeAdMobError(error));
-      console.warn('AdMob: Konnte Ladestatus nicht prüfen.', error);
-      state.admob.interstitial.loaded = false;
-      return false;
-    }
-  }
-  return Boolean(state.admob.interstitial.loaded);
-}
-
-async function ensureInterstitialHandleAvailable() {
-  if (!state.admob.enabled) return false;
-  if (state.admob.interstitial) return true;
-  const plugin = getAdMobPluginForInspection();
-  if (!plugin) {
-    state.admob.handleProbe = 'Kein Plugin für Handle-Rebuild gefunden';
-    return false;
-  }
-  try {
-    const interstitial = await createInterstitialHandle(plugin);
-    if (!interstitial) return false;
-    state.admob.plugin = plugin;
-    state.admob.interstitial = interstitial;
-    return true;
-  } catch (error) {
-    state.admob.handleProbe = `Handle-Rebuild fehlgeschlagen: ${normalizeAdMobError(error)}`;
-    return false;
-  }
-}
-
-async function rebuildInterstitialHandle(reason = 'manual-rebuild') {
-  state.admob.interstitial = null;
-  state.admob.handleProbe = `Handle zurückgesetzt (${reason})`;
-  const handleReady = await ensureInterstitialHandleAvailable();
-  if (!handleReady) {
-    setAdMobDiagnosticStatus('Interstitial-Handle-Rebuild fehlgeschlagen', 'Es konnte kein neues Interstitial-Handle erzeugt werden.', getAdMobRuntimeSnapshot({
-      reason,
-      stage: 'rebuild-handle'
-    }));
-    return false;
-  }
-  return true;
-}
-
-async function ensureInterstitialLoaded() {
-  if (!state.admob.enabled || state.admob.loading) return false;
-  const hasHandle = await ensureInterstitialHandleAvailable();
-  if (!hasHandle || !state.admob.interstitial) {
-    setAdMobDiagnosticStatus('Interstitial-Handle fehlt', 'Es konnte kein Interstitial-Handle erzeugt werden.', getAdMobRuntimeSnapshot({
-      stage: 'ensure-handle'
-    }));
-    return false;
-  }
-  if (await getInterstitialReadyState()) return true;
-
-  state.admob.loading = true;
-  try {
-    if (typeof state.admob.interstitial.load !== 'function') {
-      setAdMobDiagnosticStatus('Interstitial-Laden nicht möglich', 'Handle hat keine load()-Methode.', getAdMobRuntimeSnapshot());
-      return false;
-    }
-    await state.admob.interstitial.load();
-    const ready = await getInterstitialReadyState();
-    if (ready) {
-      setAdMobStatus('Interstitial geladen');
-      return true;
-    }
-    setAdMobDiagnosticStatus('Interstitial lädt noch', 'Plugin meldet nach load() noch nicht bereit.', getAdMobRuntimeSnapshot({
-      stage: 'post-load',
-      readyAfterLoad: ready
-    }));
-    return false;
-  } catch (error) {
-    state.admob.interstitial.loaded = false;
-    setAdMobDiagnosticStatus('Interstitial-Laden fehlgeschlagen', normalizeAdMobError(error), getAdMobRuntimeSnapshot({
-      stage: 'load-catch'
-    }));
-    console.warn('AdMob: Interstitial konnte nicht geladen werden.', error);
-    return false;
-  } finally {
-    state.admob.loading = false;
-  }
-}
-
-async function showInterstitialIfAvailable(reason = 'general') {
-  if (!state.admob.enabled || state.admob.showInProgress) return false;
-  const loaded = await ensureInterstitialLoaded();
-  if (!loaded) {
-    const ready = await getInterstitialReadyState();
-    setAdMobDiagnosticStatus(`Interstitial übersprungen (${reason})`, ready
-      ? 'Interstitial ist vorhanden, aber show() wurde noch nicht ausgeführt.'
-      : 'Interstitial ist noch nicht bereit.', getAdMobRuntimeSnapshot({
-        reason,
-        stage: 'show-precheck',
-        readyState: ready
-      }));
-    console.info(`AdMob: Interstitial übersprungen (${reason}), da noch nicht geladen.`, getAdMobRuntimeSnapshot({ reason, readyState: ready }));
-    return false;
-  }
-
-  state.admob.showInProgress = true;
-  try {
-    await state.admob.interstitial.show();
-    state.admob.interstitial.loaded = false;
-    state.admob.lastShownAt = Date.now();
-    persistAdMobState();
-    setAdMobStatus(`Interstitial angezeigt (${reason})`);
-    console.info(`AdMob: Interstitial angezeigt (${reason}).`);
-    void ensureInterstitialLoaded();
-    return true;
-  } catch (error) {
-    state.admob.interstitial.loaded = false;
-    setAdMobDiagnosticStatus(`Interstitial-Anzeige fehlgeschlagen (${reason})`, normalizeAdMobError(error), getAdMobRuntimeSnapshot({
-      reason,
-      stage: 'show-catch'
-    }));
-    console.warn(`AdMob: Interstitial konnte nicht angezeigt werden (${reason}).`, error, getAdMobRuntimeSnapshot({ reason }));
-    void ensureInterstitialLoaded();
-    return false;
-  } finally {
-    state.admob.showInProgress = false;
-  }
-}
-
-async function maybeShowInterstitial(trigger = 'general') {
-  if (!state.admob.enabled) return false;
-  const elapsed = Date.now() - state.admob.lastShownAt;
-  const dueByTime = elapsed >= ADMOB_MIN_INTERVAL_MS;
-  const dueBySwipe = trigger === 'swipe' && state.admob.swipeCount > 0 && state.admob.swipeCount % ADMOB_SWIPE_INTERVAL === 0;
-  if (!dueByTime && !dueBySwipe) return false;
-  return showInterstitialIfAvailable(dueBySwipe ? 'swipe-threshold' : 'time-threshold');
-}
-
-async function registerSwipeForAdMob() {
-  if (!state.admob.enabled) return;
-  state.admob.swipeCount += 1;
-  persistAdMobState();
-  setAdMobStatus(`Swipe registriert (${state.admob.swipeCount})`);
-  await maybeShowInterstitial('swipe');
-}
-
-function registerAdMobTrigger(trigger = 'general') {
-  if (!state.admob.enabled) return;
-  void maybeShowInterstitial(trigger);
-}
-
-async function initializeAdMob() {
-  state.admob.enabled = isAdMobEnabled();
-  state.admob.plugin = null;
-  state.admob.pluginSource = '';
-  state.admob.interstitial = null;
-  state.admob.initialized = false;
-  state.admob.handleProbe = '-';
-  setAdMobStatus(state.admob.enabled ? 'AdMob aktiviert' : 'AdMob deaktiviert');
-  state.admob.swipeCount = parseStoredNumber(ADMOB_STORAGE_KEYS.swipeCount);
-  state.admob.lastShownAt = parseStoredNumber(ADMOB_STORAGE_KEYS.lastShownAt) || Date.now();
-  persistAdMobState();
-  if (!state.admob.enabled || !state.isCordova || !state.cordovaReady) {
-    setAdMobStatus('AdMob nicht startbar', `enabled=${state.admob.enabled}, isCordova=${state.isCordova}, cordovaReady=${state.cordovaReady}`);
-    return;
-  }
-
-  const pluginCandidates = getAdMobPluginCandidates();
-  if (!pluginCandidates.length) {
-    setAdMobStatus('Kein Cordova-AdMob-Plugin gefunden');
-    console.info('AdMob: Kein Cordova-Plugin gefunden, Werbung bleibt deaktiviert.');
-    return;
-  }
-
-  try {
-    const attemptedSources = [];
-    for (const [sourceLabel, pluginCandidate] of pluginCandidates) {
-      attemptedSources.push(sourceLabel);
-      const plugin = pluginCandidate;
-      if (!plugin) continue;
-      try {
-        if (typeof plugin.start === 'function') {
-          await plugin.start();
-          setAdMobStatus(`AdMob-Plugin gestartet (${sourceLabel})`);
-        }
-        const interstitial = await createInterstitialHandle(plugin);
-        if (!interstitial) continue;
-        state.admob.plugin = plugin;
-        state.admob.pluginSource = sourceLabel;
-        state.admob.interstitial = interstitial;
-        state.admob.initialized = true;
-        break;
-      } catch (candidateError) {
-        console.warn(`AdMob: Kandidat ${sourceLabel} konnte nicht initialisiert werden.`, candidateError);
-      }
-    }
-
-    if (!state.admob.initialized) {
-      const apiHints = pluginCandidates.map(([sourceLabel, plugin]) => `${sourceLabel}: ${collectPluginApiHints(plugin) || '-'}`).join(' | ');
-      state.admob.plugin = pluginCandidates.find(([, plugin]) => Boolean(plugin))?.[1] || null;
-      state.admob.pluginSource = attemptedSources.join(' | ');
-      setAdMobDiagnosticStatus('Plugin erkannt, aber kein Interstitial-Handle', 'Aus erkanntem Plugin konnte kein Interstitial erstellt werden.', {
-        attemptedSources: attemptedSources.join(' | '),
-        apiHints: apiHints || '-',
-        ...collectAdMobPluginShape(getAdMobPluginForInspection())
-      });
-      console.info('AdMob: Plugin-Kandidaten gefunden, aber kein Interstitial-Handle verfügbar.', { attemptedSources, apiHints, pluginCandidates });
-      return;
-    }
-    const interstitialReady = await ensureInterstitialLoaded();
-    setAdMobStatus(interstitialReady ? 'AdMob initialisiert' : 'AdMob initialisiert, Interstitial noch nicht bereit');
-  } catch (error) {
-    setAdMobStatus('AdMob-Initialisierung fehlgeschlagen', error?.message || error);
-    console.warn('AdMob: Initialisierung fehlgeschlagen.', error);
-  }
 }
 
 const getSwipeQueue = () => state.swipeRecipes.filter((recipe) => !state.swipedRecipeIds.has(recipe.id));
@@ -1022,8 +359,6 @@ function resetLocalUserState() {
   state.favorites = [];
   state.lists = [];
   state.settings = null;
-  state.admob.swipeCount = 0;
-  persistAdMobState();
 }
 
 function runCordovaGooglePlus(method) {
@@ -1196,7 +531,6 @@ function renderSwipe() {
   }
   return `${header('Menu-Swipe', `<button class="btn" id="openFilter">▼ Filter</button>`)}
     <p class="small">${queue.length} Rezepte im Swipe-Deck</p>
-    ${renderAdMobDebugCard()}
     <div class="swipe-stage">
       <div class="swipe-stack">
         ${next ? renderSwipeCard(next) : '<div class="big-card swipe-card-placeholder"></div>'}
@@ -1264,7 +598,6 @@ function renderProfile() {
   <div class="profile profile-hero"><div class="avatar" id="changeAvatar">${avatarContent}</div><h2>${s.username}</h2><p class="small profile-subtitle">Smart Meal Matching</p></div>
   <div class="stats profile-stats profile-stats-primary"><div class="card profile-card"><h2>${state.favorites.length} ♥</h2><div>Favoriten</div></div><div class="card profile-card"><h2>${state.lists.length} 🛒</h2><div>Einkaufslisten</div></div></div>
   <div class="stats profile-stats profile-stats-secondary"><div class="card profile-card profile-action-card" id="openExcluded">Das esse ich nicht</div><div class="card profile-card profile-action-card" id="openDiet">${s.diet}</div></div>
-  ${renderAdMobDebugCard()}
   <div class="list-item profile-list-item" id="openFeedback"><span>❓</span><span>Hilfe und Feedback</span></div>
   <div class="list-item profile-list-item" id="openLegal"><span>⋯</span><span>Sonstiges</span></div>`;
 }
@@ -1307,7 +640,6 @@ function ensureModalRoot() {
 function closeModal() { ensureModalRoot().innerHTML = ''; }
 
 function openRecipe(id) {
-  registerAdMobTrigger('open-recipe');
   const r = [...state.recipes, ...state.favorites].find((x) => x.id === Number(id));
   if (!r) return;
   state.selectedRecipe = r;
@@ -1432,7 +764,6 @@ async function handleSwipeAction(action) {
     if (action === 'like') await api.post(`/api/recipes/${recipe.id}/like`);
     if (action === 'skip') await api.post(`/api/recipes/${recipe.id}/dislike`);
     await reloadData({ withRender: false });
-    await registerSwipeForAdMob();
   } finally {
     state.swipeBusy = false;
   }
@@ -1906,13 +1237,11 @@ function bind() {
   document.querySelectorAll('.nav-btn').forEach((btn) => btn.onclick = () => {
     state.tab = btn.dataset.tab;
     render();
-    registerAdMobTrigger(`tab-${btn.dataset.tab}`);
   });
   const heroJump = document.querySelector('[data-tab-jump="swipe"]');
   if (heroJump) heroJump.onclick = () => {
     state.tab = 'swipe';
     render();
-    registerAdMobTrigger('hero-swipe');
   };
   document.querySelectorAll('[data-recipe]').forEach((el) => {
     if (el.id === 'swipeCard') return;
@@ -1942,38 +1271,6 @@ function bind() {
   const ts = document.getElementById('toSwipe'); if (ts) ts.onclick = () => {
     state.tab = 'swipe';
     render();
-    registerAdMobTrigger('favorites-to-swipe');
-  };
-  const tad = document.getElementById('toggleAdmobDebug'); if (tad) tad.onclick = () => { state.admob.debugVisible = !state.admob.debugVisible; render(); };
-  const ari = document.getElementById('admobReloadInterstitial'); if (ari) ari.onclick = async () => {
-    setAdMobStatus('Lade Interstitial neu …');
-    const rebuilt = await rebuildInterstitialHandle('manual-reload');
-    if (!rebuilt) return;
-    const loaded = await ensureInterstitialLoaded();
-    if (loaded) {
-      setAdMobStatus('Interstitial geladen');
-    } else {
-      setAdMobDiagnosticStatus('Interstitial nicht geladen', 'Der manuelle Reload konnte das Interstitial nicht laden.', getAdMobRuntimeSnapshot({
-        reason: 'manual-reload',
-        stage: 'reload-post-load'
-      }));
-    }
-  };
-  const asi = document.getElementById('admobShowInterstitial'); if (asi) asi.onclick = async () => {
-    setAdMobStatus('Versuche Test-Werbung anzuzeigen …');
-    const rebuilt = await rebuildInterstitialHandle('manual-show');
-    if (!rebuilt) return;
-    const shown = await showInterstitialIfAvailable('manual-debug');
-    if (!shown && !state.admob.lastError) {
-      const ready = await getInterstitialReadyState();
-      setAdMobDiagnosticStatus('Keine Werbung angezeigt', ready
-          ? 'Interstitial war bereit, aber show() lieferte keine sichtbare Anzeige.'
-          : 'Interstitial ist noch nicht bereit.', getAdMobRuntimeSnapshot({
-          reason: 'manual-debug',
-          stage: 'manual-debug-fallback',
-          readyState: ready
-        }));
-    }
   };
   document.querySelectorAll('[data-list]').forEach((el) => el.onclick = () => openListEditor(el.dataset.list));
   const nl = document.getElementById('newList'); if (nl) nl.onclick = openNewList;
@@ -2180,7 +1477,6 @@ async function loadPublicConfig() {
 }
 
 async function bootstrap() {
-  await initializeAdMob();
   await loadPublicConfig();
   await startAuthFlow();
 }
