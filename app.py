@@ -18,6 +18,9 @@ ROOT = Path(__file__).resolve().parent
 PUBLIC = ROOT / "public"
 DB_PATH = ROOT / "app.db"
 
+MAX_SHOPPING_LISTS = 10
+MAX_LIST_NAME_LENGTH = 30
+
 GUEST_DATA = {}
 GOOGLE_CLIENT_ID = os.getenv(
     "GOOGLE_CLIENT_ID",
@@ -1768,16 +1771,30 @@ class Handler(BaseHTTPRequestHandler):
                 return
 
             if p == "/api/lists":
+                name = (b.get("name") or "").strip()
+                if not name:
+                    self.send_json({"error": "Name fehlt"}, 400)
+                    return
+                if len(name) > MAX_LIST_NAME_LENGTH:
+                    self.send_json({"error": "Name zu lang"}, 400)
+                    return
                 if ident["is_guest"]:
                     g = ensure_guest(ident["token"])
+                    if len(g["lists"]) >= MAX_SHOPPING_LISTS:
+                        self.send_json({"error": "Maximal 10 Einkaufslisten erlaubt"}, 400)
+                        return
                     lid = g["next_list_id"]
                     g["next_list_id"] += 1
-                    row = {"id": lid, "name": b.get("name"), "color": b.get("color", "#7ed6df"), "updated_at": datetime.utcnow().isoformat(), "items": []}
+                    row = {"id": lid, "name": name, "color": b.get("color", "#7ed6df"), "updated_at": datetime.utcnow().isoformat(), "items": []}
                     g["lists"].insert(0, row)
                     self.send_json(row)
                 else:
                     uid = ident["user_id"]
-                    db.execute("INSERT INTO shopping_lists (name,color,updated_at,user_id) VALUES (?,?,?,?)", (b.get("name"), b.get("color", "#7ed6df"), datetime.utcnow().isoformat(), uid))
+                    list_count = db.execute("SELECT COUNT(*) AS count FROM shopping_lists WHERE user_id=?", (uid,)).fetchone()["count"]
+                    if list_count >= MAX_SHOPPING_LISTS:
+                        self.send_json({"error": "Maximal 10 Einkaufslisten erlaubt"}, 400)
+                        return
+                    db.execute("INSERT INTO shopping_lists (name,color,updated_at,user_id) VALUES (?,?,?,?)", (name, b.get("color", "#7ed6df"), datetime.utcnow().isoformat(), uid))
                     lid = db.execute("SELECT id FROM shopping_lists ORDER BY id DESC LIMIT 1").fetchone()[0]
                     self.send_json(dict(db.execute("SELECT * FROM shopping_lists WHERE id=?", (lid,)).fetchone()))
                 return
@@ -1893,13 +1910,23 @@ class Handler(BaseHTTPRequestHandler):
                 return
             if p.startswith("/api/lists/"):
                 lid = int(p.split("/")[3])
+                incoming_name = b.get("name")
+                if incoming_name is not None:
+                    incoming_name = incoming_name.strip()
+                    if not incoming_name:
+                        self.send_json({"error": "Name fehlt"}, 400)
+                        return
+                    if len(incoming_name) > MAX_LIST_NAME_LENGTH:
+                        self.send_json({"error": "Name zu lang"}, 400)
+                        return
                 if ident["is_guest"]:
                     g = ensure_guest(ident["token"])
                     lst = next((x for x in g["lists"] if x["id"] == lid), None)
                     if not lst:
                         self.send_json({"error": "Nicht gefunden"}, 404)
                         return
-                    lst["name"] = b.get("name", lst["name"])
+                    if incoming_name is not None:
+                        lst["name"] = incoming_name
                     lst["updated_at"] = datetime.utcnow().isoformat()
                     lst["items"] = [{"name": it.get("name"), "checked": bool(it.get("checked")), "image": it.get("image", "🧾")} for it in b.get("items", [])]
                 else:
@@ -1908,7 +1935,10 @@ class Handler(BaseHTTPRequestHandler):
                     if not owned:
                         self.send_json({"error": "Nicht gefunden"}, 404)
                         return
-                    db.execute("UPDATE shopping_lists SET name=?, updated_at=? WHERE id=?", (b.get("name"), datetime.utcnow().isoformat(), lid))
+                    if incoming_name is None:
+                        existing = db.execute("SELECT name FROM shopping_lists WHERE id=?", (lid,)).fetchone()
+                        incoming_name = existing["name"]
+                    db.execute("UPDATE shopping_lists SET name=?, updated_at=? WHERE id=?", (incoming_name, datetime.utcnow().isoformat(), lid))
                     db.execute("DELETE FROM shopping_items WHERE list_id=?", (lid,))
                     for it in b.get("items", []):
                         db.execute("INSERT INTO shopping_items (list_id,name,checked,image) VALUES (?,?,?,?)", (lid, it.get("name"), 1 if it.get("checked") else 0, it.get("image", "🧾")))

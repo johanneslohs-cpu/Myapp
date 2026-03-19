@@ -13,6 +13,9 @@ function withApiBase(url) {
   return `${API_BASE_URL}${url}`;
 }
 
+const MAX_SHOPPING_LISTS = 10;
+const MAX_LIST_NAME_LENGTH = 30;
+
 const state = {
   tab: 'discover',
   recipes: [],
@@ -535,18 +538,18 @@ function renderFavorites() {
 }
 
 function renderLists() {
+  const reachedListLimit = state.lists.length >= MAX_SHOPPING_LISTS;
   return `${header('Einkaufsliste')}
-    <div class="list-overview">
-      <button class="btn new-list-button" id="newList">＋ Neue Liste erstellen</button>
-    </div>
-    ${state.lists.map((l) => `<div class="list-card" data-list="${l.id}">
+    <button class="btn new-list-button ${reachedListLimit ? 'disabled' : ''}" id="newList" ${reachedListLimit ? 'disabled' : ''}>＋ Neue Liste erstellen</button>
+    ${reachedListLimit ? '<p class="list-limit-hint">Maximal 10 Einkaufslisten gleichzeitig möglich.</p>' : ''}
+    <div class="lists-stack">${state.lists.map((l) => `<div class="list-card" data-list="${l.id}">
       <div class="list-color" style="background:${l.color}"></div>
       <div class="list-main">
         <div class="small">${l.updated_at ? new Date(l.updated_at).toLocaleDateString('de-DE') : 'Unbekannt'} aktualisiert</div>
         <h3>${l.name}</h3>
         <div class="list-count">${(l.items || []).length} Zutaten · ${(l.items || []).filter((item) => item.checked).length} erledigt</div>
       </div>
-    </div>`).join('')}
+    </div>`).join('')}</div>
     ${!state.lists.length ? '<div class="empty-state"><h3>Noch keine Einkaufslisten</h3><p>Lege deine erste Liste an und sammle Zutaten aus Rezepten.</p></div>' : ''}`;
 }
 
@@ -857,22 +860,55 @@ async function openListEditor(id) {
 }
 
 function openNewList() {
+  if (state.lists.length >= MAX_SHOPPING_LISTS) {
+    alert('Du kannst maximal 10 Einkaufslisten gleichzeitig anlegen.');
+    return;
+  }
+
   modal(`<div class="list-form">
     <div class="header"><button class="btn" id="closeModal">✕</button><button class="btn" id="saveNewList">Speichern</button></div>
     <h1>Neue Einkaufsliste erstellen</h1>
     <p class="small">Gib deiner Liste einen Namen und wähle eine Farbe, damit du sie schnell wiederfindest.</p>
-    <div class="form-group"><label for="listName">Bezeichnung</label><input id="listName" placeholder="z.B. Wochenmarkt Samstag" /></div>
+    <div class="form-group">
+      <label for="listName">Bezeichnung</label>
+      <input id="listName" maxlength="30" placeholder="z.B. Wochenmarkt Samstag" />
+      <div class="list-form-meta">
+        <span class="small">Maximal 30 Zeichen</span>
+        <span class="small" id="listNameCounter">0/30</span>
+      </div>
+    </div>
     <div class="form-group"><label>Farbcode</label><div class="row color-row">${['#7ed6df', '#f06262', '#81de91', '#cde94f', '#cd59d8'].map((c) => `<button class="color-pick ${c === '#7ed6df' ? 'active' : ''}" style="background:${c}" data-color="${c}" aria-label="Farbe ${c}"></button>`).join('')}</div></div>
   </div>`);
   let chosen = '#7ed6df';
+  const nameInput = document.getElementById('listName');
+  const counter = document.getElementById('listNameCounter');
+  const syncCounter = () => {
+    const trimmed = nameInput.value.slice(0, MAX_LIST_NAME_LENGTH);
+    if (trimmed !== nameInput.value) nameInput.value = trimmed;
+    counter.textContent = `${trimmed.length}/${MAX_LIST_NAME_LENGTH}`;
+  };
+  syncCounter();
+  nameInput.addEventListener('input', syncCounter);
   document.getElementById('closeModal').onclick = closeModal;
   document.querySelectorAll('[data-color]').forEach((b) => b.onclick = () => { chosen = b.dataset.color; document.querySelectorAll('[data-color]').forEach((x)=>x.classList.remove('active')); b.classList.add('active'); });
   document.getElementById('saveNewList').onclick = async () => {
-    const name = document.getElementById('listName').value.trim();
+    const name = nameInput.value.trim();
     if (!name) return;
-    await api.post('/api/lists', { name, color: chosen });
-    await reloadData();
-    closeModal();
+    if (name.length > MAX_LIST_NAME_LENGTH) {
+      alert('Der Listenname darf maximal 30 Zeichen lang sein.');
+      return;
+    }
+    if (state.lists.length >= MAX_SHOPPING_LISTS) {
+      alert('Du kannst maximal 10 Einkaufslisten gleichzeitig anlegen.');
+      return;
+    }
+    try {
+      await api.post('/api/lists', { name, color: chosen });
+      await reloadData();
+      closeModal();
+    } catch (error) {
+      alert(error.message || 'Die Liste konnte nicht erstellt werden.');
+    }
   };
 }
 

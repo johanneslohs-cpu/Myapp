@@ -175,19 +175,12 @@ textarea{min-height:100px}
 .empty-state{background:linear-gradient(180deg,#1c2b22,#18231c);border:1px solid var(--line);padding:22px;border-radius:20px;box-shadow:var(--glow)}
 .hidden{display:none}
 
-.list-overview{
-  border:1px solid var(--line);
-  background:linear-gradient(160deg,#24362c,#1d2c23);
-  border-radius:20px;
-  padding:16px;
-  margin-bottom:14px;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  gap:12px;
-}
+.lists-stack{display:flex;flex-direction:column;gap:12px}
 
-.new-list-button{width:100%;font-size:20px;padding:16px 20px;font-weight:700;display:block}
+.new-list-button{width:100%;font-size:20px;padding:16px 20px;font-weight:700;display:block;margin-bottom:8px}
+.new-list-button.disabled,.new-list-button:disabled{opacity:.6;cursor:not-allowed;transform:none;box-shadow:none}
+.list-limit-hint{margin:0 0 14px;color:#bdd0c2;font-size:12px;text-align:right}
+.list-form-meta{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:8px}
 
 .favorite-add-card{display:flex;flex-direction:column;justify-content:flex-start}
 .add-favorite-media{display:flex;align-items:center;justify-content:center}
@@ -197,6 +190,7 @@ textarea{min-height:100px}
 .list-overview-copy{color:#d3e3d6;line-height:1.45}
 
 .list-card{
+  width:100%;
   border:1px solid var(--line);
   border-radius:20px;
   background:linear-gradient(180deg,#1f2b23,#17211b);
@@ -204,12 +198,12 @@ textarea{min-height:100px}
   grid-template-columns:28px 1fr;
   gap:12px;
   padding:14px;
-  margin-bottom:12px;
   align-items:center;
 }
 
 .list-color{width:24px;height:24px;border-radius:999px;box-shadow:0 0 0 3px rgba(255,255,255,.08)}
-.list-main h3{font-size:20px;margin-top:2px}
+.list-main{min-width:0}
+.list-main h3{font-size:20px;margin-top:2px;overflow-wrap:anywhere}
 .list-count{font-size:13px;color:#bdd0c2;margin-top:6px}
 
 .recipe-detail{display:flex;flex-direction:column;gap:14px}
