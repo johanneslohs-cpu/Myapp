@@ -98,6 +98,35 @@ cordova platform add android
 cordova build android --release -- --packageType=apk
 ```
 
+### AdMob in Cordova neu einrichten
+
+Für die neue, einfache AdMob-Integration in der Profilansicht erwartet das Frontend das Cordova-Plugin **`admob-plus-cordova`**. Ohne dieses Plugin meldet der Button **"Werbung anzeigen"** bewusst einen klaren Fehler.
+
+Plugin-Installation im Cordova-Wrapper:
+
+```bash
+cordova plugin add admob-plus-cordova --save --variable APP_ID_ANDROID=ca-app-pub-ANDROID_APP_ID --variable APP_ID_IOS=ca-app-pub-IOS_APP_ID
+```
+
+Wichtig:
+
+- Die **App-IDs** kommen beim Plugin-Install als Variablen hinein, nicht in `public/app.js`.
+- Das Frontend nutzt aktuell automatisch Googles **Test-Interstitial-ID**, solange keine eigene Ad-Unit gesetzt wurde.
+- Deine echte Interstitial-Ad-Unit kannst du später z. B. per Runtime-Konfiguration setzen:
+
+```js
+window.MYAPP_ADMOB_CONFIG = {
+  android: {
+    interstitialAdUnitId: 'ca-app-pub-.../...',
+  },
+  ios: {
+    interstitialAdUnitId: 'ca-app-pub-.../...',
+  },
+};
+```
+
+Alternativ kannst du dieselbe Struktur auch in `localStorage` unter `myapp_admob_config` speichern.
+
 ### Statusleiste in Cordova ausblenden
 
 Damit die Android-Statusleiste (Uhrzeit/Akku/weißer Balken oben) wirklich verschwindet, reicht reines Frontend-CSS nicht aus.
