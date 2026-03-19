@@ -621,3 +621,15 @@ body.cordova-immersive .phone-swipe{
   min-height:100%;
   min-height:100dvh;
 }
+
+.admob-debug-card{margin:12px 0 16px;padding:16px;border-radius:18px;background:linear-gradient(180deg,#223328,#18241d 55%,#162019);border:1px solid var(--line)}
+.admob-debug-head{display:flex;gap:12px;justify-content:space-between;align-items:flex-start}
+.admob-debug-head h3{margin:2px 0 0;font-size:18px}
+.admob-debug-summary{margin:10px 0 0}
+.admob-debug-toggle{min-width:auto;padding:10px 12px}
+.admob-debug-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:14px}
+.admob-debug-grid div{padding:12px;border-radius:14px;background:#161f1a;border:1px solid var(--line);display:flex;flex-direction:column;gap:6px}
+.admob-debug-grid span{font-size:12px;color:#b8c9bc}
+.admob-debug-grid strong{font-size:14px;line-height:1.35;word-break:break-word}
+.admob-debug-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+@media (max-width: 520px){.admob-debug-grid,.admob-debug-actions{grid-template-columns:1fr}}
