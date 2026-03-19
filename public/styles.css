@@ -30,9 +30,9 @@ body{
 h1,h2,h3,p{margin:0}
 
 .phone{width:420px;min-height:100vh;padding:20px 18px 114px;position:relative}
-.phone-swipe{display:flex;flex-direction:column;min-height:calc(100vh - 14px)}
+.phone-swipe{display:flex;flex-direction:column;min-height:100vh;padding:16px 12px 118px}
 
-.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
+.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;gap:12px}
 .header h1{font-size:28px;letter-spacing:.01em}
 
 .btn{
@@ -98,15 +98,15 @@ h1,h2,h3,p{margin:0}
 .nav-btn{border-radius:14px;padding:8px 6px;text-align:center;font-size:11px;cursor:pointer;color:var(--muted);transition:.2s ease;font-weight:600}
 .nav-btn.active{background:linear-gradient(135deg,var(--primary),#7ce3a7);color:#072212;box-shadow:0 8px 16px rgba(73,219,136,.3)}
 
-.swipe-stage{display:flex;align-items:flex-start;justify-content:center;margin-top:10px;flex:0 0 auto}
-.phone-swipe .small{margin-bottom:2px}
-.swipe-stack{position:relative;width:min(100%,392px);height:clamp(460px,calc(100vh - 285px),640px)}
+.swipe-stage{display:flex;align-items:flex-start;justify-content:center;margin-top:12px;flex:1 1 auto;min-height:0}
+.phone-swipe .small{margin-bottom:2px;padding-left:2px}
+.swipe-stack{position:relative;width:min(100%,420px);height:clamp(540px,calc(100vh - 250px),760px)}
 .big-card{
   width:100%;height:100%;border:1px solid var(--line);background:linear-gradient(160deg,#24382d,#1d2b23 40%,#18221c);min-height:0;
   border-radius:34px;box-shadow:0 28px 50px rgba(2,8,5,.6);position:absolute;inset:0;touch-action:none;transition:transform .32s cubic-bezier(.22,.8,.23,1),opacity .32s ease,box-shadow .32s ease;overflow:hidden
 }
 .swipe-card-active{z-index:2}
-.swipe-card-next,.swipe-card-placeholder{transform:translateY(14px) scale(.96);opacity:.88;filter:saturate(.9);z-index:1}
+.swipe-card-next,.swipe-card-placeholder{transform:translateY(16px) scale(.965);opacity:.88;filter:saturate(.9);z-index:1}
 .swipe-card-placeholder{background:linear-gradient(160deg,#1c2a22,#162019 40%,#131b16);border-style:dashed}
 .big-media{height:100%;overflow:hidden;background:#111a14;position:relative}
 .big-media::after{
@@ -118,10 +118,10 @@ h1,h2,h3,p{margin:0}
   pointer-events:none;
 }
 .swipe-photo{width:100%;height:100%;object-fit:cover;display:block}
-.swipe-body{position:absolute;left:0;right:0;bottom:0;padding:22px 20px 20px;display:flex;flex-direction:column;justify-content:flex-end;gap:12px;z-index:1;pointer-events:none}
-.big-card h2{font-size:clamp(30px,5.1vw,34px);line-height:1.08;margin:0;overflow-wrap:anywhere;text-shadow:0 6px 18px rgba(0,0,0,.35)}
+.swipe-body{position:absolute;left:0;right:0;bottom:0;padding:24px 20px 22px;display:flex;flex-direction:column;justify-content:flex-end;gap:14px;z-index:1;pointer-events:none}
+.big-card h2{font-size:clamp(32px,6vw,40px);line-height:1.02;margin:0;overflow-wrap:anywhere;text-shadow:0 6px 18px rgba(0,0,0,.35)}
 .big-meta{display:flex;flex-wrap:wrap;gap:10px}
-.big-meta span{font-size:14px;color:#d5e3d8;padding:9px 13px;border-radius:999px;background:#223229;border:1px solid var(--line)}
+.big-meta span{font-size:14px;color:#d5e3d8;padding:10px 14px;border-radius:999px;background:rgba(34,50,41,.92);border:1px solid var(--line)}
 
 .swipe-badge{
   position:absolute;top:28px;padding:9px 16px;border:2px solid currentColor;border-radius:12px;font-weight:800;letter-spacing:.16em;
@@ -132,8 +132,8 @@ h1,h2,h3,p{margin:0}
 .fly-right{transform:translate3d(130%, -4%, 0) rotate(24deg)!important;opacity:0}
 .fly-left{transform:translate3d(-130%, -4%, 0) rotate(-24deg)!important;opacity:0}
 
-.actions{display:flex;gap:18px;justify-content:center;align-items:center;margin-top:14px;padding:0 12px 4px}
-.circle{width:64px;height:64px;border-radius:999px;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:32px;cursor:pointer;background:#1a261e;box-shadow:0 10px 24px rgba(0,0,0,.28);transition:transform .18s ease,box-shadow .18s ease}
+.actions{display:flex;gap:24px;justify-content:center;align-items:center;margin-top:16px;padding:0 4px 6px}
+.circle{width:72px;height:72px;border-radius:999px;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:34px;cursor:pointer;background:rgba(26,38,30,.94);box-shadow:0 14px 28px rgba(0,0,0,.3);transition:transform .18s ease,box-shadow .18s ease}
 .circle:hover{transform:translateY(-2px)}
 .circle.like{color:var(--primary)}
 .circle.dislike{color:#e6ece7}
@@ -287,22 +287,36 @@ textarea{min-height:100px}
 .shopping-check input:checked + .shopping-dot::after{content:'✓';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--primary);font-size:14px}
 
 
+@media (max-width:520px){
+  .phone-swipe{width:100%;padding:12px 10px 116px}
+  .header{margin-bottom:14px}
+  .header h1{font-size:clamp(24px,7vw,34px)}
+  .swipe-stack{width:100%;height:clamp(560px,calc(100vh - 245px),76vh)}
+  .big-card{border-radius:30px}
+  .swipe-body{padding:22px 18px 20px}
+  .big-card h2{font-size:clamp(28px,9vw,42px)}
+  .big-meta{gap:8px}
+  .big-meta span{font-size:13px;padding:9px 12px}
+  .actions{gap:18px;padding:0 0 4px}
+  .circle{width:70px;height:70px}
+}
+
 @media (max-height:860px){
   .phone-swipe{padding-bottom:104px}
-  .swipe-stack{height:clamp(430px,calc(100vh - 255px),580px)}
-  .big-card h2{font-size:clamp(27px,4.3vw,30px)}
-  .swipe-body{padding:18px 18px 18px}
+  .swipe-stack{height:clamp(500px,calc(100vh - 230px),640px)}
+  .big-card h2{font-size:clamp(28px,5vw,34px)}
+  .swipe-body{padding:20px 18px 18px}
 }
 
 @media (max-height:760px){
   .phone{padding-bottom:108px}
   .phone-swipe{padding-bottom:104px}
-  .swipe-stack{height:clamp(400px,calc(100vh - 235px),520px)}
+  .swipe-stack{height:clamp(430px,calc(100vh - 210px),540px)}
   .big-card h2{font-size:clamp(24px,4vw,27px);margin-bottom:8px}
   .swipe-body{padding:16px 16px 16px;gap:10px}
   .big-meta span{padding:6px 10px;font-size:12px}
   .actions{margin-top:10px}
-  .circle{width:54px;height:54px;font-size:28px}
+  .circle{width:58px;height:58px;font-size:28px}
 }
 
 @media (max-width:440px){
