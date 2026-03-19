@@ -928,8 +928,17 @@ function openNewList() {
 function openSettings() {
   const s = state.settings;
   modal(`<div class="settings-modal">
-    <button class="btn" id="closeModal">← Einstellungen schließen</button>
-    <h2>Einstellungen</h2>
+    <div class="settings-topbar">
+      <div>
+        <div class="settings-kicker">Profil</div>
+        <h2>Einstellungen</h2>
+      </div>
+      <button class="btn settings-close-btn" id="closeModal" aria-label="Einstellungen schließen">✕</button>
+    </div>
+    <div class="settings-hero">
+      <div class="settings-kicker">Übersicht</div>
+      <p>Verwalte hier deinen Nutzernamen, dein Abo und deinen Account, ohne dass sich Funktionen in der App ändern.</p>
+    </div>
     <div class="settings-section">
       <label for="username">Nutzername</label>
       <input id="username" value="${s.username}" />
