@@ -5,6 +5,7 @@ import os
 import secrets
 import smtplib
 import sqlite3
+import random
 import traceback
 from datetime import datetime
 from http.server import BaseHTTPRequestHandler, HTTPServer
@@ -1528,7 +1529,9 @@ class Handler(BaseHTTPRequestHandler):
                     ing = " ".join(r["ingredients"]).lower()
                     return not any(e in ing for e in excludes)
 
-                self.send_json([r for r in rows if ok(r)])
+                filtered_rows = [r for r in rows if ok(r)]
+                random.shuffle(filtered_rows)
+                self.send_json(filtered_rows)
                 return
 
             if p == "/api/swipe-recipes":
