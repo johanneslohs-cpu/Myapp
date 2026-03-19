@@ -518,45 +518,68 @@ async function createInterstitialHandle(plugin) {
   return null;
 }
 
-async function ensureInterstitialLoaded() {
-  if (!state.admob.enabled || !state.admob.interstitial || state.admob.loading) return false;
-  if (state.admob.interstitial.loaded) return true;
+function normalizeAdMobError(error, fallback = 'Unbekannter Fehler') {
+  if (!error) return fallback;
+  if (typeof error === 'string') return error;
+  if (error?.message) return String(error.message);
+  try {
+    return JSON.stringify(error);
+  } catch {
+    return String(error);
+  }
+}
+
+async function getInterstitialReadyState() {
+  if (!state.admob.enabled || !state.admob.interstitial) return false;
   if (typeof state.admob.interstitial.isLoaded === 'function') {
     try {
-      if (await state.admob.interstitial.isLoaded()) {
-        state.admob.interstitial.loaded = true;
-        return true;
-      }
+      const ready = await state.admob.interstitial.isLoaded();
+      state.admob.interstitial.loaded = Boolean(ready);
+      return Boolean(ready);
     } catch (error) {
-      setAdMobStatus('Ladestatus-Prüfung fehlgeschlagen', error?.message || error);
+      setAdMobStatus('Ladestatus-Prüfung fehlgeschlagen', normalizeAdMobError(error));
       console.warn('AdMob: Konnte Ladestatus nicht prüfen.', error);
+      state.admob.interstitial.loaded = false;
+      return false;
     }
   }
+  return Boolean(state.admob.interstitial.loaded);
+}
+
+async function ensureInterstitialLoaded() {
+  if (!state.admob.enabled || !state.admob.interstitial || state.admob.loading) return false;
+  if (await getInterstitialReadyState()) return true;
 
   state.admob.loading = true;
   try {
-    if (typeof state.admob.interstitial.load === 'function') {
-      await state.admob.interstitial.load();
-      state.admob.interstitial.loaded = true;
+    if (typeof state.admob.interstitial.load !== 'function') return false;
+    await state.admob.interstitial.load();
+    const ready = await getInterstitialReadyState();
+    if (ready) {
       setAdMobStatus('Interstitial geladen');
       return true;
     }
+    setAdMobStatus('Interstitial lädt noch', 'Plugin meldet nach load() noch nicht bereit. Bitte kurz warten und erneut testen.');
+    return false;
   } catch (error) {
     state.admob.interstitial.loaded = false;
-    setAdMobStatus('Interstitial-Laden fehlgeschlagen', error?.message || error);
+    setAdMobStatus('Interstitial-Laden fehlgeschlagen', normalizeAdMobError(error));
     console.warn('AdMob: Interstitial konnte nicht geladen werden.', error);
     return false;
   } finally {
     state.admob.loading = false;
   }
-  return false;
 }
 
 async function showInterstitialIfAvailable(reason = 'general') {
   if (!state.admob.enabled || !state.admob.interstitial || state.admob.showInProgress) return false;
   const loaded = await ensureInterstitialLoaded();
   if (!loaded) {
-    setAdMobStatus(`Interstitial übersprungen (${reason})`, 'Noch nicht geladen');
+    const ready = await getInterstitialReadyState();
+    const message = ready
+      ? 'Interstitial ist zwar vorhanden, konnte aber noch nicht sauber angezeigt werden.'
+      : 'Interstitial ist noch nicht bereit. Bitte zuerst laden und 1-2 Sekunden warten.';
+    setAdMobStatus(`Interstitial übersprungen (${reason})`, message);
     console.info(`AdMob: Interstitial übersprungen (${reason}), da noch nicht geladen.`);
     return false;
   }
@@ -569,13 +592,13 @@ async function showInterstitialIfAvailable(reason = 'general') {
     persistAdMobState();
     setAdMobStatus(`Interstitial angezeigt (${reason})`);
     console.info(`AdMob: Interstitial angezeigt (${reason}).`);
-    ensureInterstitialLoaded();
+    void ensureInterstitialLoaded();
     return true;
   } catch (error) {
     state.admob.interstitial.loaded = false;
-    setAdMobStatus(`Interstitial-Anzeige fehlgeschlagen (${reason})`, error?.message || error);
+    setAdMobStatus(`Interstitial-Anzeige fehlgeschlagen (${reason})`, normalizeAdMobError(error));
     console.warn(`AdMob: Interstitial konnte nicht angezeigt werden (${reason}).`, error);
-    ensureInterstitialLoaded();
+    void ensureInterstitialLoaded();
     return false;
   } finally {
     state.admob.showInProgress = false;
@@ -637,8 +660,8 @@ async function initializeAdMob() {
       console.info('AdMob: Plugin gefunden, aber kein Interstitial-Handle verfügbar.', { sources, apiHints, plugin });
       return;
     }
-    await ensureInterstitialLoaded();
-    setAdMobStatus('AdMob initialisiert');
+    const interstitialReady = await ensureInterstitialLoaded();
+    setAdMobStatus(interstitialReady ? 'AdMob initialisiert' : 'AdMob initialisiert, Interstitial noch nicht bereit');
   } catch (error) {
     setAdMobStatus('AdMob-Initialisierung fehlgeschlagen', error?.message || error);
     console.warn('AdMob: Initialisierung fehlgeschlagen.', error);
@@ -1672,7 +1695,12 @@ function bind() {
   const asi = document.getElementById('admobShowInterstitial'); if (asi) asi.onclick = async () => {
     setAdMobStatus('Versuche Test-Werbung anzuzeigen …');
     const shown = await showInterstitialIfAvailable('manual-debug');
-    if (!shown && !state.admob.lastError) setAdMobStatus('Keine Werbung angezeigt', 'Interstitial war nicht bereit oder show() wurde übersprungen.');
+    if (!shown && !state.admob.lastError) {
+      const ready = await getInterstitialReadyState();
+      setAdMobStatus('Keine Werbung angezeigt', ready
+        ? 'Interstitial war bereit, aber show() lieferte keine Anzeige. Bitte Plugin-Events/Logcat prüfen.'
+        : 'Interstitial ist noch nicht bereit. Bitte zuerst „Interstitial neu laden“ tippen und kurz warten.');
+    }
   };
   document.querySelectorAll('[data-list]').forEach((el) => el.onclick = () => openListEditor(el.dataset.list));
   const nl = document.getElementById('newList'); if (nl) nl.onclick = openNewList;
