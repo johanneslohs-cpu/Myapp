@@ -253,6 +253,8 @@ const api = {
 
 const app = document.getElementById('app');
 
+syncSystemUiTheme();
+
 const FALLBACK_FOOD_IMAGES = [
   'https://images.unsplash.com/photo-1498837167922-ddd27525d352?auto=format&fit=crop&w=1200&q=80',
   'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=1200&q=80',
@@ -296,13 +298,25 @@ function syncRecipeCollections(recipe, action) {
 
 function nav() {
   const tabs = [
-    ['discover', '🌿', 'Entdecken'],
-    ['swipe', '🔥', 'Swipe'],
-    ['favorites', '💚', 'Favoriten'],
-    ['lists', '🛒', 'Listen'],
-    ['profile', '👤', 'Profil']
+    ['discover', '🌿', 'Entdecken', 'Rezepte'],
+    ['swipe', '🔥', 'Swipe', 'Match'],
+    ['favorites', '💚', 'Favoriten', 'Gespeichert'],
+    ['lists', '🛒', 'Listen', 'Einkauf'],
+    ['profile', '👤', 'Profil', 'Konto']
   ];
-  return `<div class="bottom-nav">${tabs.map(([id, icon, title]) => `<div class="nav-btn ${state.tab === id ? 'active' : ''}" data-tab="${id}">${icon}<br>${title}</div>`).join('')}</div>`;
+  return `<nav class="bottom-nav" aria-label="Hauptnavigation">${tabs.map(([id, icon, title, hint]) => `<button class="nav-btn ${state.tab === id ? 'active' : ''}" data-tab="${id}" aria-label="${title}" aria-current="${state.tab === id ? 'page' : 'false'}"><span class="nav-icon" aria-hidden="true">${icon}</span><span class="nav-copy"><span class="nav-title">${title}</span><span class="nav-hint">${hint}</span></span></button>`).join('')}</nav>`;
+}
+
+function syncSystemUiTheme() {
+  const themeColor = '#0f1511';
+  const metaTheme = document.querySelector('meta[name="theme-color"]');
+  if (metaTheme) metaTheme.setAttribute('content', themeColor);
+  if (document.body) document.body.style.backgroundColor = themeColor;
+  if (window.StatusBar && typeof window.StatusBar.backgroundColorByHexString === 'function') {
+    window.StatusBar.backgroundColorByHexString(themeColor);
+    if (typeof window.StatusBar.styleLightContent === 'function') window.StatusBar.styleLightContent();
+    if (typeof window.StatusBar.overlaysWebView === 'function') window.StatusBar.overlaysWebView(false);
+  }
 }
 
 function header(title, right = '') { return `<div class="header"><h1>${title}</h1><div>${right}</div></div>`; }
