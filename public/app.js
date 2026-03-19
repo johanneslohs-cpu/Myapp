@@ -744,6 +744,20 @@ async function ensureInterstitialHandleAvailable() {
   }
 }
 
+async function rebuildInterstitialHandle(reason = 'manual-rebuild') {
+  state.admob.interstitial = null;
+  state.admob.handleProbe = `Handle zurückgesetzt (${reason})`;
+  const handleReady = await ensureInterstitialHandleAvailable();
+  if (!handleReady) {
+    setAdMobDiagnosticStatus('Interstitial-Handle-Rebuild fehlgeschlagen', 'Es konnte kein neues Interstitial-Handle erzeugt werden.', getAdMobRuntimeSnapshot({
+      reason,
+      stage: 'rebuild-handle'
+    }));
+    return false;
+  }
+  return true;
+}
+
 async function ensureInterstitialLoaded() {
   if (!state.admob.enabled || state.admob.loading) return false;
   const hasHandle = await ensureInterstitialHandleAvailable();
@@ -1933,11 +1947,22 @@ function bind() {
   const tad = document.getElementById('toggleAdmobDebug'); if (tad) tad.onclick = () => { state.admob.debugVisible = !state.admob.debugVisible; render(); };
   const ari = document.getElementById('admobReloadInterstitial'); if (ari) ari.onclick = async () => {
     setAdMobStatus('Lade Interstitial neu …');
+    const rebuilt = await rebuildInterstitialHandle('manual-reload');
+    if (!rebuilt) return;
     const loaded = await ensureInterstitialLoaded();
-    setAdMobStatus(loaded ? 'Interstitial geladen' : 'Interstitial nicht geladen', loaded ? '' : state.admob.lastError);
+    if (loaded) {
+      setAdMobStatus('Interstitial geladen');
+    } else {
+      setAdMobDiagnosticStatus('Interstitial nicht geladen', 'Der manuelle Reload konnte das Interstitial nicht laden.', getAdMobRuntimeSnapshot({
+        reason: 'manual-reload',
+        stage: 'reload-post-load'
+      }));
+    }
   };
   const asi = document.getElementById('admobShowInterstitial'); if (asi) asi.onclick = async () => {
     setAdMobStatus('Versuche Test-Werbung anzuzeigen …');
+    const rebuilt = await rebuildInterstitialHandle('manual-show');
+    if (!rebuilt) return;
     const shown = await showInterstitialIfAvailable('manual-debug');
     if (!shown && !state.admob.lastError) {
       const ready = await getInterstitialReadyState();
