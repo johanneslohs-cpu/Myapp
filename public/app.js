@@ -334,8 +334,76 @@ function getAdMobHandleDiagnostics() {
   ].join(', ');
 }
 
+function collectObjectKeys(value) {
+  if (!value) return [];
+  const keys = new Set();
+  try {
+    Object.keys(value).forEach((key) => keys.add(key));
+    Object.getOwnPropertyNames(value).forEach((key) => keys.add(key));
+  } catch {
+    return [];
+  }
+  return Array.from(keys);
+}
+
+function collectPrototypeKeys(value) {
+  try {
+    const proto = Object.getPrototypeOf(value);
+    if (!proto) return [];
+    return Object.getOwnPropertyNames(proto).filter((key) => key !== 'constructor');
+  } catch {
+    return [];
+  }
+}
+
+function formatKeyList(keys, limit = 18) {
+  if (!keys?.length) return '-';
+  const uniqueKeys = Array.from(new Set(keys));
+  const visible = uniqueKeys.slice(0, limit);
+  return uniqueKeys.length > limit ? `${visible.join(', ')} … (+${uniqueKeys.length - limit})` : visible.join(', ');
+}
+
+function collectAdMobPluginShape(plugin) {
+  if (!plugin) {
+    return {
+      pluginKeys: '-',
+      pluginProtoKeys: '-',
+      nestedKeys: '-',
+      methodChecks: '-'
+    };
+  }
+
+  const nestedCandidates = [
+    ['default', plugin.default],
+    ['AdMob', plugin.AdMob],
+    ['admob', plugin.admob],
+    ['interstitial', plugin.interstitial]
+  ].filter(([, value]) => value);
+
+  const methodChecks = [
+    'start',
+    'InterstitialAd',
+    'interstitial',
+    'createInterstitial',
+    'prepareInterstitial',
+    'createInterstitialView',
+    'showInterstitial',
+    'showInterstitialAd'
+  ].map((name) => `${name}:${typeof plugin?.[name]}`);
+
+  return {
+    pluginKeys: formatKeyList(collectObjectKeys(plugin)),
+    pluginProtoKeys: formatKeyList(collectPrototypeKeys(plugin)),
+    nestedKeys: nestedCandidates.length
+      ? nestedCandidates.map(([label, value]) => `${label}=[${formatKeyList(collectObjectKeys(value), 8)}]`).join(' | ')
+      : '-',
+    methodChecks: methodChecks.join(' | ')
+  };
+}
+
 function getAdMobRuntimeSnapshot(extra = {}) {
   const waitingMs = Math.max(0, ADMOB_MIN_INTERVAL_MS - (Date.now() - state.admob.lastShownAt));
+  const pluginShape = collectAdMobPluginShape(state.admob.plugin);
   const snapshot = {
     status: state.admob.status || 'Unbekannt',
     enabled: state.admob.enabled,
@@ -349,7 +417,11 @@ function getAdMobRuntimeSnapshot(extra = {}) {
     showInProgress: state.admob.showInProgress,
     swipeCount: state.admob.swipeCount,
     lastShownAt: formatAdMobTime(state.admob.lastShownAt),
-    waitForTimeTriggerSec: Math.ceil(waitingMs / 1000)
+    waitForTimeTriggerSec: Math.ceil(waitingMs / 1000),
+    pluginKeys: pluginShape.pluginKeys,
+    pluginProtoKeys: pluginShape.pluginProtoKeys,
+    nestedKeys: pluginShape.nestedKeys,
+    methodChecks: pluginShape.methodChecks
   };
   return { ...snapshot, ...extra };
 }
@@ -759,7 +831,11 @@ async function initializeAdMob() {
       const apiHints = pluginCandidates.map(([sourceLabel, plugin]) => `${sourceLabel}: ${collectPluginApiHints(plugin) || '-'}`).join(' | ');
       state.admob.plugin = pluginCandidates[0][1] || null;
       state.admob.pluginSource = attemptedSources.join(' | ');
-      setAdMobStatus('Plugin erkannt, aber kein Interstitial-Handle', `Geprüft: ${attemptedSources.join(' | ')}. API: ${apiHints || '-'}`);
+      setAdMobDiagnosticStatus('Plugin erkannt, aber kein Interstitial-Handle', 'Aus erkanntem Plugin konnte kein Interstitial erstellt werden.', {
+        attemptedSources: attemptedSources.join(' | '),
+        apiHints: apiHints || '-',
+        ...collectAdMobPluginShape(state.admob.plugin)
+      });
       console.info('AdMob: Plugin-Kandidaten gefunden, aber kein Interstitial-Handle verfügbar.', { attemptedSources, apiHints, pluginCandidates });
       return;
     }
