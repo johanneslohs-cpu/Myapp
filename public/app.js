@@ -561,12 +561,12 @@ function renderProfile() {
     ? `<img src="${profileImage}" alt="${s.username}" class="avatar-image" loading="lazy">`
     : (s.username || '?').trim().charAt(0).toUpperCase() || '?';
 
-  return `${header('Profil', `<button class="btn" id="openSettings">⚙</button>`)}
-  <div class="profile"><div class="avatar" id="changeAvatar">${avatarContent}</div><h2>${s.username}</h2><p class="small">Smart Meal Matching · Green Edition</p></div>
-  <div class="stats"><div class="card"><h2>${state.favorites.length} ♥</h2><div>Favoriten</div></div><div class="card"><h2>${state.lists.length} 🛒</h2><div>Einkaufslisten</div></div></div>
-  <div class="stats"><div class="card" id="openExcluded">Das esse ich nicht</div><div class="card" id="openDiet">${s.diet}</div></div>
-  <div class="list-item" id="openFeedback">❓ Hilfe und Feedback</div>
-  <div class="list-item" id="openLegal">⋯ Sonstiges</div>`;
+  return `${header('Profil', `<button class="btn profile-settings-btn" id="openSettings" aria-label="Einstellungen öffnen">⚙</button>`)}
+  <div class="profile profile-hero"><div class="avatar" id="changeAvatar">${avatarContent}</div><h2>${s.username}</h2><p class="small profile-subtitle">Smart Meal Matching</p></div>
+  <div class="stats profile-stats profile-stats-primary"><div class="card profile-card"><h2>${state.favorites.length} ♥</h2><div>Favoriten</div></div><div class="card profile-card"><h2>${state.lists.length} 🛒</h2><div>Einkaufslisten</div></div></div>
+  <div class="stats profile-stats profile-stats-secondary"><div class="card profile-card profile-action-card" id="openExcluded">Das esse ich nicht</div><div class="card profile-card profile-action-card" id="openDiet">${s.diet}</div></div>
+  <div class="list-item profile-list-item" id="openFeedback"><span>❓</span><span>Hilfe und Feedback</span></div>
+  <div class="list-item profile-list-item" id="openLegal"><span>⋯</span><span>Sonstiges</span></div>`;
 }
 
 function render() {
@@ -966,15 +966,23 @@ function openSettings() {
 
 function openExcluded() {
   const excluded = (state.settings.excluded || []).filter((entry) => entry.active);
+  const maxReached = excluded.length >= 20;
 
   modal(`<div class="excluded-modal">
-    <button class="btn" id="closeModal">← Zurück</button>
-    <h2>Das esse ich nicht</h2>
-    <p class="small excluded-note">Alle Rezepte, die eine dieser Zutaten enthalten, werden automatisch ausgeblendet.</p>
-    <div class="excluded-add-row">
-      <input id="excludeName" class="search" placeholder="z. B. Pilze, Sellerie, Lachs" />
-      <button class="btn" id="addExclude">Hinzufügen</button>
+    <button class="btn modal-back-btn compact-back-btn" id="closeModal">← Zurück</button>
+    <div class="excluded-hero">
+      <div>
+        <p class="excluded-kicker">Persönlicher Filter</p>
+        <h2>Das esse ich nicht</h2>
+        <p class="small excluded-note">Alle Rezepte mit diesen Zutaten werden automatisch ausgeblendet. Du kannst bis zu 20 Zutaten gleichzeitig ausschließen.</p>
+      </div>
+      <div class="excluded-count ${maxReached ? 'is-limit' : ''}">${excluded.length}/20</div>
     </div>
+    <div class="excluded-add-row">
+      <input id="excludeName" class="search" placeholder="z. B. Pilze, Sellerie, Lachs" ${maxReached ? 'disabled' : ''} />
+      <button class="btn" id="addExclude" ${maxReached ? 'disabled' : ''}>Hinzufügen</button>
+    </div>
+    ${maxReached ? '<p class="excluded-limit-note">Maximal 20 Zutaten gleichzeitig möglich. Entferne erst eine Zutat, bevor du eine neue hinzufügst.</p>' : ''}
     <div class="excluded-list">
       ${excluded.map((entry) => `<div class="excluded-chip"><span>${entry.name}</span><button class="excluded-remove" data-remove-ex="${entry.id}" title="Zutat entfernen">✕</button></div>`).join('')}
       ${excluded.length ? '' : '<div class="empty-state"><h3>Noch keine Zutaten</h3><p>Füge Zutaten hinzu, die du nicht essen möchtest.</p></div>'}
@@ -985,6 +993,10 @@ function openExcluded() {
     const input = document.getElementById('excludeName');
     const name = input.value.trim();
     if (!name) return;
+    if (excluded.length >= 20) {
+      alert('Du kannst maximal 20 Zutaten gleichzeitig ausschließen.');
+      return;
+    }
     await api.post('/api/excluded', { name });
     await reloadData();
     openExcluded();
@@ -1008,7 +1020,7 @@ function openExcluded() {
 
 function openDiet() {
   const options = ['Ich esse alles', 'Pescetarisch', 'Vegetarisch', 'Vegan', 'High-Protein'];
-  modal(`<div class="diet-modal"><button class="btn" id="closeModal">← Zurück</button><h2>Ernährungsform</h2>
+  modal(`<div class="diet-modal"><button class="btn modal-back-btn compact-back-btn" id="closeModal">← Zurück</button><h2>Ernährungsform</h2>
     <p class="small">Wähle die Ernährungsweise, die am besten zu dir passt.</p>
     <div class="diet-options">
       ${options.map((o) => `<label class="diet-option ${state.settings.diet === o ? 'active' : ''}"><input type="radio" name="diet" value="${o}" ${state.settings.diet === o ? 'checked' : ''}><span class="diet-radio-dot"></span><span>${o}</span></label>`).join('')}
@@ -1020,9 +1032,12 @@ function openDiet() {
 
 function openFeedback() {
   modal(`<div class="feedback-modal">
-    <button class="btn" id="closeModal">← Zurück</button>
-    <h2>Hilfe und Feedback</h2>
-    <p class="small feedback-intro">Wir melden uns so schnell wie möglich bei dir zurück.</p>
+    <button class="btn modal-back-btn compact-back-btn" id="closeModal">← Zurück</button>
+    <div class="feedback-hero">
+      <p class="feedback-kicker">Support</p>
+      <h2>Hilfe und Feedback</h2>
+      <p class="small feedback-intro">Wir melden uns so schnell wie möglich bei dir zurück.</p>
+    </div>
     <div class="feedback-form">
       <label for="fMail">E-Mail-Adresse <span class="feedback-label-note">(für Rückfragen)</span></label>
       <input id="fMail" type="email" placeholder="name@beispiel.de" autocomplete="email" />
@@ -1096,16 +1111,15 @@ function openFeedback() {
 function openLegal() {
   modal(`<div class="legal-modal legal-overview">
     <div class="legal-topbar">
-      <button class="btn" id="closeModal">← Zurück</button>
+      <button class="btn modal-back-btn compact-back-btn" id="closeModal">← Zurück</button>
       <div class="legal-badge">BiteMatch Legal</div>
     </div>
     <div class="legal-hero-card">
       <div>
         <p class="legal-eyebrow">Sonstiges</p>
         <h2>Rechtliches klar, modern und schnell auffindbar.</h2>
-        <p class="small legal-intro">Hier findest du nur noch die drei wichtigen Dokumente. Tippe auf einen Eintrag, um ihn direkt in einer übersichtlichen Leseansicht zu öffnen.</p>
+        <p class="small legal-intro">Hier findest du die wichtigsten Dokumente. Tippe auf einen Eintrag, um ihn direkt in einer übersichtlichen Leseansicht zu öffnen.</p>
       </div>
-      <div class="legal-summary-pill">3 Dokumente</div>
     </div>
     <div class="legal-list">
       ${LEGAL_DOCUMENTS.map((doc) => `<button class="legal-entry legal-${doc.accent}" data-legal-doc="${doc.id}">
@@ -1130,7 +1144,7 @@ function openLegalDocument(docId) {
   if (!doc) return;
   modal(`<div class="legal-modal legal-reader legal-${doc.accent}">
     <div class="legal-topbar">
-      <button class="btn" id="backToLegal">← Sonstiges</button>
+      <button class="btn modal-back-btn compact-back-btn" id="backToLegal">← Sonstiges</button>
       <button class="btn" id="closeModal">✕</button>
     </div>
     <div class="legal-reader-hero">
