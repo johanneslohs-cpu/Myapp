@@ -321,6 +321,7 @@ function formatAdMobTime(timestamp) {
 
 function renderAdMobDebugCard() {
   const pluginSource = window.admob ? 'window.admob' : (window.AdMob ? 'window.AdMob' : (window.plugins?.admob ? 'window.plugins.admob' : 'Kein Plugin gefunden'));
+  const pluginApi = state.admob.plugin ? Object.keys(state.admob.plugin).filter(Boolean).slice(0, 8).join(', ') : '-';
   const nextSwipeMilestone = Math.ceil((Math.max(state.admob.swipeCount, 0) + 1) / ADMOB_SWIPE_INTERVAL) * ADMOB_SWIPE_INTERVAL;
   const waitingMs = Math.max(0, ADMOB_MIN_INTERVAL_MS - (Date.now() - state.admob.lastShownAt));
   const waitingMinutes = Math.ceil(waitingMs / 60000);
@@ -338,6 +339,7 @@ function renderAdMobDebugCard() {
       <div><span>Cordova erkannt</span><strong>${state.isCordova ? 'Ja' : 'Nein'}</strong></div>
       <div><span>deviceready</span><strong>${state.cordovaReady ? 'Ja' : 'Nein'}</strong></div>
       <div><span>Plugin-Quelle</span><strong>${pluginSource}</strong></div>
+      <div><span>Plugin-API</span><strong>${pluginApi || '-'}</strong></div>
       <div><span>Interstitial-Handle</span><strong>${state.admob.interstitial ? 'Vorhanden' : 'Fehlt'}</strong></div>
       <div><span>Ladevorgang</span><strong>${state.admob.loading ? 'Lädt' : 'Idle'}</strong></div>
       <div><span>Anzeigen-Lock</span><strong>${state.admob.showInProgress ? 'Ja' : 'Nein'}</strong></div>
@@ -365,17 +367,48 @@ function getAdMobPlugin() {
 
 async function createInterstitialHandle(plugin) {
   if (!plugin) return null;
+
+  if (typeof plugin.InterstitialAd === 'function') {
+    const interstitial = new plugin.InterstitialAd({
+      adUnitId: ADMOB_INTERSTITIAL_DEMO_AD_UNIT_ID
+    });
+    if (interstitial && typeof interstitial.load === 'function') return interstitial;
+  }
+
   if (typeof plugin.interstitial === 'function') {
     const interstitial = plugin.interstitial({
       adUnitId: ADMOB_INTERSTITIAL_DEMO_AD_UNIT_ID
     });
     if (interstitial && typeof interstitial.load === 'function') return interstitial;
   }
+
   if (typeof plugin.createInterstitial === 'function') {
-    return plugin.createInterstitial({
+    const interstitial = await plugin.createInterstitial({
       adUnitId: ADMOB_INTERSTITIAL_DEMO_AD_UNIT_ID
     });
+    if (interstitial && typeof interstitial.load === 'function') return interstitial;
   }
+
+  if (plugin.interstitial && typeof plugin.interstitial.load === 'function' && typeof plugin.interstitial.show === 'function') {
+    return {
+      loaded: false,
+      async load() {
+        await plugin.interstitial.load({ adUnitId: ADMOB_INTERSTITIAL_DEMO_AD_UNIT_ID });
+        this.loaded = true;
+      },
+      async show() {
+        await plugin.interstitial.show();
+        this.loaded = false;
+      },
+      async isLoaded() {
+        if (typeof plugin.interstitial.isLoaded === 'function') {
+          return plugin.interstitial.isLoaded();
+        }
+        return this.loaded;
+      }
+    };
+  }
+
   return null;
 }
 
