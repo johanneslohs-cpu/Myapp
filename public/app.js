@@ -347,19 +347,37 @@ function collectPluginApiHints(plugin) {
   return Array.from(hints).slice(0, 12).join(', ') || '-';
 }
 
+function normalizeAdMobPluginCandidate(plugin) {
+  if (!plugin) return null;
+  const nested = [
+    plugin.AdMob,
+    plugin.admob,
+    plugin.default,
+    plugin.default?.AdMob,
+    plugin.default?.admob
+  ].find((candidate) => candidate && candidate !== plugin);
+  return nested || plugin;
+}
+
 function listAdMobPluginCandidates() {
-  return [
-    ['window.admob', window.admob],
-    ['window.AdMob', window.AdMob],
-    ['window.plugins.admob', window.plugins?.admob],
-    ['window.plugins.AdMob', window.plugins?.AdMob],
+  const rawCandidates = [
     ['window.cordova.plugins.AdMob', window.cordova?.plugins?.AdMob],
-    ['window.cordova.plugins.admob', window.cordova?.plugins?.admob]
-  ].filter(([, value]) => Boolean(value));
+    ['window.cordova.plugins.admob', window.cordova?.plugins?.admob],
+    ['window.plugins.AdMob', window.plugins?.AdMob],
+    ['window.plugins.admob', window.plugins?.admob],
+    ['window.AdMob', window.AdMob],
+    ['window.admob', window.admob]
+  ];
+  return rawCandidates
+    .map(([label, value]) => [label, normalizeAdMobPluginCandidate(value)])
+    .filter(([, value]) => Boolean(value));
 }
 
 function detectAdMobPluginSource() {
-  const matches = listAdMobPluginCandidates().map(([label]) => label);
+  const matches = listAdMobPluginCandidates().map(([label, plugin]) => {
+    const normalized = plugin && plugin !== (label === 'window.admob' ? window.admob : label === 'window.AdMob' ? window.AdMob : null);
+    return normalized ? `${label} (normalisiert)` : label;
+  });
   return matches.length ? matches.join(' | ') : 'Kein Plugin gefunden';
 }
 
