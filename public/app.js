@@ -307,6 +307,22 @@ function nav() {
   return `<nav class="bottom-nav" aria-label="Hauptnavigation">${tabs.map(([id, icon, title, hint]) => `<button class="nav-btn ${state.tab === id ? 'active' : ''}" data-tab="${id}" aria-label="${title}" aria-current="${state.tab === id ? 'page' : 'false'}"><span class="nav-icon" aria-hidden="true">${icon}</span><span class="nav-copy"><span class="nav-title">${title}</span><span class="nav-hint">${hint}</span></span></button>`).join('')}</nav>`;
 }
 
+function syncNavigationBarTheme(themeColor) {
+  const navigationBar = window.NavigationBar || window.navigationBar;
+  if (!navigationBar) return;
+
+  if (typeof navigationBar.backgroundColorByHexString === 'function') {
+    navigationBar.backgroundColorByHexString(themeColor);
+  } else if (typeof navigationBar.setColor === 'function') {
+    navigationBar.setColor(themeColor, false);
+  }
+
+  if (typeof navigationBar.styleLight === 'function') navigationBar.styleLight();
+  if (typeof navigationBar.styleDefault === 'function') navigationBar.styleDefault();
+  if (typeof navigationBar.hide === 'function') navigationBar.hide();
+  if (typeof navigationBar.immersiveMode === 'function') navigationBar.immersiveMode();
+}
+
 function syncSystemUiTheme() {
   const themeColor = '#0f1511';
   const metaTheme = document.querySelector('meta[name="theme-color"]');
@@ -315,6 +331,7 @@ function syncSystemUiTheme() {
     document.body.style.backgroundColor = themeColor;
     document.body.classList.toggle('cordova-immersive', false);
   }
+  syncNavigationBarTheme(themeColor);
 
   const statusBar = window.StatusBar;
   if (!statusBar) return;
