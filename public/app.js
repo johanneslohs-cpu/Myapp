@@ -50,16 +50,22 @@ let searchReloadTimer = null;
 
 const ADMOB_TEST_IDS = {
   android: {
+    banner: 'ca-app-pub-3940256099942544/6300978111',
     interstitial: 'ca-app-pub-3940256099942544/1033173712',
+    rewarded: 'ca-app-pub-3940256099942544/5224354917',
     rewardedInterstitial: 'ca-app-pub-3940256099942544/5354046379'
   },
   ios: {
+    banner: 'ca-app-pub-3940256099942544/2934735716',
     interstitial: 'ca-app-pub-3940256099942544/4411468910',
+    rewarded: 'ca-app-pub-3940256099942544/1712485313',
     rewardedInterstitial: 'ca-app-pub-3940256099942544/6978759866'
   }
 };
 
 let admobInterstitial = null;
+let admobRewarded = null;
+let admobBanner = null;
 let admobStartPromise = null;
 let admobStarted = false;
 const ADMOB_MIN_RECOMMENDED_PLUGIN_VERSION = '2.0.0-alpha.19';
@@ -632,7 +638,9 @@ function renderProfile() {
   <div class="profile profile-hero"><div class="avatar" id="changeAvatar">${avatarContent}</div><h2>${s.username}</h2><p class="small profile-subtitle">Smart Meal Matching</p></div>
   <div class="stats profile-stats profile-stats-primary"><div class="card profile-card"><h2>${state.favorites.length} ♥</h2><div>Favoriten</div></div><div class="card profile-card"><h2>${state.lists.length} 🛒</h2><div>Einkaufslisten</div></div></div>
   <div class="stats profile-stats profile-stats-secondary"><div class="card profile-card profile-action-card" id="openExcluded">Das esse ich nicht</div><div class="card profile-card profile-action-card" id="openDiet">${s.diet}</div></div>
+  <button class="btn profile-admob-btn" id="showBannerAdButton" type="button" ${adButtonDisabled ? 'disabled' : ''}>Test Banner-ID laden</button>
   <button class="btn profile-admob-btn" id="showAdButton" type="button" ${adButtonDisabled ? 'disabled' : ''}>${adButtonLabel}</button>
+  <button class="btn profile-admob-btn" id="showRewardedAdButton" type="button" ${adButtonDisabled ? 'disabled' : ''}>Rewarded Ad laden & anzeigen</button>
   <p class="small profile-admob-hint">${state.isCordova ? (state.adMob.usingTestIds ? 'AdMob ist aktiv und verwendet aktuell Test-Anzeigen.' : 'AdMob ist vorbereitet. Beim Tippen wird eine Interstitial-Anzeige geladen und angezeigt.') : 'AdMob-Anzeigen funktionieren nur in der installierten Cordova-App.'}</p>
   ${state.adMob.pluginVersion ? `<p class="small profile-admob-status">Plugin-Version: ${state.adMob.pluginVersion}</p>` : ''}
   ${state.adMob.pluginVersionWarning ? `<p class="small profile-admob-status error">${state.adMob.pluginVersionWarning}</p>` : ''}
@@ -788,21 +796,24 @@ function readAdMobConfig() {
     ...(storedConfig[platformKey] || {}),
     ...(runtimeConfig[platformKey] || {})
   };
+  const bannerAdUnitId = merged.bannerAdUnitId || platformConfig.bannerAdUnitId || ADMOB_TEST_IDS[platformKey].banner;
   const interstitialAdUnitId = merged.interstitialAdUnitId || platformConfig.interstitialAdUnitId || ADMOB_TEST_IDS[platformKey].interstitial;
-  const usingTestIds = interstitialAdUnitId === ADMOB_TEST_IDS[platformKey].interstitial;
+  const rewardedAdUnitId = merged.rewardedAdUnitId || platformConfig.rewardedAdUnitId || ADMOB_TEST_IDS[platformKey].rewarded;
+  const usingTestIds = interstitialAdUnitId === ADMOB_TEST_IDS[platformKey].interstitial
+    || bannerAdUnitId === ADMOB_TEST_IDS[platformKey].banner
+    || rewardedAdUnitId === ADMOB_TEST_IDS[platformKey].rewarded;
   state.adMob.usingTestIds = usingTestIds;
-  return { platformKey, interstitialAdUnitId, usingTestIds };
+  return { platformKey, bannerAdUnitId, interstitialAdUnitId, rewardedAdUnitId, usingTestIds };
 }
 
-async function ensureAdMobInterstitial() {
+async function ensureAdMobStarted() {
   if (!state.isCordova) throw new Error('AdMob läuft nur innerhalb der Cordova-App.');
   if (!state.cordovaReady) throw new Error('Cordova ist noch nicht bereit. Bitte versuche es gleich noch einmal.');
   const admob = window.admob;
-  if (!admob || typeof admob.InterstitialAd !== 'function') {
+  if (!admob) {
     throw new Error('AdMob-Plugin nicht gefunden. Installiere zuerst admob-plus-cordova im Cordova-Projekt.');
   }
   inspectAdMobPluginVersion();
-
   if (!admobStarted && !admobStartPromise) {
     admobStartPromise = (async () => {
       if (typeof admob.start !== 'function') {
@@ -820,7 +831,7 @@ async function ensureAdMobInterstitial() {
       } catch (error) {
         const isTimeout = error && error.message === '__ADMOB_START_TIMEOUT__';
         if (isTimeout) {
-          console.warn('AdMob start timeout - versuche trotzdem, Interstitial direkt zu laden.');
+          console.warn('AdMob start timeout - versuche trotzdem, Anzeige direkt zu laden.');
           return false;
         }
         admobStartPromise = null;
@@ -831,13 +842,46 @@ async function ensureAdMobInterstitial() {
   if (admobStartPromise) {
     await admobStartPromise;
   }
+  return admob;
+}
 
+async function ensureAdMobInterstitial() {
+  const admob = await ensureAdMobStarted();
+  if (typeof admob.InterstitialAd !== 'function') {
+    throw new Error('AdMob-Plugin nicht gefunden. Installiere zuerst admob-plus-cordova im Cordova-Projekt.');
+  }
   const { interstitialAdUnitId } = readAdMobConfig();
   if (!admobInterstitial || admobInterstitial.id !== interstitialAdUnitId) {
     admobInterstitial = new admob.InterstitialAd({ adUnitId: interstitialAdUnitId, id: interstitialAdUnitId });
     admobInterstitial.id = interstitialAdUnitId;
   }
   return admobInterstitial;
+}
+
+async function ensureAdMobRewarded() {
+  const admob = await ensureAdMobStarted();
+  if (typeof admob.RewardedAd !== 'function') {
+    throw new Error('Rewarded Ads werden vom installierten AdMob-Plugin nicht unterstützt.');
+  }
+  const { rewardedAdUnitId } = readAdMobConfig();
+  if (!admobRewarded || admobRewarded.id !== rewardedAdUnitId) {
+    admobRewarded = new admob.RewardedAd({ adUnitId: rewardedAdUnitId, id: rewardedAdUnitId });
+    admobRewarded.id = rewardedAdUnitId;
+  }
+  return admobRewarded;
+}
+
+async function ensureAdMobBanner() {
+  const admob = await ensureAdMobStarted();
+  if (typeof admob.BannerAd !== 'function') {
+    throw new Error('Banner Ads werden vom installierten AdMob-Plugin nicht unterstützt.');
+  }
+  const { bannerAdUnitId } = readAdMobConfig();
+  if (!admobBanner || admobBanner.id !== bannerAdUnitId) {
+    admobBanner = new admob.BannerAd({ adUnitId: bannerAdUnitId, id: bannerAdUnitId });
+    admobBanner.id = bannerAdUnitId;
+  }
+  return admobBanner;
 }
 
 async function preloadProfileAd(options = {}) {
@@ -896,6 +940,69 @@ async function showProfileAd() {
     console.error('AdMob konnte nicht angezeigt werden:', error);
     state.adMob.isReady = false;
     state.adMob.lastError = error && error.message ? error.message : 'Anzeige konnte nicht geladen werden.';
+    state.adMob.statusMessage = '';
+    render();
+    alert(state.adMob.lastError);
+  } finally {
+    state.adMob.isBusy = false;
+    render();
+  }
+}
+
+async function showProfileBannerAd() {
+  if (state.adMob.isBusy) return;
+  try {
+    state.adMob.isBusy = true;
+    state.adMob.lastError = '';
+    state.adMob.statusMessage = 'Banner wird geladen …';
+    render();
+    const banner = await ensureAdMobBanner();
+    await withTimeout(
+      banner.show(),
+      15000,
+      'Banner konnte nicht geöffnet werden (Timeout).'
+    );
+    state.adMob.lastShownAt = new Date().toISOString();
+    state.adMob.statusMessage = 'Banner wurde geladen.';
+    render();
+  } catch (error) {
+    console.error('Banner-Ad konnte nicht angezeigt werden:', error);
+    state.adMob.lastError = error && error.message ? error.message : 'Banner konnte nicht geladen werden.';
+    state.adMob.statusMessage = '';
+    render();
+    alert(state.adMob.lastError);
+  } finally {
+    state.adMob.isBusy = false;
+    render();
+  }
+}
+
+async function showProfileRewardedAd() {
+  if (state.adMob.isBusy) return;
+  try {
+    state.adMob.isBusy = true;
+    state.adMob.lastError = '';
+    state.adMob.statusMessage = 'Rewarded Ad wird geladen …';
+    render();
+    const rewarded = await ensureAdMobRewarded();
+    await withTimeout(
+      rewarded.load(),
+      15000,
+      'Rewarded Ad konnte nicht geladen werden (Timeout).'
+    );
+    state.adMob.statusMessage = 'Rewarded Ad wird angezeigt …';
+    render();
+    await withTimeout(
+      rewarded.show(),
+      15000,
+      'Rewarded Ad konnte nicht angezeigt werden (Timeout).'
+    );
+    state.adMob.lastShownAt = new Date().toISOString();
+    state.adMob.statusMessage = 'Rewarded Ad wurde angezeigt.';
+    render();
+  } catch (error) {
+    console.error('Rewarded-Ad konnte nicht angezeigt werden:', error);
+    state.adMob.lastError = error && error.message ? error.message : 'Rewarded Ad konnte nicht geladen werden.';
     state.adMob.statusMessage = '';
     render();
     alert(state.adMob.lastError);
@@ -1545,7 +1652,9 @@ function bind() {
   const od = document.getElementById('openDiet'); if (od) od.onclick = openDiet;
   const of = document.getElementById('openFeedback'); if (of) of.onclick = openFeedback;
   const ol = document.getElementById('openLegal'); if (ol) ol.onclick = openLegal;
+  const sb = document.getElementById('showBannerAdButton'); if (sb) sb.onclick = showProfileBannerAd;
   const sa = document.getElementById('showAdButton'); if (sa) sa.onclick = showProfileAd;
+  const sr = document.getElementById('showRewardedAdButton'); if (sr) sr.onclick = showProfileRewardedAd;
   const ca = document.getElementById('changeAvatar'); if (ca) ca.onclick = async () => { const e = prompt('Profilbild Emoji', state.settings.profile_image); if (e) { await api.patch('/api/settings', { profile_image: e }); await reloadData(); } };
   bindSwipeGestures();
 }
