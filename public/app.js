@@ -38,6 +38,8 @@ const state = {
     lastError: '',
     lastShownAt: '',
     usingTestIds: false,
+    pluginVersion: '',
+    pluginVersionWarning: '',
     isBusy: false,
     isReady: false,
     statusMessage: ''
@@ -57,6 +59,7 @@ const ADMOB_TEST_IDS = {
 
 let admobInterstitial = null;
 let admobStartPromise = null;
+const ADMOB_MIN_RECOMMENDED_PLUGIN_VERSION = '2.0.0-alpha.19';
 
 
 const LEGAL_DOCUMENTS = [
@@ -628,6 +631,8 @@ function renderProfile() {
   <div class="stats profile-stats profile-stats-secondary"><div class="card profile-card profile-action-card" id="openExcluded">Das esse ich nicht</div><div class="card profile-card profile-action-card" id="openDiet">${s.diet}</div></div>
   <button class="btn profile-admob-btn" id="showAdButton" type="button" ${adButtonDisabled ? 'disabled' : ''}>${adButtonLabel}</button>
   <p class="small profile-admob-hint">${state.isCordova ? (state.adMob.usingTestIds ? 'AdMob ist aktiv und verwendet aktuell Test-Anzeigen.' : 'AdMob ist vorbereitet. Beim Tippen wird eine Interstitial-Anzeige geladen und angezeigt.') : 'AdMob-Anzeigen funktionieren nur in der installierten Cordova-App.'}</p>
+  ${state.adMob.pluginVersion ? `<p class="small profile-admob-status">Plugin-Version: ${state.adMob.pluginVersion}</p>` : ''}
+  ${state.adMob.pluginVersionWarning ? `<p class="small profile-admob-status error">${state.adMob.pluginVersionWarning}</p>` : ''}
   ${state.adMob.statusMessage ? `<p class="small profile-admob-status">${state.adMob.statusMessage}</p>` : ''}
   ${state.adMob.lastError ? `<p class="small profile-admob-status error">${state.adMob.lastError}</p>` : ''}
   ${state.adMob.lastShownAt ? `<p class="small profile-admob-status">Letzte Anzeige: ${new Date(state.adMob.lastShownAt).toLocaleString('de-DE')}</p>` : ''}
@@ -678,6 +683,55 @@ function getAdMobPlatformKey() {
   return 'android';
 }
 
+function parseVersionParts(version) {
+  const matches = String(version || '').match(/\d+/g) || [];
+  return matches.map((part) => Number(part)).slice(0, 3);
+}
+
+function isVersionOlder(current, minimum) {
+  const currentParts = parseVersionParts(current);
+  const minimumParts = parseVersionParts(minimum);
+  const maxLength = Math.max(currentParts.length, minimumParts.length);
+  for (let i = 0; i < maxLength; i += 1) {
+    const currentValue = currentParts[i] || 0;
+    const minimumValue = minimumParts[i] || 0;
+    if (currentValue < minimumValue) return true;
+    if (currentValue > minimumValue) return false;
+  }
+  if (/alpha|beta|rc/i.test(current) && !/alpha|beta|rc/i.test(minimum)) return true;
+  return false;
+}
+
+function inspectAdMobPluginVersion() {
+  try {
+    if (!window.cordova || typeof window.cordova.require !== 'function') return '';
+    const pluginList = window.cordova.require('cordova/plugin_list');
+    const metadata = pluginList && pluginList.metadata ? pluginList.metadata : {};
+    const version = metadata['admob-plus-cordova'] || metadata['admob-plus-cordova-native'] || '';
+    state.adMob.pluginVersion = version;
+    if (version && isVersionOlder(version, ADMOB_MIN_RECOMMENDED_PLUGIN_VERSION)) {
+      state.adMob.pluginVersionWarning = `Installierte Version (${version}) ist älter als empfohlen (${ADMOB_MIN_RECOMMENDED_PLUGIN_VERSION}). Bitte Plugin aktualisieren.`;
+    } else {
+      state.adMob.pluginVersionWarning = '';
+    }
+    return version;
+  } catch (_error) {
+    state.adMob.pluginVersion = '';
+    state.adMob.pluginVersionWarning = '';
+    return '';
+  }
+}
+
+function withTimeout(promise, timeoutMs, message) {
+  let timerId;
+  const timeoutPromise = new Promise((_, reject) => {
+    timerId = setTimeout(() => reject(new Error(message)), timeoutMs);
+  });
+  return Promise.race([promise, timeoutPromise]).finally(() => {
+    clearTimeout(timerId);
+  });
+}
+
 function readAdMobConfig() {
   const runtimeConfig = window.MYAPP_ADMOB_CONFIG && typeof window.MYAPP_ADMOB_CONFIG === 'object'
     ? window.MYAPP_ADMOB_CONFIG
@@ -707,9 +761,14 @@ async function ensureAdMobInterstitial() {
   if (!admob || typeof admob.InterstitialAd !== 'function') {
     throw new Error('AdMob-Plugin nicht gefunden. Installiere zuerst admob-plus-cordova im Cordova-Projekt.');
   }
+  inspectAdMobPluginVersion();
 
   if (!admobStartPromise) {
-    admobStartPromise = Promise.resolve(typeof admob.start === 'function' ? admob.start() : undefined);
+    admobStartPromise = withTimeout(
+      Promise.resolve(typeof admob.start === 'function' ? admob.start() : undefined),
+      12000,
+      'AdMob-Initialisierung hat zu lange gedauert (Timeout). Prüfe Netzwerk, Consent und App-ID.'
+    );
   }
   await admobStartPromise;
 
@@ -730,7 +789,11 @@ async function preloadProfileAd(options = {}) {
       render();
     }
     const interstitial = await ensureAdMobInterstitial();
-    await interstitial.load();
+    await withTimeout(
+      interstitial.load(),
+      15000,
+      'Werbung konnte nicht rechtzeitig geladen werden (Timeout). Häufige Ursachen: kein Fill, keine Internetverbindung oder fehlende Einwilligung.'
+    );
     state.adMob.isReady = true;
     state.adMob.statusMessage = 'Werbung ist bereit.';
     if (!silent) render();
@@ -756,7 +819,11 @@ async function showProfileAd() {
     const interstitial = state.adMob.isReady ? await ensureAdMobInterstitial() : await preloadProfileAd({ silent: true });
     state.adMob.statusMessage = 'Werbung wird angezeigt …';
     render();
-    await interstitial.show();
+    await withTimeout(
+      interstitial.show(),
+      15000,
+      'Anzeige konnte nicht geöffnet werden (Timeout). Bitte App kurz neu starten und später erneut versuchen.'
+    );
     state.adMob.isReady = false;
     state.adMob.lastShownAt = new Date().toISOString();
     state.adMob.statusMessage = 'Werbung wurde angezeigt.';
@@ -1623,6 +1690,7 @@ async function bootstrap() {
 if (isCordovaFileRuntime) {
   document.addEventListener('deviceready', () => {
     state.cordovaReady = true;
+    inspectAdMobPluginVersion();
     syncSystemUiTheme();
     preloadProfileAd({ silent: true }).catch(() => {});
     bootstrap();
