@@ -108,6 +108,14 @@ Plugin-Installation im Cordova-Wrapper:
 cordova plugin add admob-plus-cordova --save --variable APP_ID_ANDROID=ca-app-pub-ANDROID_APP_ID --variable APP_ID_IOS=ca-app-pub-IOS_APP_ID
 ```
 
+Plugin-Version prüfen/aktualisieren:
+
+```bash
+cordova plugin list | grep admob-plus
+cordova plugin rm admob-plus-cordova
+cordova plugin add admob-plus-cordova@2.0.0-alpha.19 --save --variable APP_ID_ANDROID=ca-app-pub-ANDROID_APP_ID --variable APP_ID_IOS=ca-app-pub-IOS_APP_ID
+```
+
 Wichtig:
 
 - Die **App-IDs** kommen beim Plugin-Install als Variablen hinein, nicht in `public/app.js`.
