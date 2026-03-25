@@ -72,6 +72,17 @@ let admobBannerAdUnitId = '';
 let admobStartPromise = null;
 let admobStarted = false;
 const ADMOB_MIN_RECOMMENDED_PLUGIN_VERSION = '2.0.0-alpha.19';
+let adMobEventLoggingAttached = false;
+
+function maskAdUnitId(adUnitId = '') {
+  const value = String(adUnitId || '');
+  if (!value) return '(leer)';
+  return value.length <= 8 ? '***' : `${value.slice(0, 14)}...${value.slice(-4)}`;
+}
+
+function logAdMob(stage, payload = {}) {
+  console.log(`[AdMobDebug] ${stage}`, payload);
+}
 
 
 const LEGAL_DOCUMENTS = [
@@ -815,7 +826,36 @@ function readAdMobConfig() {
     || bannerAdUnitId === ADMOB_TEST_IDS[platformKey].banner
     || rewardedAdUnitId === ADMOB_TEST_IDS[platformKey].rewarded;
   state.adMob.usingTestIds = usingTestIds;
+  logAdMob('config resolved', {
+    platformKey,
+    usingTestIds,
+    interstitialAdUnitId: maskAdUnitId(interstitialAdUnitId),
+    rewardedAdUnitId: maskAdUnitId(rewardedAdUnitId),
+    bannerAdUnitId: maskAdUnitId(bannerAdUnitId)
+  });
   return { platformKey, bannerAdUnitId, interstitialAdUnitId, rewardedAdUnitId, usingTestIds };
+}
+
+function attachAdMobEventLogging() {
+  if (adMobEventLoggingAttached) return;
+  adMobEventLoggingAttached = true;
+  const events = [
+    'admob.ready',
+    'admob.ad.load',
+    'admob.ad.loadfail',
+    'admob.ad.show',
+    'admob.ad.showfail',
+    'admob.ad.dismiss',
+    'admob.ad.click',
+    'admob.ad.impression',
+    'admob.ad.reward'
+  ];
+  events.forEach((eventName) => {
+    document.addEventListener(eventName, (event) => {
+      logAdMob(`event:${eventName}`, event && event.detail ? event.detail : event || {});
+    });
+  });
+  logAdMob('event logging attached');
 }
 
 async function ensureAdMobStarted() {
@@ -830,23 +870,28 @@ async function ensureAdMobStarted() {
     admobStartPromise = (async () => {
       if (typeof admob.start !== 'function') {
         admobStarted = true;
+        logAdMob('start skipped (no admob.start)');
         return true;
       }
       try {
+        logAdMob('start begin');
         await withTimeout(
           Promise.resolve(admob.start()),
           15000,
           '__ADMOB_START_TIMEOUT__'
         );
         admobStarted = true;
+        logAdMob('start success');
         return true;
       } catch (error) {
         const isTimeout = error && error.message === '__ADMOB_START_TIMEOUT__';
         if (isTimeout) {
           console.warn('AdMob start timeout - versuche trotzdem, Anzeige direkt zu laden.');
+          logAdMob('start timeout');
           return false;
         }
         admobStartPromise = null;
+        logAdMob('start fail', { error: error && error.message ? error.message : error });
         throw error;
       }
     })();
@@ -912,27 +957,32 @@ async function preloadProfileAd(options = {}) {
     }
     let interstitial = await ensureAdMobInterstitial();
     try {
+      logAdMob('interstitial load begin', { adUnitId: maskAdUnitId(admobInterstitialAdUnitId) });
       await withTimeout(
         interstitial.load(),
         15000,
         'Werbung konnte nicht rechtzeitig geladen werden (Timeout). Das AdMob-Plugin hat innerhalb von 15s weder "load" noch "loadfail" geliefert.'
       );
+      logAdMob('interstitial load success', { adUnitId: maskAdUnitId(admobInterstitialAdUnitId) });
     } catch (loadError) {
       if (!isAdMobOperationTimeout(loadError)) throw loadError;
       console.warn('AdMob Interstitial Timeout beim Laden, versuche einen einmaligen Neuaufbau der Anzeige …', loadError);
       resetAdMobInterstitialInstance();
       interstitial = await ensureAdMobInterstitial();
+      logAdMob('interstitial load retry begin', { adUnitId: maskAdUnitId(admobInterstitialAdUnitId) });
       await withTimeout(
         interstitial.load(),
         30000,
         'Werbung konnte auch im zweiten Versuch nicht rechtzeitig geladen werden (Timeout nach 45s gesamt).'
       );
+      logAdMob('interstitial load retry success', { adUnitId: maskAdUnitId(admobInterstitialAdUnitId) });
     }
     state.adMob.isReady = true;
     state.adMob.statusMessage = 'Werbung ist bereit.';
     if (!silent) render();
     return interstitial;
   } catch (error) {
+    logAdMob('interstitial load fail', { error: error && error.message ? error.message : error });
     resetAdMobInterstitialInstance();
     state.adMob.statusMessage = '';
     if (!silent) {
@@ -959,6 +1009,7 @@ async function showProfileAd() {
       15000,
       'Anzeige konnte nicht geöffnet werden (Timeout). Das AdMob-Plugin hat innerhalb von 15s keine Rückmeldung auf "show" geliefert.'
     );
+    logAdMob('interstitial show success', { adUnitId: maskAdUnitId(admobInterstitialAdUnitId) });
     state.adMob.isReady = false;
     state.adMob.lastShownAt = new Date().toISOString();
     state.adMob.statusMessage = 'Werbung wurde angezeigt.';
@@ -968,6 +1019,7 @@ async function showProfileAd() {
     });
   } catch (error) {
     console.error('AdMob konnte nicht angezeigt werden:', error);
+    logAdMob('interstitial show fail', { error: error && error.message ? error.message : error });
     state.adMob.isReady = false;
     state.adMob.lastError = error && error.message ? error.message : 'Anzeige konnte nicht geladen werden.';
     state.adMob.statusMessage = '';
@@ -987,16 +1039,19 @@ async function showProfileBannerAd() {
     state.adMob.statusMessage = 'Banner wird geladen …';
     render();
     const banner = await ensureAdMobBanner();
+    logAdMob('banner show begin', { adUnitId: maskAdUnitId(admobBannerAdUnitId) });
     await withTimeout(
       banner.show(),
       15000,
       'Banner konnte nicht geöffnet werden (Timeout). Das AdMob-Plugin hat innerhalb von 15s keine Rückmeldung geliefert.'
     );
+    logAdMob('banner show success', { adUnitId: maskAdUnitId(admobBannerAdUnitId) });
     state.adMob.lastShownAt = new Date().toISOString();
     state.adMob.statusMessage = 'Banner wurde geladen.';
     render();
   } catch (error) {
     console.error('Banner-Ad konnte nicht angezeigt werden:', error);
+    logAdMob('banner show fail', { error: error && error.message ? error.message : error });
     state.adMob.lastError = error && error.message ? error.message : 'Banner konnte nicht geladen werden.';
     state.adMob.statusMessage = '';
     render();
@@ -1015,11 +1070,13 @@ async function showProfileRewardedAd() {
     state.adMob.statusMessage = 'Rewarded Ad wird geladen …';
     render();
     const rewarded = await ensureAdMobRewarded();
+    logAdMob('rewarded load begin', { adUnitId: maskAdUnitId(admobRewardedAdUnitId) });
     await withTimeout(
       rewarded.load(),
       15000,
       'Rewarded Ad konnte nicht geladen werden (Timeout). Das AdMob-Plugin hat innerhalb von 15s weder "load" noch "loadfail" geliefert.'
     );
+    logAdMob('rewarded load success', { adUnitId: maskAdUnitId(admobRewardedAdUnitId) });
     state.adMob.statusMessage = 'Rewarded Ad wird angezeigt …';
     render();
     await withTimeout(
@@ -1027,11 +1084,13 @@ async function showProfileRewardedAd() {
       15000,
       'Rewarded Ad konnte nicht angezeigt werden (Timeout). Das AdMob-Plugin hat innerhalb von 15s keine Rückmeldung auf "show" geliefert.'
     );
+    logAdMob('rewarded show success', { adUnitId: maskAdUnitId(admobRewardedAdUnitId) });
     state.adMob.lastShownAt = new Date().toISOString();
     state.adMob.statusMessage = 'Rewarded Ad wurde angezeigt.';
     render();
   } catch (error) {
     console.error('Rewarded-Ad konnte nicht angezeigt werden:', error);
+    logAdMob('rewarded show fail', { error: error && error.message ? error.message : error });
     state.adMob.lastError = error && error.message ? error.message : 'Rewarded Ad konnte nicht geladen werden.';
     state.adMob.statusMessage = '';
     render();
@@ -1889,8 +1948,14 @@ async function bootstrap() {
 
 if (isCordovaFileRuntime) {
   document.addEventListener('deviceready', () => {
+    logAdMob('deviceready fired', {
+      isCordovaFileRuntime,
+      hasCordova: Boolean(window.cordova),
+      hasAdMob: Boolean(window.admob)
+    });
     state.cordovaReady = true;
     inspectAdMobPluginVersion();
+    attachAdMobEventLogging();
     syncSystemUiTheme();
     preloadProfileAd({ silent: true }).catch(() => {});
     bootstrap();
