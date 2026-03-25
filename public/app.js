@@ -59,6 +59,7 @@ const ADMOB_TEST_IDS = {
 
 let admobInterstitial = null;
 let admobStartPromise = null;
+let admobStarted = false;
 const ADMOB_MIN_RECOMMENDED_PLUGIN_VERSION = '2.0.0-alpha.19';
 
 
@@ -763,14 +764,34 @@ async function ensureAdMobInterstitial() {
   }
   inspectAdMobPluginVersion();
 
-  if (!admobStartPromise) {
-    admobStartPromise = withTimeout(
-      Promise.resolve(typeof admob.start === 'function' ? admob.start() : undefined),
-      12000,
-      'AdMob-Initialisierung hat zu lange gedauert (Timeout). Prüfe Netzwerk, Consent und App-ID.'
-    );
+  if (!admobStarted && !admobStartPromise) {
+    admobStartPromise = (async () => {
+      if (typeof admob.start !== 'function') {
+        admobStarted = true;
+        return true;
+      }
+      try {
+        await withTimeout(
+          Promise.resolve(admob.start()),
+          15000,
+          '__ADMOB_START_TIMEOUT__'
+        );
+        admobStarted = true;
+        return true;
+      } catch (error) {
+        const isTimeout = error && error.message === '__ADMOB_START_TIMEOUT__';
+        if (isTimeout) {
+          console.warn('AdMob start timeout - versuche trotzdem, Interstitial direkt zu laden.');
+          return false;
+        }
+        admobStartPromise = null;
+        throw error;
+      }
+    })();
   }
-  await admobStartPromise;
+  if (admobStartPromise) {
+    await admobStartPromise;
+  }
 
   const { interstitialAdUnitId } = readAdMobConfig();
   if (!admobInterstitial || admobInterstitial.id !== interstitialAdUnitId) {
