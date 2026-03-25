@@ -66,6 +66,9 @@ const ADMOB_TEST_IDS = {
 let admobInterstitial = null;
 let admobRewarded = null;
 let admobBanner = null;
+let admobInterstitialAdUnitId = '';
+let admobRewardedAdUnitId = '';
+let admobBannerAdUnitId = '';
 let admobStartPromise = null;
 let admobStarted = false;
 const ADMOB_MIN_RECOMMENDED_PLUGIN_VERSION = '2.0.0-alpha.19';
@@ -851,9 +854,9 @@ async function ensureAdMobInterstitial() {
     throw new Error('AdMob-Plugin nicht gefunden. Installiere zuerst admob-plus-cordova im Cordova-Projekt.');
   }
   const { interstitialAdUnitId } = readAdMobConfig();
-  if (!admobInterstitial || admobInterstitial.id !== interstitialAdUnitId) {
-    admobInterstitial = new admob.InterstitialAd({ adUnitId: interstitialAdUnitId, id: interstitialAdUnitId });
-    admobInterstitial.id = interstitialAdUnitId;
+  if (!admobInterstitial || admobInterstitialAdUnitId !== interstitialAdUnitId) {
+    admobInterstitial = new admob.InterstitialAd({ adUnitId: interstitialAdUnitId });
+    admobInterstitialAdUnitId = interstitialAdUnitId;
   }
   return admobInterstitial;
 }
@@ -864,9 +867,9 @@ async function ensureAdMobRewarded() {
     throw new Error('Rewarded Ads werden vom installierten AdMob-Plugin nicht unterstützt.');
   }
   const { rewardedAdUnitId } = readAdMobConfig();
-  if (!admobRewarded || admobRewarded.id !== rewardedAdUnitId) {
-    admobRewarded = new admob.RewardedAd({ adUnitId: rewardedAdUnitId, id: rewardedAdUnitId });
-    admobRewarded.id = rewardedAdUnitId;
+  if (!admobRewarded || admobRewardedAdUnitId !== rewardedAdUnitId) {
+    admobRewarded = new admob.RewardedAd({ adUnitId: rewardedAdUnitId });
+    admobRewardedAdUnitId = rewardedAdUnitId;
   }
   return admobRewarded;
 }
@@ -877,9 +880,9 @@ async function ensureAdMobBanner() {
     throw new Error('Banner Ads werden vom installierten AdMob-Plugin nicht unterstützt.');
   }
   const { bannerAdUnitId } = readAdMobConfig();
-  if (!admobBanner || admobBanner.id !== bannerAdUnitId) {
-    admobBanner = new admob.BannerAd({ adUnitId: bannerAdUnitId, id: bannerAdUnitId });
-    admobBanner.id = bannerAdUnitId;
+  if (!admobBanner || admobBannerAdUnitId !== bannerAdUnitId) {
+    admobBanner = new admob.BannerAd({ adUnitId: bannerAdUnitId });
+    admobBannerAdUnitId = bannerAdUnitId;
   }
   return admobBanner;
 }
@@ -896,7 +899,7 @@ async function preloadProfileAd(options = {}) {
     await withTimeout(
       interstitial.load(),
       15000,
-      'Werbung konnte nicht rechtzeitig geladen werden (Timeout). Häufige Ursachen: kein Fill, keine Internetverbindung oder fehlende Einwilligung.'
+      'Werbung konnte nicht rechtzeitig geladen werden (Timeout). Das AdMob-Plugin hat innerhalb von 15s weder "load" noch "loadfail" geliefert.'
     );
     state.adMob.isReady = true;
     state.adMob.statusMessage = 'Werbung ist bereit.';
@@ -927,7 +930,7 @@ async function showProfileAd() {
     await withTimeout(
       interstitial.show(),
       15000,
-      'Anzeige konnte nicht geöffnet werden (Timeout). Bitte App kurz neu starten und später erneut versuchen.'
+      'Anzeige konnte nicht geöffnet werden (Timeout). Das AdMob-Plugin hat innerhalb von 15s keine Rückmeldung auf "show" geliefert.'
     );
     state.adMob.isReady = false;
     state.adMob.lastShownAt = new Date().toISOString();
@@ -960,7 +963,7 @@ async function showProfileBannerAd() {
     await withTimeout(
       banner.show(),
       15000,
-      'Banner konnte nicht geöffnet werden (Timeout).'
+      'Banner konnte nicht geöffnet werden (Timeout). Das AdMob-Plugin hat innerhalb von 15s keine Rückmeldung geliefert.'
     );
     state.adMob.lastShownAt = new Date().toISOString();
     state.adMob.statusMessage = 'Banner wurde geladen.';
@@ -988,14 +991,14 @@ async function showProfileRewardedAd() {
     await withTimeout(
       rewarded.load(),
       15000,
-      'Rewarded Ad konnte nicht geladen werden (Timeout).'
+      'Rewarded Ad konnte nicht geladen werden (Timeout). Das AdMob-Plugin hat innerhalb von 15s weder "load" noch "loadfail" geliefert.'
     );
     state.adMob.statusMessage = 'Rewarded Ad wird angezeigt …';
     render();
     await withTimeout(
       rewarded.show(),
       15000,
-      'Rewarded Ad konnte nicht angezeigt werden (Timeout).'
+      'Rewarded Ad konnte nicht angezeigt werden (Timeout). Das AdMob-Plugin hat innerhalb von 15s keine Rückmeldung auf "show" geliefert.'
     );
     state.adMob.lastShownAt = new Date().toISOString();
     state.adMob.statusMessage = 'Rewarded Ad wurde angezeigt.';
