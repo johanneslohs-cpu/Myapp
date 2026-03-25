@@ -50,10 +50,12 @@ let searchReloadTimer = null;
 
 const ADMOB_TEST_IDS = {
   android: {
-    interstitial: 'ca-app-pub-3940256099942544/1033173712'
+    interstitial: 'ca-app-pub-3940256099942544/1033173712',
+    rewardedInterstitial: 'ca-app-pub-3940256099942544/5354046379'
   },
   ios: {
-    interstitial: 'ca-app-pub-3940256099942544/4411468910'
+    interstitial: 'ca-app-pub-3940256099942544/4411468910',
+    rewardedInterstitial: 'ca-app-pub-3940256099942544/6978759866'
   }
 };
 
@@ -733,6 +735,43 @@ function withTimeout(promise, timeoutMs, message) {
   });
 }
 
+function normalizeAdMobError(error) {
+  if (!error) return { message: 'Anzeige konnte nicht geladen werden.', code: null };
+  if (typeof error === 'string') return { message: error, code: null };
+  const message = String(error.message || error.errorMessage || error.description || 'Anzeige konnte nicht geladen werden.');
+  const code = Number.isFinite(Number(error.code)) ? Number(error.code) : null;
+  return { message, code };
+}
+
+function createInterstitialLoadHelp(error, adUnitId) {
+  const normalized = normalizeAdMobError(error);
+  const detail = normalized.message || 'Unbekannter Fehler';
+  const hints = [];
+
+  if (normalized.code === 3 || /no[\s-]?fill/i.test(detail)) {
+    hints.push('Kein Fill: Für diese Kombination aus Gerät/Land/Zeit war aktuell keine passende Anzeige verfügbar.');
+  }
+  if (normalized.code === 1 || /invalid|ad unit|adunit|unit id/i.test(detail)) {
+    hints.push('Ad-Unit prüfen: Stelle sicher, dass eine Interstitial-ID verwendet wird (nicht Rewarded/Rewarded-Interstitial).');
+  }
+  const platformKey = getAdMobPlatformKey();
+  const rewardedInterstitialTestId = ADMOB_TEST_IDS[platformKey].rewardedInterstitial;
+  if (adUnitId && adUnitId === rewardedInterstitialTestId) {
+    hints.push('Konfiguration: Aktuell ist die Rewarded-Interstitial-Test-ID gesetzt. Für diesen Button wird eine normale Interstitial-ID benötigt.');
+  }
+  if (normalized.code === 2 || /network|internet|connection/i.test(detail)) {
+    hints.push('Netzwerk: Prüfe DNS/VPN/Firewall. Ein WLAN kann verbunden sein und trotzdem Ad-Requests blockieren.');
+  }
+  if (/consent|ump|gdpr|euconsent|privacy|consent/i.test(detail)) {
+    hints.push('Einwilligung: Consent-Flow (UMP) muss vor dem Laden der Anzeige abgeschlossen sein.');
+  }
+  if (!hints.length) {
+    hints.push('Mögliche Ursachen: kein Fill, fehlende Einwilligung (UMP), ungültige Ad-Unit oder temporäre Google-AdMob-Einschränkungen.');
+  }
+
+  return `Werbung konnte nicht geladen werden: ${detail}\n\n${hints.map((hint) => `• ${hint}`).join('\n')}`;
+}
+
 function readAdMobConfig() {
   const runtimeConfig = window.MYAPP_ADMOB_CONFIG && typeof window.MYAPP_ADMOB_CONFIG === 'object'
     ? window.MYAPP_ADMOB_CONFIG
@@ -823,7 +862,8 @@ async function preloadProfileAd(options = {}) {
     state.adMob.isReady = false;
     state.adMob.statusMessage = '';
     if (!silent) {
-      state.adMob.lastError = error && error.message ? error.message : 'Anzeige konnte nicht geladen werden.';
+      const { interstitialAdUnitId } = readAdMobConfig();
+      state.adMob.lastError = createInterstitialLoadHelp(error, interstitialAdUnitId);
       render();
     }
     throw error;
