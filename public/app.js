@@ -71,6 +71,7 @@ let admobRewardedAdUnitId = '';
 let admobBannerAdUnitId = '';
 let admobStartPromise = null;
 let admobStarted = false;
+let adMobPluginUnavailableReason = '';
 const ADMOB_MIN_RECOMMENDED_PLUGIN_VERSION = '2.0.0-alpha.19';
 let adMobEventLoggingAttached = false;
 
@@ -861,6 +862,7 @@ function attachAdMobEventLogging() {
 async function ensureAdMobStarted() {
   if (!state.isCordova) throw new Error('AdMob läuft nur innerhalb der Cordova-App.');
   if (!state.cordovaReady) throw new Error('Cordova ist noch nicht bereit. Bitte versuche es gleich noch einmal.');
+  if (adMobPluginUnavailableReason) throw new Error(adMobPluginUnavailableReason);
   const admob = window.admob;
   if (!admob) {
     throw new Error('AdMob-Plugin nicht gefunden. Installiere zuerst admob-plus-cordova im Cordova-Projekt.');
@@ -886,9 +888,9 @@ async function ensureAdMobStarted() {
       } catch (error) {
         const isTimeout = error && error.message === '__ADMOB_START_TIMEOUT__';
         if (isTimeout) {
-          console.warn('AdMob start timeout - versuche trotzdem, Anzeige direkt zu laden.');
           logAdMob('start timeout');
-          return false;
+          adMobPluginUnavailableReason = 'AdMob-Plugin antwortet nicht. Wahrscheinlich ist das native Plugin in der App nicht eingebunden (ClassNotFound). Bitte im Cordova-Projekt "admob-plus-cordova" neu installieren und die App komplett neu bauen.';
+          throw new Error(adMobPluginUnavailableReason);
         }
         admobStartPromise = null;
         logAdMob('start fail', { error: error && error.message ? error.message : error });
