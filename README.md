@@ -119,6 +119,10 @@ cordova plugin add admob-plus-cordova@2.0.0-alpha.19 --save --variable APP_ID_AN
 Wichtig:
 
 - Die **App-IDs** kommen beim Plugin-Install als Variablen hinein, nicht in `public/app.js`.
+- Für lokale Tests solltest du die offiziellen Google-Test-App-IDs verwenden:
+  - Android: `ca-app-pub-3940256099942544~3347511713`
+  - iOS: `ca-app-pub-3940256099942544~1458002511`
+- Wenn das Laden trotz korrekter App-ID hängt, liegt es in der Praxis oft an Consent/Datenschutz-Flow (UMP) oder Netzwerkrestriktionen auf dem Gerät.
 - Das Frontend nutzt aktuell automatisch Googles **Test-Interstitial-ID**, solange keine eigene Ad-Unit gesetzt wurde.
 - Deine echte Interstitial-Ad-Unit kannst du später z. B. per Runtime-Konfiguration setzen:
 
