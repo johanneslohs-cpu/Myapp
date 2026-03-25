@@ -139,6 +139,13 @@ window.MYAPP_ADMOB_CONFIG = {
 
 Alternativ kannst du dieselbe Struktur auch in `localStorage` unter `myapp_admob_config` speichern.
 
+Typische Fehlerbilder beim Laden:
+
+- **Kein Fill (`no fill`, meist Fehlercode 3)**: Es gibt in diesem Moment für Gerät/Standort/Anfrage keine passende Anzeige. Das ist kein Codefehler und kann temporär sein.
+- **Fehlende Einwilligung (UMP/GDPR)**: Wenn personalisierte Werbung nur nach Consent erlaubt ist, muss der Consent-Dialog vorher vollständig abgeschlossen werden.
+- **Falscher Ad-Unit-Typ**: Für `new admob.InterstitialAd(...)` muss eine normale **Interstitial-ID** verwendet werden. Eine **Rewarded** oder **Rewarded-Interstitial-ID** kann zu Ladefehlern führen.
+- **Netzwerk blockiert trotz Internet**: VPN, Private DNS, Firewall/Adblocker oder restriktives WLAN können AdMob-Requests unterbinden.
+
 ### Statusleiste in Cordova ausblenden
 
 Damit die Android-Statusleiste (Uhrzeit/Akku/weißer Balken oben) wirklich verschwindet, reicht reines Frontend-CSS nicht aus.
