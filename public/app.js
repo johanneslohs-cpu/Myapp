@@ -746,6 +746,15 @@ function withTimeout(promise, timeoutMs, message) {
   });
 }
 
+function isAdMobOperationTimeout(error) {
+  return Boolean(
+    error
+    && typeof error.message === 'string'
+    && /timeout/i.test(error.message)
+    && /admob|anzeige|banner|rewarded|werbung|plugin/i.test(error.message)
+  );
+}
+
 function normalizeAdMobError(error) {
   if (!error) return { message: 'Anzeige konnte nicht geladen werden.', code: null };
   if (typeof error === 'string') return { message: error, code: null };
@@ -861,6 +870,12 @@ async function ensureAdMobInterstitial() {
   return admobInterstitial;
 }
 
+function resetAdMobInterstitialInstance() {
+  admobInterstitial = null;
+  admobInterstitialAdUnitId = '';
+  state.adMob.isReady = false;
+}
+
 async function ensureAdMobRewarded() {
   const admob = await ensureAdMobStarted();
   if (typeof admob.RewardedAd !== 'function') {
@@ -895,18 +910,30 @@ async function preloadProfileAd(options = {}) {
       state.adMob.statusMessage = 'Werbung wird geladen …';
       render();
     }
-    const interstitial = await ensureAdMobInterstitial();
-    await withTimeout(
-      interstitial.load(),
-      15000,
-      'Werbung konnte nicht rechtzeitig geladen werden (Timeout). Das AdMob-Plugin hat innerhalb von 15s weder "load" noch "loadfail" geliefert.'
-    );
+    let interstitial = await ensureAdMobInterstitial();
+    try {
+      await withTimeout(
+        interstitial.load(),
+        15000,
+        'Werbung konnte nicht rechtzeitig geladen werden (Timeout). Das AdMob-Plugin hat innerhalb von 15s weder "load" noch "loadfail" geliefert.'
+      );
+    } catch (loadError) {
+      if (!isAdMobOperationTimeout(loadError)) throw loadError;
+      console.warn('AdMob Interstitial Timeout beim Laden, versuche einen einmaligen Neuaufbau der Anzeige …', loadError);
+      resetAdMobInterstitialInstance();
+      interstitial = await ensureAdMobInterstitial();
+      await withTimeout(
+        interstitial.load(),
+        30000,
+        'Werbung konnte auch im zweiten Versuch nicht rechtzeitig geladen werden (Timeout nach 45s gesamt).'
+      );
+    }
     state.adMob.isReady = true;
     state.adMob.statusMessage = 'Werbung ist bereit.';
     if (!silent) render();
     return interstitial;
   } catch (error) {
-    state.adMob.isReady = false;
+    resetAdMobInterstitialInstance();
     state.adMob.statusMessage = '';
     if (!silent) {
       const { interstitialAdUnitId } = readAdMobConfig();
