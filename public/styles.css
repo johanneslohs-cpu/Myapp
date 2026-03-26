@@ -242,6 +242,23 @@ h1,h2,h3,p{margin:0}
 input,textarea,select{border:1px solid var(--line);padding:10px;background:#111a14;color:var(--text);width:100%;border-radius:12px}
 textarea{min-height:100px}
 .empty-state{background:linear-gradient(180deg,#1c2b22,#18231c);border:1px solid var(--line);padding:22px;border-radius:20px;box-shadow:var(--glow)}
+.swipe-limit-empty-state{
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+}
+.swipe-limit-empty-state h3{
+  font-size:20px;
+  line-height:1.1;
+}
+.swipe-limit-empty-state p{
+  color:#d7e4da;
+  line-height:1.45;
+}
+.swipe-limit-empty-state #watchRewardedForSwipes{
+  margin-top:6px;
+  align-self:flex-start;
+}
 .hidden{display:none}
 
 .lists-stack{display:flex;flex-direction:column;gap:12px}

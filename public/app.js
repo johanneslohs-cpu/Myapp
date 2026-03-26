@@ -631,7 +631,7 @@ function renderSwipe() {
   if (swipeLimitReached) {
     return `${header('Menu-Swipe', `<button class="btn" id="openFilter">▼ Filter</button>`)}
       <p class="small">${swipeHeader}</p>
-      <div class="empty-state">
+      <div class="empty-state swipe-limit-empty-state">
         <h3>Deine Swipes für heute sind aufgebraucht</h3>
         <p>Schau dir eine Rewarded Ad an und erhalte sofort ${REWARDED_SWIPE_BONUS} weitere Swipes.</p>
         <button class="btn" id="watchRewardedForSwipes">Rewarded Ad ansehen (+${REWARDED_SWIPE_BONUS} Swipes)</button>
