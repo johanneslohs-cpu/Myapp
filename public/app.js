@@ -333,13 +333,18 @@ function syncRecipeCollections(recipe, action) {
 
 function nav() {
   const tabs = [
-    ['discover', '🌿', 'Entdecken'],
-    ['swipe', '🔥', 'Swipe'],
-    ['favorites', '💚', 'Favoriten'],
-    ['lists', '🛒', 'Listen'],
-    ['profile', '👤', 'Profil']
+    ['discover', '◉', 'Entdecken'],
+    ['swipe', '✦', 'Swipe'],
+    ['favorites', '♥', 'Favoriten'],
+    ['lists', '≣', 'Listen'],
+    ['profile', '◌', 'Profil']
   ];
-  return `<div class="bottom-nav">${tabs.map(([id, icon, title]) => `<div class="nav-btn ${state.tab === id ? 'active' : ''}" data-tab="${id}">${icon}<br>${title}</div>`).join('')}</div>`;
+  return `<nav class="bottom-nav">${tabs.map(([id, icon, title]) => `
+    <button class="nav-btn ${state.tab === id ? 'active' : ''}" data-tab="${id}" aria-label="${title}" type="button">
+      <span class="nav-icon" aria-hidden="true">${icon}</span>
+      <span class="nav-label">${title}</span>
+    </button>
+  `).join('')}</nav>`;
 }
 
 function syncNavigationBarTheme(themeColor) {
