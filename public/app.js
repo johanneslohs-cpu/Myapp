@@ -17,7 +17,8 @@ const MAX_SHOPPING_LISTS = 10;
 const MAX_LIST_NAME_LENGTH = 30;
 const BASE_DAILY_SWIPE_LIMIT = 10;
 const REWARDED_SWIPE_BONUS = 10;
-const INTERSTITIAL_COOLDOWN_MS = 5 * 60 * 1000;
+const INTERSTITIAL_COOLDOWN_MS = 15 * 60 * 1000;
+const INTERSTITIAL_TRIGGER_TABS = new Set(['swipe']);
 const state = {
   tab: 'discover',
   recipes: [],
@@ -81,6 +82,7 @@ let admobStartPromise = null;
 let admobStarted = false;
 const ADMOB_MIN_RECOMMENDED_PLUGIN_VERSION = '2.0.0-alpha.19';
 let adMobEventLoggingAttached = false;
+let rewardedFlowId = 0;
 
 function maskAdUnitId(adUnitId = '') {
   const value = String(adUnitId || '');
@@ -808,6 +810,20 @@ function withTimeout(promise, timeoutMs, message) {
   });
 }
 
+async function forceCloseAdInstance(adInstance) {
+  if (!adInstance) return false;
+  const dismissFn = typeof adInstance.hide === 'function'
+    ? adInstance.hide.bind(adInstance)
+    : (typeof adInstance.dismiss === 'function' ? adInstance.dismiss.bind(adInstance) : null);
+  if (!dismissFn) return false;
+  try {
+    await Promise.resolve(dismissFn());
+    return true;
+  } catch (_error) {
+    return false;
+  }
+}
+
 function isAdMobOperationTimeout(error) {
   return Boolean(
     error
@@ -1048,12 +1064,13 @@ async function preloadInterstitialAd(options = {}) {
 async function showInterstitialAd(options = {}) {
   const { silent = false } = options;
   if (state.adMob.isBusy) return;
+  let interstitial = null;
   try {
     state.adMob.isBusy = true;
     state.adMob.lastError = '';
     state.adMob.statusMessage = state.adMob.isReady ? 'Werbung wird angezeigt …' : 'Werbung wird geladen …';
     render();
-    const interstitial = state.adMob.isReady ? await ensureAdMobInterstitial() : await preloadInterstitialAd({ silent: true });
+    interstitial = state.adMob.isReady ? await ensureAdMobInterstitial() : await preloadInterstitialAd({ silent: true });
     state.adMob.statusMessage = 'Werbung wird angezeigt …';
     render();
     await withTimeout(
@@ -1072,6 +1089,9 @@ async function showInterstitialAd(options = {}) {
   } catch (error) {
     console.error('AdMob konnte nicht angezeigt werden:', error);
     logAdMob('interstitial show fail', { error: error && error.message ? error.message : error });
+    if (interstitial) {
+      await forceCloseAdInstance(interstitial);
+    }
     state.adMob.isReady = false;
     state.adMob.lastError = error && error.message ? error.message : 'Anzeige konnte nicht geladen werden.';
     state.adMob.statusMessage = '';
@@ -1083,26 +1103,50 @@ async function showInterstitialAd(options = {}) {
   }
 }
 
-function shouldShowInterstitialNow() {
+function shouldShowInterstitialNow(options = {}) {
+  const { nextTab = '' } = options;
   if (!state.isCordova || !state.cordovaReady || state.adMob.isBusy) return false;
+  if (nextTab && !INTERSTITIAL_TRIGGER_TABS.has(nextTab)) return false;
   const lastShown = state.adMob.lastShownAt ? Date.parse(state.adMob.lastShownAt) : 0;
   if (!lastShown) return true;
   return (Date.now() - lastShown) >= INTERSTITIAL_COOLDOWN_MS;
 }
 
-async function maybeShowInterstitialOnTrigger() {
-  if (!shouldShowInterstitialNow()) return;
+async function maybeShowInterstitialOnTrigger(nextTab = '') {
+  if (!shouldShowInterstitialNow({ nextTab })) return;
   await showInterstitialAd({ silent: true });
 }
 
 async function showRewardedAdForSwipeCredits() {
   if (state.adMob.isBusy) return;
+  const flowId = ++rewardedFlowId;
+  let rewarded = null;
+  let rewardGranted = false;
+  let dismissResolver = null;
+  let dismissRejecter = null;
+  const dismissPromise = new Promise((resolve, reject) => {
+    dismissResolver = resolve;
+    dismissRejecter = reject;
+  });
+  const onReward = () => {
+    rewardGranted = true;
+  };
+  const onDismiss = () => {
+    dismissResolver();
+  };
+  const onShowFail = (event) => {
+    const detail = event && event.detail ? event.detail : event;
+    const message = detail && (detail.errorMessage || detail.message)
+      ? String(detail.errorMessage || detail.message)
+      : 'Rewarded Ad konnte nicht angezeigt werden.';
+    dismissRejecter(new Error(message));
+  };
   try {
     state.adMob.isBusy = true;
     state.adMob.lastError = '';
     state.adMob.statusMessage = 'Rewarded Ad wird geladen …';
     render();
-    const rewarded = await ensureAdMobRewarded();
+    rewarded = await ensureAdMobRewarded();
     logAdMob('rewarded load begin', { adUnitId: maskAdUnitId(admobRewardedAdUnitId) });
     await withTimeout(
       rewarded.load(),
@@ -1118,24 +1162,49 @@ async function showRewardedAdForSwipeCredits() {
       'Rewarded Ad konnte nicht angezeigt werden (Timeout). Das AdMob-Plugin hat innerhalb von 15s keine Rückmeldung auf "show" geliefert.'
     );
     logAdMob('rewarded show success', { adUnitId: maskAdUnitId(admobRewardedAdUnitId) });
+    document.addEventListener('admob.ad.reward', onReward);
+    document.addEventListener('admob.ad.dismiss', onDismiss);
+    document.addEventListener('admob.ad.showfail', onShowFail);
+    await withTimeout(
+      dismissPromise,
+      65000,
+      'Rewarded Ad hat sich nicht korrekt geschlossen. Bitte versuche es erneut.'
+    );
     state.adMob.lastShownAt = new Date().toISOString();
-    state.adMob.statusMessage = 'Rewarded Ad wurde angezeigt.';
-    ensureDailySwipeQuota();
-    state.swipeQuota.remaining += REWARDED_SWIPE_BONUS;
-    state.swipeQuota.rewardedGrants += 1;
-    persistSwipeQuota();
+    if (rewardGranted) {
+      state.adMob.statusMessage = 'Rewarded Ad abgeschlossen.';
+      ensureDailySwipeQuota();
+      state.swipeQuota.remaining += REWARDED_SWIPE_BONUS;
+      state.swipeQuota.rewardedGrants += 1;
+      persistSwipeQuota();
+      render();
+      alert(`Danke! Du hast ${REWARDED_SWIPE_BONUS} zusätzliche Swipes erhalten.`);
+      return true;
+    }
+    state.adMob.statusMessage = 'Anzeige geschlossen, keine Belohnung erhalten.';
     render();
-    alert(`Danke! Du hast ${REWARDED_SWIPE_BONUS} zusätzliche Swipes erhalten.`);
-    return true;
+    alert('Du hast die Anzeige geschlossen, bevor die Belohnung vergeben wurde.');
+    return false;
   } catch (error) {
     console.error('Rewarded-Ad konnte nicht angezeigt werden:', error);
     logAdMob('rewarded show fail', { error: error && error.message ? error.message : error });
+    if (rewarded) {
+      const didForceClose = await forceCloseAdInstance(rewarded);
+      if (didForceClose) {
+        logAdMob('rewarded force close success', { adUnitId: maskAdUnitId(admobRewardedAdUnitId) });
+      }
+    }
     state.adMob.lastError = error && error.message ? error.message : 'Rewarded Ad konnte nicht geladen werden.';
     state.adMob.statusMessage = '';
     render();
     alert(state.adMob.lastError);
     return false;
   } finally {
+    if (flowId === rewardedFlowId) {
+      document.removeEventListener('admob.ad.reward', onReward);
+      document.removeEventListener('admob.ad.dismiss', onDismiss);
+      document.removeEventListener('admob.ad.showfail', onShowFail);
+    }
     state.adMob.isBusy = false;
     render();
   }
@@ -1748,7 +1817,7 @@ function bind() {
     state.tab = btn.dataset.tab;
     render();
     if (previousTab !== state.tab) {
-      await maybeShowInterstitialOnTrigger();
+      await maybeShowInterstitialOnTrigger(state.tab);
     }
   });
   const heroJump = document.querySelector('[data-tab-jump="swipe"]');
@@ -1757,7 +1826,7 @@ function bind() {
     state.tab = 'swipe';
     render();
     if (previousTab !== state.tab) {
-      await maybeShowInterstitialOnTrigger();
+      await maybeShowInterstitialOnTrigger(state.tab);
     }
   };
   document.querySelectorAll('[data-recipe]').forEach((el) => {
@@ -1791,7 +1860,7 @@ function bind() {
     state.tab = 'swipe';
     render();
     if (previousTab !== state.tab) {
-      await maybeShowInterstitialOnTrigger();
+      await maybeShowInterstitialOnTrigger(state.tab);
     }
   };
   document.querySelectorAll('[data-list]').forEach((el) => el.onclick = () => openListEditor(el.dataset.list));
