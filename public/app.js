@@ -15,6 +15,9 @@ function withApiBase(url) {
 
 const MAX_SHOPPING_LISTS = 10;
 const MAX_LIST_NAME_LENGTH = 30;
+const BASE_DAILY_SWIPE_LIMIT = 10;
+const REWARDED_SWIPE_BONUS = 10;
+const INTERSTITIAL_COOLDOWN_MS = 5 * 60 * 1000;
 const state = {
   tab: 'discover',
   recipes: [],
@@ -43,6 +46,11 @@ const state = {
     isBusy: false,
     isReady: false,
     statusMessage: ''
+  },
+  swipeQuota: {
+    dayKey: '',
+    remaining: BASE_DAILY_SWIPE_LIMIT,
+    rewardedGrants: 0
   }
 };
 
@@ -82,6 +90,43 @@ function maskAdUnitId(adUnitId = '') {
 
 function logAdMob(stage, payload = {}) {
   console.log(`[AdMobDebug] ${stage}`, payload);
+}
+
+function getLocalDayKey() {
+  const now = new Date();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  return `${now.getFullYear()}-${month}-${day}`;
+}
+
+function getSwipeQuotaStorageKey() {
+  const userId = state.auth && state.auth.id ? state.auth.id : 'guest';
+  return `myapp_swipe_quota_${userId}`;
+}
+
+function ensureDailySwipeQuota() {
+  const dayKey = getLocalDayKey();
+  const fallback = { dayKey, remaining: BASE_DAILY_SWIPE_LIMIT, rewardedGrants: 0 };
+  let next = { ...fallback };
+  try {
+    const raw = localStorage.getItem(getSwipeQuotaStorageKey());
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed && parsed.dayKey === dayKey) {
+        next = {
+          dayKey,
+          remaining: Math.max(0, Number(parsed.remaining) || 0),
+          rewardedGrants: Math.max(0, Number(parsed.rewardedGrants) || 0)
+        };
+      }
+    }
+  } catch (_error) {}
+  state.swipeQuota = next;
+  localStorage.setItem(getSwipeQuotaStorageKey(), JSON.stringify(next));
+}
+
+function persistSwipeQuota() {
+  localStorage.setItem(getSwipeQuotaStorageKey(), JSON.stringify(state.swipeQuota));
 }
 
 
@@ -410,6 +455,11 @@ function resetLocalUserState() {
   state.favorites = [];
   state.lists = [];
   state.settings = null;
+  state.swipeQuota = {
+    dayKey: '',
+    remaining: BASE_DAILY_SWIPE_LIMIT,
+    rewardedGrants: 0
+  };
 }
 
 function runCordovaGooglePlus(method) {
@@ -569,11 +619,25 @@ function renderSwipeCard(recipe, { top = false } = {}) {
 }
 
 function renderSwipe() {
+  ensureDailySwipeQuota();
   const queue = getSwipeQueue();
   const current = queue[0];
   const next = queue[1];
+  const swipesRemaining = state.swipeQuota.remaining;
+  const swipeLimitReached = swipesRemaining <= 0;
+  const swipeHeader = `${queue.length} Rezepte im Swipe-Deck · ${swipesRemaining} Swipes übrig`;
+  if (swipeLimitReached) {
+    return `${header('Menu-Swipe', `<button class="btn" id="openFilter">▼ Filter</button>`)}
+      <p class="small">${swipeHeader}</p>
+      <div class="empty-state">
+        <h3>Deine Swipes für heute sind aufgebraucht</h3>
+        <p>Schau dir eine Rewarded Ad an und erhalte sofort ${REWARDED_SWIPE_BONUS} weitere Swipes.</p>
+        <button class="btn" id="watchRewardedForSwipes">Rewarded Ad ansehen (+${REWARDED_SWIPE_BONUS} Swipes)</button>
+      </div>`;
+  }
   if (!current) {
     return `${header('Menu-Swipe', `<button class="btn" id="openFilter">▼ Filter</button>`)}
+      <p class="small">${swipeHeader}</p>
       <div class="empty-state">
         <h3>Keine Karten mehr im Swipe-Deck</h3>
         <p>Auf „Entdecken“ findest du weiterhin alle Rezepte.</p>
@@ -581,7 +645,7 @@ function renderSwipe() {
       </div>`;
   }
   return `${header('Menu-Swipe', `<button class="btn" id="openFilter">▼ Filter</button>`)}
-    <p class="small">${queue.length} Rezepte im Swipe-Deck</p>
+    <p class="small">${swipeHeader}</p>
     <div class="swipe-stage">
       <div class="swipe-stack">
         ${next ? renderSwipeCard(next) : '<div class="big-card swipe-card-placeholder"></div>'}
@@ -644,28 +708,10 @@ function renderProfile() {
   const avatarContent = hasImageUrl
     ? `<img src="${profileImage}" alt="${s.username}" class="avatar-image" loading="lazy">`
     : (s.username || '?').trim().charAt(0).toUpperCase() || '?';
-  const adButtonLabel = !state.isCordova
-    ? 'Werbung nur in App'
-    : (!state.cordovaReady
-      ? 'App wird vorbereitet …'
-      : (state.adMob.isBusy
-        ? 'Werbung lädt …'
-        : (state.adMob.isReady ? 'Werbung jetzt anzeigen' : 'Werbung laden und anzeigen')));
-  const adButtonDisabled = !state.isCordova || !state.cordovaReady || state.adMob.isBusy;
-
   return `${header('Profil', `<button class="btn profile-settings-btn" id="openSettings" aria-label="Einstellungen öffnen">⚙</button>`)}
   <div class="profile profile-hero"><div class="avatar" id="changeAvatar">${avatarContent}</div><h2>${s.username}</h2><p class="small profile-subtitle">Smart Meal Matching</p></div>
   <div class="stats profile-stats profile-stats-primary"><div class="card profile-card"><h2>${state.favorites.length} ♥</h2><div>Favoriten</div></div><div class="card profile-card"><h2>${state.lists.length} 🛒</h2><div>Einkaufslisten</div></div></div>
   <div class="stats profile-stats profile-stats-secondary"><div class="card profile-card profile-action-card" id="openExcluded">Das esse ich nicht</div><div class="card profile-card profile-action-card" id="openDiet">${s.diet}</div></div>
-  <button class="btn profile-admob-btn" id="showBannerAdButton" type="button" ${adButtonDisabled ? 'disabled' : ''}>Test Banner-ID laden</button>
-  <button class="btn profile-admob-btn" id="showAdButton" type="button" ${adButtonDisabled ? 'disabled' : ''}>${adButtonLabel}</button>
-  <button class="btn profile-admob-btn" id="showRewardedAdButton" type="button" ${adButtonDisabled ? 'disabled' : ''}>Rewarded Ad laden & anzeigen</button>
-  <p class="small profile-admob-hint">${state.isCordova ? (state.adMob.usingTestIds ? 'AdMob ist aktiv und verwendet aktuell Test-Anzeigen.' : 'AdMob ist vorbereitet. Beim Tippen wird eine Interstitial-Anzeige geladen und angezeigt.') : 'AdMob-Anzeigen funktionieren nur in der installierten Cordova-App.'}</p>
-  ${state.adMob.pluginVersion ? `<p class="small profile-admob-status">Plugin-Version: ${state.adMob.pluginVersion}</p>` : ''}
-  ${state.adMob.pluginVersionWarning ? `<p class="small profile-admob-status error">${state.adMob.pluginVersionWarning}</p>` : ''}
-  ${state.adMob.statusMessage ? `<p class="small profile-admob-status">${state.adMob.statusMessage}</p>` : ''}
-  ${state.adMob.lastError ? `<p class="small profile-admob-status error">${state.adMob.lastError}</p>` : ''}
-  ${state.adMob.lastShownAt ? `<p class="small profile-admob-status">Letzte Anzeige: ${new Date(state.adMob.lastShownAt).toLocaleString('de-DE')}</p>` : ''}
   <div class="list-item profile-list-item" id="openFeedback"><span>❓</span><span>Hilfe und Feedback</span></div>
   <div class="list-item profile-list-item" id="openLegal"><span>⋯</span><span>Sonstiges</span></div>`;
 }
@@ -952,7 +998,7 @@ async function ensureAdMobBanner() {
   return admobBanner;
 }
 
-async function preloadProfileAd(options = {}) {
+async function preloadInterstitialAd(options = {}) {
   const { silent = false } = options;
   try {
     if (!silent) {
@@ -999,14 +1045,15 @@ async function preloadProfileAd(options = {}) {
   }
 }
 
-async function showProfileAd() {
+async function showInterstitialAd(options = {}) {
+  const { silent = false } = options;
   if (state.adMob.isBusy) return;
   try {
     state.adMob.isBusy = true;
     state.adMob.lastError = '';
     state.adMob.statusMessage = state.adMob.isReady ? 'Werbung wird angezeigt …' : 'Werbung wird geladen …';
     render();
-    const interstitial = state.adMob.isReady ? await ensureAdMobInterstitial() : await preloadProfileAd({ silent: true });
+    const interstitial = state.adMob.isReady ? await ensureAdMobInterstitial() : await preloadInterstitialAd({ silent: true });
     state.adMob.statusMessage = 'Werbung wird angezeigt …';
     render();
     await withTimeout(
@@ -1019,7 +1066,7 @@ async function showProfileAd() {
     state.adMob.lastShownAt = new Date().toISOString();
     state.adMob.statusMessage = 'Werbung wurde angezeigt.';
     render();
-    preloadProfileAd({ silent: true }).catch((error) => {
+    preloadInterstitialAd({ silent: true }).catch((error) => {
       console.warn('Nächste AdMob-Anzeige konnte nicht vorgeladen werden:', error);
     });
   } catch (error) {
@@ -1029,45 +1076,26 @@ async function showProfileAd() {
     state.adMob.lastError = error && error.message ? error.message : 'Anzeige konnte nicht geladen werden.';
     state.adMob.statusMessage = '';
     render();
-    alert(state.adMob.lastError);
+    if (!silent) alert(state.adMob.lastError);
   } finally {
     state.adMob.isBusy = false;
     render();
   }
 }
 
-async function showProfileBannerAd() {
-  if (state.adMob.isBusy) return;
-  try {
-    state.adMob.isBusy = true;
-    state.adMob.lastError = '';
-    state.adMob.statusMessage = 'Banner wird geladen …';
-    render();
-    const banner = await ensureAdMobBanner();
-    logAdMob('banner show begin', { adUnitId: maskAdUnitId(admobBannerAdUnitId) });
-    await withTimeout(
-      banner.show(),
-      15000,
-      'Banner konnte nicht geöffnet werden (Timeout). Das AdMob-Plugin hat innerhalb von 15s keine Rückmeldung geliefert.'
-    );
-    logAdMob('banner show success', { adUnitId: maskAdUnitId(admobBannerAdUnitId) });
-    state.adMob.lastShownAt = new Date().toISOString();
-    state.adMob.statusMessage = 'Banner wurde geladen.';
-    render();
-  } catch (error) {
-    console.error('Banner-Ad konnte nicht angezeigt werden:', error);
-    logAdMob('banner show fail', { error: error && error.message ? error.message : error });
-    state.adMob.lastError = error && error.message ? error.message : 'Banner konnte nicht geladen werden.';
-    state.adMob.statusMessage = '';
-    render();
-    alert(state.adMob.lastError);
-  } finally {
-    state.adMob.isBusy = false;
-    render();
-  }
+function shouldShowInterstitialNow() {
+  if (!state.isCordova || !state.cordovaReady || state.adMob.isBusy) return false;
+  const lastShown = state.adMob.lastShownAt ? Date.parse(state.adMob.lastShownAt) : 0;
+  if (!lastShown) return true;
+  return (Date.now() - lastShown) >= INTERSTITIAL_COOLDOWN_MS;
 }
 
-async function showProfileRewardedAd() {
+async function maybeShowInterstitialOnTrigger() {
+  if (!shouldShowInterstitialNow()) return;
+  await showInterstitialAd({ silent: true });
+}
+
+async function showRewardedAdForSwipeCredits() {
   if (state.adMob.isBusy) return;
   try {
     state.adMob.isBusy = true;
@@ -1092,7 +1120,13 @@ async function showProfileRewardedAd() {
     logAdMob('rewarded show success', { adUnitId: maskAdUnitId(admobRewardedAdUnitId) });
     state.adMob.lastShownAt = new Date().toISOString();
     state.adMob.statusMessage = 'Rewarded Ad wurde angezeigt.';
+    ensureDailySwipeQuota();
+    state.swipeQuota.remaining += REWARDED_SWIPE_BONUS;
+    state.swipeQuota.rewardedGrants += 1;
+    persistSwipeQuota();
     render();
+    alert(`Danke! Du hast ${REWARDED_SWIPE_BONUS} zusätzliche Swipes erhalten.`);
+    return true;
   } catch (error) {
     console.error('Rewarded-Ad konnte nicht angezeigt werden:', error);
     logAdMob('rewarded show fail', { error: error && error.message ? error.message : error });
@@ -1100,6 +1134,7 @@ async function showProfileRewardedAd() {
     state.adMob.statusMessage = '';
     render();
     alert(state.adMob.lastError);
+    return false;
   } finally {
     state.adMob.isBusy = false;
     render();
@@ -1214,6 +1249,11 @@ function openRecipe(id) {
 }
 
 async function handleSwipeAction(action) {
+  ensureDailySwipeQuota();
+  if (state.swipeQuota.remaining <= 0) {
+    render();
+    return;
+  }
   const recipe = currentSwipeRecipe();
   if (!recipe || state.swipeBusy) return;
   state.swipeBusy = true;
@@ -1225,6 +1265,8 @@ async function handleSwipeAction(action) {
   }
 
   syncRecipeCollections(recipe, action);
+  state.swipeQuota.remaining = Math.max(0, state.swipeQuota.remaining - 1);
+  persistSwipeQuota();
   render();
 
   try {
@@ -1701,14 +1743,22 @@ async function openAddToList(ingredients) {
 }
 
 function bind() {
-  document.querySelectorAll('.nav-btn').forEach((btn) => btn.onclick = () => {
+  document.querySelectorAll('.nav-btn').forEach((btn) => btn.onclick = async () => {
+    const previousTab = state.tab;
     state.tab = btn.dataset.tab;
     render();
+    if (previousTab !== state.tab) {
+      await maybeShowInterstitialOnTrigger();
+    }
   });
   const heroJump = document.querySelector('[data-tab-jump="swipe"]');
-  if (heroJump) heroJump.onclick = () => {
+  if (heroJump) heroJump.onclick = async () => {
+    const previousTab = state.tab;
     state.tab = 'swipe';
     render();
+    if (previousTab !== state.tab) {
+      await maybeShowInterstitialOnTrigger();
+    }
   };
   document.querySelectorAll('[data-recipe]').forEach((el) => {
     if (el.id === 'swipeCard') return;
@@ -1735,9 +1785,14 @@ function bind() {
   const sd = document.getElementById('swipeDislike'); if (sd) sd.onclick = async () => handleSwipeAction('skip');
   const sii = document.getElementById('swipeInfo'); if (sii) sii.onclick = () => currentSwipeRecipe() && openRecipe(currentSwipeRecipe().id);
   const rd = document.getElementById('resetDislikes'); if (rd) rd.onclick = async () => { await api.post('/api/dislikes/reset'); state.swipedRecipeIds.clear(); state.dislikedRecipeIds.clear(); await reloadData(); };
-  const ts = document.getElementById('toSwipe'); if (ts) ts.onclick = () => {
+  const wr = document.getElementById('watchRewardedForSwipes'); if (wr) wr.onclick = showRewardedAdForSwipeCredits;
+  const ts = document.getElementById('toSwipe'); if (ts) ts.onclick = async () => {
+    const previousTab = state.tab;
     state.tab = 'swipe';
     render();
+    if (previousTab !== state.tab) {
+      await maybeShowInterstitialOnTrigger();
+    }
   };
   document.querySelectorAll('[data-list]').forEach((el) => el.onclick = () => openListEditor(el.dataset.list));
   const nl = document.getElementById('newList'); if (nl) nl.onclick = openNewList;
@@ -1746,9 +1801,6 @@ function bind() {
   const od = document.getElementById('openDiet'); if (od) od.onclick = openDiet;
   const of = document.getElementById('openFeedback'); if (of) of.onclick = openFeedback;
   const ol = document.getElementById('openLegal'); if (ol) ol.onclick = openLegal;
-  const sb = document.getElementById('showBannerAdButton'); if (sb) sb.onclick = showProfileBannerAd;
-  const sa = document.getElementById('showAdButton'); if (sa) sa.onclick = showProfileAd;
-  const sr = document.getElementById('showRewardedAdButton'); if (sr) sr.onclick = showProfileRewardedAd;
   const ca = document.getElementById('changeAvatar'); if (ca) ca.onclick = async () => { const e = prompt('Profilbild Emoji', state.settings.profile_image); if (e) { await api.patch('/api/settings', { profile_image: e }); await reloadData(); } };
   bindSwipeGestures();
 }
@@ -1927,6 +1979,7 @@ async function reloadData(options = {}) {
       state.dislikedRecipeIds = new Set(dislikes);
       state.lists = lists;
       state.settings = settings;
+      ensureDailySwipeQuota();
     }
 
     if (withRender) render();
@@ -1962,7 +2015,7 @@ if (isCordovaFileRuntime) {
     inspectAdMobPluginVersion();
     attachAdMobEventLogging();
     syncSystemUiTheme();
-    preloadProfileAd({ silent: true }).catch(() => {});
+    preloadInterstitialAd({ silent: true }).catch(() => {});
     bootstrap();
   }, { once: true });
 } else {
