@@ -107,7 +107,7 @@ h1,h2,h3,p{margin:0}
   display:grid;
   grid-template-columns:repeat(5,1fr);
   gap:0;
-  padding:10px 10px calc(12px + env(safe-area-inset-bottom));
+  padding:14px 10px calc(6px + env(safe-area-inset-bottom));
   background:rgba(8,13,10,.94);
   backdrop-filter:blur(14px);
   border-top:1px solid rgba(144,194,160,.24);
@@ -120,7 +120,7 @@ h1,h2,h3,p{margin:0}
   position:relative;
   border:none;
   border-radius:16px;
-  padding:8px 4px 6px;
+  padding:10px 4px 4px;
   text-align:center;
   cursor:pointer;
   color:#95a89c;
@@ -130,7 +130,7 @@ h1,h2,h3,p{margin:0}
   display:flex;
   flex-direction:column;
   align-items:center;
-  gap:4px;
+  gap:3px;
 }
 .nav-btn::before{
   content:'';
