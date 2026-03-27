@@ -380,7 +380,7 @@ function syncRecipeCollections(recipe, action) {
 
 function heartIcon(className = '') {
   return `<svg class="${className}" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-    <path d="M12 21s-7.2-4.5-9.5-8.7C.5 8.8 2.2 5 5.9 5c2.2 0 3.6 1.4 4.4 2.6.8-1.2 2.2-2.6 4.4-2.6 3.7 0 5.4 3.8 3.4 7.3C19.2 16.5 12 21 12 21z"></path>
+    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"></path>
   </svg>`;
 }
 
