@@ -378,11 +378,17 @@ function syncRecipeCollections(recipe, action) {
   }
 }
 
+function heartIcon(className = '') {
+  return `<svg class="${className}" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+    <path d="M12 21s-7.2-4.5-9.5-8.7C.5 8.8 2.2 5 5.9 5c2.2 0 3.6 1.4 4.4 2.6.8-1.2 2.2-2.6 4.4-2.6 3.7 0 5.4 3.8 3.4 7.3C19.2 16.5 12 21 12 21z"></path>
+  </svg>`;
+}
+
 function nav() {
   const tabs = [
     ['discover', '◉', 'Entdecken'],
     ['swipe', '✦', 'Swipe'],
-    ['favorites', '♥', 'Favoriten'],
+    ['favorites', heartIcon('heart-icon nav-heart-icon'), 'Favoriten'],
     ['lists', '≣', 'Listen'],
     ['profile', '◌', 'Profil']
   ];
@@ -657,7 +663,7 @@ function renderSwipe() {
     <div class="actions">
       <div class="circle dislike" id="swipeDislike">✕</div>
       <div class="circle" id="swipeInfo">i</div>
-      <div class="circle like" id="swipeLike">♥</div>
+      <div class="circle like" id="swipeLike">${heartIcon('heart-icon swipe-heart-icon')}</div>
     </div>`;
 }
 
@@ -1224,7 +1230,7 @@ function openRecipe(id) {
     modal(`<div class="recipe-detail">
       <div class="recipe-detail-top">
         <button class="btn" id="closeModal" type="button">← Zurück</button>
-        <button class="btn recipe-like-btn ${isFavorite ? 'active' : ''}" id="likeRecipe" type="button" aria-label="Rezept liken">♥</button>
+        <button class="btn recipe-like-btn ${isFavorite ? 'active' : ''}" id="likeRecipe" type="button" aria-label="Rezept liken">${heartIcon('heart-icon modal-heart-icon')}</button>
       </div>
       <div class="recipe-hero">
         <div class="recipe-hero-media">${recipeImageMarkup(r, 'detail-photo')}</div>
