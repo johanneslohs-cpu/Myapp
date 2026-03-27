@@ -38,7 +38,7 @@ body.cordova-immersive{
 h1,h2,h3,p{margin:0}
 
 .phone{width:100%;max-width:420px;min-height:100vh;min-height:100dvh;padding:calc(20px + env(safe-area-inset-top)) 18px calc(82px + env(safe-area-inset-bottom)) ;position:relative}
-.phone-swipe{display:flex;flex-direction:column;width:100%;max-width:420px;min-height:100vh;min-height:100dvh;padding:calc(16px + env(safe-area-inset-top)) 16px calc(84px + env(safe-area-inset-bottom))}
+.phone-swipe{display:flex;flex-direction:column;width:100%;max-width:420px;min-height:100vh;min-height:100dvh;padding:calc(16px + env(safe-area-inset-top)) 16px calc(112px + env(safe-area-inset-bottom))}
 
 .header{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;gap:12px}
 .header h1{font-size:28px;letter-spacing:.01em}
@@ -107,9 +107,9 @@ h1,h2,h3,p{margin:0}
   display:grid;
   grid-template-columns:repeat(5,1fr);
   gap:0;
-  align-items:end;
-  padding:8px 10px 10px;
-  min-height:74px;
+  align-items:center;
+  padding:6px 10px 8px;
+  min-height:64px;
   background:rgba(8,13,10,.94);
   backdrop-filter:blur(14px);
   border-top:1px solid rgba(144,194,160,.24);
@@ -122,7 +122,7 @@ h1,h2,h3,p{margin:0}
   position:relative;
   border:none;
   border-radius:16px;
-  padding:4px 4px 2px;
+  padding:2px 4px 1px;
   text-align:center;
   cursor:pointer;
   color:#95a89c;
@@ -132,24 +132,11 @@ h1,h2,h3,p{margin:0}
   display:flex;
   flex-direction:column;
   align-items:center;
-  gap:2px;
-}
-.nav-btn::before{
-  content:'';
-  width:7px;
-  height:7px;
-  border-radius:999px;
-  background:transparent;
-  box-shadow:0 0 0 0 rgba(87,216,144,0);
-  transition:.2s ease;
+  gap:3px;
 }
 .nav-btn .nav-icon{font-size:22px;line-height:1}
 .nav-btn .nav-label{font-size:10px;line-height:1.05}
 .nav-btn.active{color:var(--text)}
-.nav-btn.active::before{
-  background:var(--primary);
-  box-shadow:0 0 0 5px rgba(87,216,144,.16);
-}
 .nav-btn.active .nav-icon{color:var(--primary)}
 .nav-btn:hover{color:#dce6df}
 
@@ -168,8 +155,8 @@ h1,h2,h3,p{margin:0}
   content:'';
   position:absolute;
   inset:auto 0 0;
-  height:42%;
-  background:linear-gradient(180deg,rgba(8,14,11,0) 0%,rgba(8,14,11,.16) 18%,rgba(12,18,14,.72) 56%,rgba(15,21,17,.96) 100%);
+  height:36%;
+  background:linear-gradient(180deg,rgba(8,14,11,0) 0%,rgba(8,14,11,.12) 22%,rgba(12,18,14,.54) 64%,rgba(15,21,17,.84) 100%);
   pointer-events:none;
 }
 .swipe-photo{width:100%;height:100%;object-fit:cover;display:block}
@@ -187,11 +174,12 @@ h1,h2,h3,p{margin:0}
 .fly-right{transform:translate3d(130%, -4%, 0) rotate(24deg)!important;opacity:0}
 .fly-left{transform:translate3d(-130%, -4%, 0) rotate(-24deg)!important;opacity:0}
 
-.actions{display:flex;gap:24px;justify-content:center;align-items:center;margin-top:14px;padding:0 4px 6px;flex-shrink:0}
-.circle{width:72px;height:72px;border-radius:999px;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:34px;cursor:pointer;background:rgba(26,38,30,.94);box-shadow:0 14px 28px rgba(0,0,0,.3);transition:transform .18s ease,box-shadow .18s ease}
+.actions{display:flex;gap:24px;justify-content:center;align-items:center;margin-top:18px;margin-bottom:12px;padding:0 4px 6px;flex-shrink:0;position:relative;z-index:2}
+.circle{width:72px;height:72px;border-radius:999px;border:1px solid rgba(202,227,209,.3);display:flex;align-items:center;justify-content:center;font-size:34px;cursor:pointer;background:rgba(22,34,27,.96);box-shadow:0 14px 28px rgba(0,0,0,.26),inset 0 0 0 1px rgba(255,255,255,.04);transition:transform .18s ease,box-shadow .18s ease}
 .circle:hover{transform:translateY(-2px)}
 .circle.like{color:var(--primary)}
 .circle.dislike{color:#e6ece7}
+.circle#swipeInfo{font-weight:600;font-size:38px}
 
 .list-item{border:1px solid var(--line);padding:14px;background:linear-gradient(180deg,#202d24,#18221b);margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;border-radius:16px;box-shadow:0 10px 24px rgba(0,0,0,.2)}
 .profile{text-align:center;margin:16px 0 30px}
@@ -297,6 +285,10 @@ textarea{min-height:100px}
 .recipe-like-btn{font-size:24px;line-height:1;padding:9px 13px;color:#fff;min-width:64px;min-height:59px;display:flex;align-items:center;justify-content:center;border-radius:18px}
 .recipe-dislike-btn{font-size:30px;line-height:1;padding:8px 14px;color:#fff;min-width:74px;min-height:62px;display:flex;align-items:center;justify-content:center}
 .recipe-like-btn.active{color:var(--primary)}
+.heart-icon{display:block;width:1em;height:1em;fill:currentColor}
+.nav-heart-icon{font-size:20px}
+.swipe-heart-icon{font-size:36px}
+.modal-heart-icon{font-size:27px}
 
 .recipe-hero{
   border:1px solid var(--line);
