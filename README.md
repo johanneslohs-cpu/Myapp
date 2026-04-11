@@ -22,6 +22,80 @@ python3 app.py
 
 Dann im Browser öffnen: `http://localhost:3000`
 
+## Eigenes JSON mit vielen Rezepten einbinden (z. B. 800 Rezepte)
+
+Die App kann statt des eingebauten Katalogs ein externes Rezept-JSON laden.
+
+1. Lege dein JSON als `recipes.json` im Projekt-Root ab  
+   *(alternativ beliebiger Pfad über `RECIPE_JSON_PATH`)*.
+2. Starte die App normal, oder mit explizitem Pfad:
+
+```bash
+RECIPE_JSON_PATH=/pfad/zu/deinen-rezepten.json python3 app.py
+```
+
+### Wo auf GitHub hochladen? (konkret)
+
+**Empfohlen:** direkt ins Projekt-Root (also in denselben Ordner wie `app.py`).
+
+Dann sollte deine Repo-Struktur z. B. so aussehen:
+
+```text
+Myapp/
+├─ app.py
+├─ README.md
+├─ recipes.json   ← hier
+├─ public/
+└─ ...
+```
+
+**Dateiname:** standardmäßig genau **`recipes.json`**.
+
+Dann musst du nichts weiter konfigurieren, weil das Backend automatisch diese Datei sucht.
+
+Wenn die Datei anders heißt oder in einem Unterordner liegt, setze auf Render (oder lokal) die Umgebungsvariable:
+
+```bash
+RECIPE_JSON_PATH=/opt/render/project/src/dein-ordner/deine-datei.json
+```
+
+### Erwartetes JSON-Format
+
+Die Datei kann entweder direkt eine Liste von Rezepten sein:
+
+```json
+[
+  {
+    "name": "Tomatenpasta",
+    "category": "Hauptgericht",
+    "duration": 20,
+    "cuisine": "Italienisch",
+    "calories": 540,
+    "protein": 18,
+    "image": "https://...",
+    "description": "Schnell und einfach",
+    "ingredients": ["200 g Pasta", "400 g Tomaten"],
+    "steps": ["Pasta kochen", "Sauce machen"],
+    "nutrition": { "kcal": 540, "carbs": 70, "protein": 18, "fat": 12 },
+    "diet_tags": ["vegetarisch"]
+  }
+]
+```
+
+...oder ein Objekt mit `recipes` (oder `data`) als Liste enthalten.
+
+Hinweise:
+- `name`/`title`, `steps`/`instructions`, `image`/`image_url` werden unterstützt.
+- `ingredients_count` wird automatisch aus `ingredients` abgeleitet, falls nicht gesetzt.
+- Ungültige Einträge werden übersprungen; beim Start siehst du dazu Logs in der Konsole.
+- Zusätzlich wird auch dein deutsches Schema unterstützt, z. B.:
+  - `bezeichnung`
+  - `zubereitungsdauer_minuten`
+  - `ernaehrungsart`
+  - `zutaten` als Objekte mit `name`, `menge`, `einheit` (werden strukturiert übernommen)
+  - `naehrwerte.kalorien_kcal`, `naehrwerte.kohlenhydrate_g`, `naehrwerte.eiweiss_g`, `naehrwerte.fett_g`
+  - `bild_url`
+
 
 ## Muss `app.py` auf meinem Laptop laufen?
 

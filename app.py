@@ -1237,13 +1237,148 @@ RECIPE_CATALOG = [('Griechische Riesenbohnen aus dem Ofen',
   ['vegetarisch'])]
 
 
+RECIPE_JSON_PATH = Path(os.getenv("RECIPE_JSON_PATH", ROOT / "recipes.json"))
+
+
+def _pick(data, *keys, default=None):
+    for key in keys:
+        if key in data and data[key] is not None:
+            return data[key]
+    return default
+
+
+def _normalize_ingredient_entry(entry):
+    if isinstance(entry, dict):
+        normalized = dict(entry)
+        name = str(_pick(entry, "name", "bezeichnung", default="")).strip()
+        menge_raw = _pick(entry, "menge", "amount", default=None)
+        einheit = str(_pick(entry, "einheit", "unit", default="")).strip()
+        try:
+            menge = float(menge_raw) if menge_raw is not None and str(menge_raw).strip() != "" else None
+        except (TypeError, ValueError):
+            menge = None
+
+        if name:
+            normalized["name"] = name
+        if menge is not None:
+            normalized["menge"] = menge
+        if einheit:
+            normalized["einheit"] = einheit
+        return normalized
+
+    text = str(entry or "").strip()
+    return text if text else None
+
+
+def ingredient_entry_to_text(entry):
+    if isinstance(entry, dict):
+        name = str(_pick(entry, "name", "bezeichnung", default="")).strip()
+        if not name:
+            return ""
+        menge = _pick(entry, "menge", "amount", default=None)
+        einheit = str(_pick(entry, "einheit", "unit", default="")).strip()
+        if menge is None or str(menge).strip() == "":
+            return f"{einheit} {name}".strip()
+        return f"{menge} {einheit} {name}".replace("  ", " ").strip()
+    return str(entry or "").strip()
+
+
+def ingredients_to_text(entries):
+    return " ".join(filter(None, (ingredient_entry_to_text(entry).lower() for entry in (entries or []))))
+
+
+def _normalize_recipe_entry(entry):
+    if not isinstance(entry, dict):
+        raise ValueError("Rezept-Eintrag muss ein Objekt sein")
+
+    name = str(_pick(entry, "name", "title", "titel", "bezeichnung", default="")).strip()
+    if not name:
+        raise ValueError("Rezeptname fehlt")
+
+    ingredients = _pick(entry, "ingredients", "zutaten", default=[])
+    steps = _pick(entry, "steps", "instructions", "zubereitung", default=[])
+    tags = _pick(entry, "diet_tags", "tags", "dietTags", default=[])
+
+    if not isinstance(ingredients, list):
+        ingredients = [str(ingredients)] if ingredients else []
+    if not isinstance(steps, list):
+        steps = [str(steps)] if steps else []
+    if not isinstance(tags, list):
+        tags = [str(tags)] if tags else []
+
+    nutrition = _pick(entry, "nutrition", "nutrition_json", "naehrwerte", default={}) or {}
+    if not isinstance(nutrition, dict):
+        nutrition = {}
+
+    duration = int(_pick(entry, "duration", "duration_min", "time", "zubereitungsdauer_minuten", default=0) or 0)
+    calories = int(_pick(entry, "calories", "kcal", default=_pick(nutrition, "kcal", "kalorien_kcal", default=0)) or 0)
+    protein = int(_pick(entry, "protein", default=_pick(nutrition, "protein", "eiweiss", "eiweiss_g", default=0)) or 0)
+    ingredients_count = int(_pick(entry, "ingredients_count", default=len(ingredients)) or 0)
+
+    normalized_nutrition = {
+        "kcal": int(_pick(nutrition, "kcal", "kalorien_kcal", default=calories) or 0),
+        "carbs": int(_pick(nutrition, "carbs", "kohlenhydrate", "kohlenhydrate_g", default=0) or 0),
+        "protein": int(_pick(nutrition, "protein", "eiweiss", "eiweiss_g", default=protein) or 0),
+        "fat": int(_pick(nutrition, "fat", "fett", "fett_g", default=0) or 0),
+    }
+
+    diet_value = _pick(entry, "ernaehrungsart", "diet", default="")
+    if diet_value and not tags:
+        tags = [str(diet_value).strip().lower()]
+
+    return (
+        name,
+        str(_pick(entry, "category", "kategorie", default="Hauptgericht")),
+        duration,
+        ingredients_count,
+        str(_pick(entry, "cuisine", "country", "land", default="International")),
+        calories,
+        protein,
+        str(_pick(entry, "image", "image_url", "bild", "bild_url", default="")),
+        str(_pick(entry, "description", "beschreibung", default="")),
+        [i for i in (_normalize_ingredient_entry(i) for i in ingredients) if i],
+        [str(s).strip() for s in steps if str(s).strip()],
+        normalized_nutrition,
+        [str(t).strip() for t in tags if str(t).strip()],
+    )
+
+
+def load_recipe_catalog():
+    if not RECIPE_JSON_PATH.exists():
+        return RECIPE_CATALOG
+
+    try:
+        raw = json.loads(RECIPE_JSON_PATH.read_text(encoding="utf-8"))
+        if isinstance(raw, dict):
+            raw = _pick(raw, "recipes", "data", default=[])
+        if not isinstance(raw, list):
+            raise ValueError("JSON muss eine Liste oder ein Objekt mit recipes/data sein")
+
+        normalized = []
+        for idx, entry in enumerate(raw, start=1):
+            try:
+                normalized.append(_normalize_recipe_entry(entry))
+            except Exception as exc:
+                print(f"[recipes.json] Eintrag {idx} übersprungen: {exc}")
+
+        if normalized:
+            print(f"[recipes.json] {len(normalized)} Rezepte aus {RECIPE_JSON_PATH} geladen.")
+            return normalized
+        raise ValueError("Keine gültigen Rezepte in recipes.json gefunden")
+    except Exception:
+        print("[recipes.json] Laden fehlgeschlagen, verwende eingebauten Katalog.")
+        traceback.print_exc()
+        return RECIPE_CATALOG
+
+
 
 
 def seed_recipes(db):
-    names = [r[0] for r in RECIPE_CATALOG]
+    catalog = load_recipe_catalog()
+    names = [r[0] for r in catalog]
     marks = ",".join(["?"] * len(names))
     db.execute(f"DELETE FROM recipes WHERE name NOT IN ({marks})", tuple(names))
-    for r in RECIPE_CATALOG:
+    for r in catalog:
         existing = db.execute("SELECT id FROM recipes WHERE name=?", (r[0],)).fetchone()
         payload = (r[1], r[2], r[3], r[4], r[5], r[6], r[7], r[8], json.dumps(r[9]), json.dumps(r[10]), json.dumps(r[11]), json.dumps(r[12]), r[0])
         if existing:
@@ -1525,7 +1660,7 @@ class Handler(BaseHTTPRequestHandler):
                         return False
                     if not matches_diet(r, diet):
                         return False
-                    ing = " ".join(r["ingredients"]).lower()
+                    ing = ingredients_to_text(r["ingredients"])
                     return not any(e in ing for e in excludes)
 
                 filtered_rows = [r for r in rows if ok(r)]
@@ -1560,7 +1695,7 @@ class Handler(BaseHTTPRequestHandler):
                         return False
                     if not matches_diet(r, diet):
                         return False
-                    ing = " ".join(r["ingredients"]).lower()
+                    ing = ingredients_to_text(r["ingredients"])
                     return not any(e in ing for e in excludes)
 
                 self.send_json([r for r in rows if ok(r)])

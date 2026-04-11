@@ -522,7 +522,26 @@ function formatAuthError(error) {
   return lines.join('\n');
 }
 
+function formatIngredientAmount(amount) {
+  if (!Number.isFinite(amount)) return '';
+  const rounded = Math.round(amount * 10) / 10;
+  if (Number.isInteger(rounded)) return String(rounded);
+  return String(rounded).replace('.', ',');
+}
+
 function parseIngredientEntry(entry) {
+  if (entry && typeof entry === 'object' && !Array.isArray(entry)) {
+    const rawName = String(entry.name || entry.bezeichnung || '').trim();
+    const rawUnit = String(entry.einheit || entry.unit || '').trim();
+    const rawAmount = entry.menge ?? entry.amount;
+    const amount = Number(rawAmount);
+    return {
+      amount: Number.isFinite(amount) ? amount : null,
+      unit: rawUnit,
+      name: rawName
+    };
+  }
+
   const raw = String(entry || '').trim();
   const m = raw.match(/^(\d+[\d.,]*)\s*(g|kg|ml|l|EL|TL|Stk\.?|Stück|Prise|Bund|Dose|Dosen)?\s+(.+)$/i);
   if (m) {
@@ -537,8 +556,8 @@ function formatIngredientsWithPortions(ingredients = [], portions = 2) {
   return ingredients.map((ingredient) => {
     const parsed = parseIngredientEntry(ingredient);
     if (parsed.amount === null) return parsed.name;
-    const scaledAmount = Math.round(parsed.amount * factor * 10) / 10;
-    return `${String(scaledAmount).replace('.', ',')} ${parsed.unit} ${parsed.name}`.replace(/\s+/g, ' ').trim();
+    const scaledAmount = parsed.amount * factor;
+    return `${formatIngredientAmount(scaledAmount)} ${parsed.unit} ${parsed.name}`.replace(/\s+/g, ' ').trim();
   });
 }
 
@@ -557,7 +576,11 @@ function mergeShoppingItems(existingItems = [], incomingIngredients = []) {
   });
 
   incomingIngredients.forEach((ingredient) => {
-    const ingredientName = String(ingredient || '').trim();
+    const parsedInput = parseIngredientEntry(ingredient);
+    const ingredientName = (parsedInput.amount === null
+      ? parsedInput.name
+      : `${formatIngredientAmount(parsedInput.amount)} ${parsedInput.unit} ${parsedInput.name}`.replace(/\s+/g, ' ').trim()
+    ).trim();
     if (!ingredientName) return;
     const key = ingredientMergeKey(ingredientName);
     if (!key) return;
@@ -576,10 +599,10 @@ function mergeShoppingItems(existingItems = [], incomingIngredients = []) {
     const hasAmounts = parsedExisting.amount !== null && parsedIncoming.amount !== null;
 
     if (sameBaseName && sameUnit && hasAmounts) {
-      const summedAmount = Math.round((parsedExisting.amount + parsedIncoming.amount) * 10) / 10;
+      const summedAmount = parsedExisting.amount + parsedIncoming.amount;
       const normalizedUnit = parsedExisting.unit || parsedIncoming.unit;
       const normalizedName = parsedExisting.name;
-      merged[existingIndex].name = `${String(summedAmount).replace('.', ',')} ${normalizedUnit} ${normalizedName}`.replace(/\s+/g, ' ').trim();
+      merged[existingIndex].name = `${formatIngredientAmount(summedAmount)} ${normalizedUnit} ${normalizedName}`.replace(/\s+/g, ' ').trim();
     }
   });
 
