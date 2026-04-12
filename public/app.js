@@ -15,6 +15,7 @@ function withApiBase(url) {
 
 const MAX_SHOPPING_LISTS = 10;
 const MAX_LIST_NAME_LENGTH = 30;
+const FAVORITES_PAGE_SIZE = 10;
 const BASE_DAILY_SWIPE_LIMIT = 10;
 const REWARDED_SWIPE_BONUS = 10;
 const INTERSTITIAL_COOLDOWN_MS = 15 * 60 * 1000;
@@ -27,6 +28,7 @@ const state = {
   settings: null,
   filters: {},
   search: '',
+  favoritesVisibleCount: FAVORITES_PAGE_SIZE,
   selectedRecipe: null,
   selectedList: null,
   swipedRecipeIds: new Set(),
@@ -83,6 +85,7 @@ let admobStarted = false;
 const ADMOB_MIN_RECOMMENDED_PLUGIN_VERSION = '2.0.0-alpha.19';
 let adMobEventLoggingAttached = false;
 let rewardedFlowId = 0;
+let swipeSyncQueue = Promise.resolve();
 
 function maskAdUnitId(adUnitId = '') {
   const value = String(adUnitId || '');
@@ -610,7 +613,7 @@ function mergeShoppingItems(existingItems = [], incomingIngredients = []) {
 }
 
 function fullStepText(step) {
-  return step;
+  return String(step || '').replace(/^Schritt\s*\d+\s*:\s*/i, '').trim();
 }
 
 function daySeed() {
@@ -775,11 +778,14 @@ function filteredFavorites() {
 
 function renderFavorites() {
   const favorites = filteredFavorites();
+  const visibleFavorites = favorites.slice(0, state.favoritesVisibleCount);
+  const canShowMore = favorites.length > visibleFavorites.length;
   return `${header('Deine Favoriten', `<button class="btn" id="openFilter">▼ Filter</button>`)}
     <input class="search" placeholder="Rezept suchen" value="${state.search}" id="searchInput" />
     <div class="grid">
-      <div class="card favorite-add-card" id="toSwipe"><div class="recipe-img add-favorite-media"><span class="add-favorite-plus">＋</span></div><div class="favorite-add-label">Weitere Favoriten hinzufügen</div></div>${favorites.map(recipeCard).join('')}
-    </div>`;
+      <div class="card favorite-add-card" id="toSwipe"><div class="recipe-img add-favorite-media"><span class="add-favorite-plus">＋</span></div><div class="favorite-add-label">Weitere Favoriten hinzufügen</div></div>${visibleFavorites.map((recipe) => recipeCard(recipe)).join('')}
+    </div>
+    ${canShowMore ? `<div class="row"><button class="btn" id="showMoreFavorites" type="button">Weitere anzeigen</button></div>` : ''}`;
 }
 
 function renderLists() {
@@ -1432,14 +1438,15 @@ async function handleSwipeAction(action) {
   state.swipeQuota.remaining = Math.max(0, state.swipeQuota.remaining - 1);
   persistSwipeQuota();
   render();
+  state.swipeBusy = false;
 
-  try {
+  swipeSyncQueue = swipeSyncQueue.then(async () => {
     if (action === 'like') await api.post(`/api/recipes/${recipe.id}/like`);
     if (action === 'skip') await api.post(`/api/recipes/${recipe.id}/dislike`);
     await reloadData({ withRender: false });
-  } finally {
-    state.swipeBusy = false;
-  }
+  }).catch((error) => {
+    console.error('Swipe-Sync fehlgeschlagen:', error);
+  });
 }
 
 function bindSwipeGestures() {
@@ -1931,6 +1938,7 @@ function bind() {
   const si = document.getElementById('searchInput');
   if (si) si.oninput = (e) => {
     state.search = e.target.value;
+    state.favoritesVisibleCount = FAVORITES_PAGE_SIZE;
     const caretStart = e.target.selectionStart ?? state.search.length;
     const caretEnd = e.target.selectionEnd ?? state.search.length;
     render();
@@ -1945,6 +1953,11 @@ function bind() {
     }
   };
   const openFilterBtn = document.getElementById('openFilter'); if (openFilterBtn) openFilterBtn.onclick = openFilter;
+  const showMoreFavoritesBtn = document.getElementById('showMoreFavorites');
+  if (showMoreFavoritesBtn) showMoreFavoritesBtn.onclick = () => {
+    state.favoritesVisibleCount += FAVORITES_PAGE_SIZE;
+    render();
+  };
   const sl = document.getElementById('swipeLike'); if (sl) sl.onclick = async () => handleSwipeAction('like');
   const sd = document.getElementById('swipeDislike'); if (sd) sd.onclick = async () => handleSwipeAction('skip');
   const sii = document.getElementById('swipeInfo'); if (sii) sii.onclick = () => currentSwipeRecipe() && openRecipe(currentSwipeRecipe().id);
