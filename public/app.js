@@ -610,23 +610,95 @@ function mergeShoppingItems(existingItems = [], incomingIngredients = []) {
 }
 
 function fullStepText(step) {
-  return `${step} Arbeite sauber und mit mittlerer Hitze, schmecke am Ende sorgfältig mit Salz, Pfeffer und frischen Kräutern ab und richte das Gericht anschließend direkt heiß an.`;
+  return step;
+}
+
+function daySeed() {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+}
+
+function hashString(input = '') {
+  let hash = 0;
+  for (let i = 0; i < input.length; i += 1) {
+    hash = ((hash << 5) - hash) + input.charCodeAt(i);
+    hash |= 0;
+  }
+  return Math.abs(hash);
+}
+
+function pickDailyRecipe(recipes, category, offset = 0) {
+  const normalizedCategory = String(category || '').trim().toLowerCase();
+  const candidates = recipes.filter((recipe) => String(recipe.category || '').trim().toLowerCase() === normalizedCategory);
+  if (!candidates.length) return null;
+  const index = hashString(`${daySeed()}-${normalizedCategory}-${offset}`) % candidates.length;
+  return candidates[index];
+}
+
+function pickDailyRandomRecipes(recipes, count, key = 'others') {
+  const pool = [...recipes];
+  const picked = [];
+  let salt = 0;
+
+  while (pool.length && picked.length < count) {
+    const index = hashString(`${daySeed()}-${key}-${salt}`) % pool.length;
+    picked.push(pool.splice(index, 1)[0]);
+    salt += 1;
+  }
+
+  return picked;
+}
+
+function recipeMatchesFilters(recipe) {
+  const f = state.filters;
+  if (f.category && recipe.category !== f.category) return false;
+  if (f.maxCalories && recipe.calories >= f.maxCalories) return false;
+  if (f.minProtein && recipe.protein <= f.minProtein) return false;
+  if (f.maxDuration && recipe.duration >= f.maxDuration) return false;
+  return true;
+}
+
+function filteredRecipes() {
+  return state.recipes.filter(recipeMatchesFilters);
 }
 
 function renderDiscover() {
+  const recipes = filteredRecipes();
+  const recommendationSlots = [
+    { label: 'Hauptgericht', category: 'Hauptgericht' },
+    { label: 'Frühstück', category: 'Frühstück' },
+    { label: 'Nachtisch', category: 'Nachtisch' },
+    { label: 'Dinner', category: 'Dinner' }
+  ];
+  const recommendations = recommendationSlots
+    .map((slot, index) => ({ ...slot, recipe: pickDailyRecipe(recipes, slot.category, index) }))
+    .filter((entry) => Boolean(entry.recipe));
+  const recommendationIds = new Set(recommendations.map((entry) => entry.recipe.id));
+  const otherRecipes = pickDailyRandomRecipes(
+    recipes.filter((recipe) => !recommendationIds.has(recipe.id)),
+    10,
+    'discover-others'
+  );
+
   return `${header('Entdecken', `<button class="btn" id="openFilter">▼ Filter</button>`)}
-    <input class="search" placeholder="Rezept suchen" value="${state.search}" id="searchInput" />
     <div class="hero" data-tab-jump="swipe">
       <div class="hero-image"><h2 class="hero-title">Swipe dich zu deinem nächsten Lieblingsgericht</h2></div>
       <div class="hero-sub">Entdecke täglich leckere und nährstoffreiche neue Rezepte</div>
     </div>
-    <h2 class="section-title">Für dich ausgewählt</h2>
-    <div class="grid">${state.recipes.map(recipeCard).join('')}</div>`;
+    <h2 class="section-title">Heutige Empfehlungen</h2>
+    ${recommendations.length
+      ? `<div class="grid">${recommendations.map((entry) => recipeCard(entry.recipe, entry.label)).join('')}</div>`
+      : '<div class="empty-state"><h3>Keine Empfehlungen gefunden</h3><p>Für die aktuellen Filter wurden heute keine passenden Empfehlungen gefunden.</p></div>'}
+    <h2 class="section-title">Sonstige Rezepte</h2>
+    ${otherRecipes.length
+      ? `<div class="grid">${otherRecipes.map((recipe) => recipeCard(recipe)).join('')}</div>`
+      : '<div class="empty-state"><h3>Keine weiteren Rezepte gefunden</h3><p>Bitte passe deine Filter an, um weitere Rezepte zu sehen.</p></div>'}`;
 }
 
-function recipeCard(r) {
+function recipeCard(r, badge = '') {
   return `<div class="card" data-recipe="${r.id}">
     <div class="recipe-img">${recipeImageMarkup(r)}</div>
+    ${badge ? `<div class="recipe-badge">${badge}</div>` : ''}
     <div class="card-title">${r.name}</div>
     <div class="small">${r.duration} Min · ${r.ingredients_count} Zutaten</div>
   </div>`;
@@ -694,13 +766,7 @@ function recipeMatchesSearchAndFilter(recipe) {
   const searchValue = state.search.trim().toLowerCase();
   if (searchValue && !recipe.name.toLowerCase().includes(searchValue)) return false;
 
-  const f = state.filters;
-  if (f.category && recipe.category !== f.category) return false;
-  if (f.maxCalories && recipe.calories >= f.maxCalories) return false;
-  if (f.minProtein && recipe.protein <= f.minProtein) return false;
-  if (f.maxDuration && recipe.duration >= f.maxDuration) return false;
-
-  return true;
+  return recipeMatchesFilters(recipe);
 }
 
 function filteredFavorites() {
@@ -1873,10 +1939,10 @@ function bind() {
       nextSearchInput.focus();
       nextSearchInput.setSelectionRange(caretStart, caretEnd);
     }
-    if (searchReloadTimer) clearTimeout(searchReloadTimer);
-    searchReloadTimer = setTimeout(() => {
-      reloadData({ withRender: false, scope: 'recipes' });
-    }, 220);
+    if (searchReloadTimer) {
+      clearTimeout(searchReloadTimer);
+      searchReloadTimer = null;
+    }
   };
   const openFilterBtn = document.getElementById('openFilter'); if (openFilterBtn) openFilterBtn.onclick = openFilter;
   const sl = document.getElementById('swipeLike'); if (sl) sl.onclick = async () => handleSwipeAction('like');
@@ -2055,7 +2121,7 @@ async function startAuthFlow() {
 async function reloadData(options = {}) {
   const { withRender = true, scope = 'all' } = options;
   try {
-    const q = new URLSearchParams({ search: state.search, ...Object.fromEntries(Object.entries(state.filters).map(([k, v]) => [k, String(v)])) });
+    const q = new URLSearchParams(Object.fromEntries(Object.entries(state.filters).map(([k, v]) => [k, String(v)])));
 
     if (scope === 'all' || scope === 'recipes') {
       const [recipes, swipeRecipes] = await Promise.all([
