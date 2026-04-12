@@ -552,8 +552,8 @@ function parseIngredientEntry(entry) {
   return { amount: null, unit: '', name: raw };
 }
 
-function formatIngredientsWithPortions(ingredients = [], portions = 2) {
-  const factor = Math.max(1, portions) / 2;
+function formatIngredientsWithPortions(ingredients = [], portions = 1) {
+  const factor = Math.max(1, portions);
   return ingredients.map((ingredient) => {
     const parsed = parseIngredientEntry(ingredient);
     if (parsed.amount === null) return parsed.name;
@@ -1311,7 +1311,7 @@ function openRecipe(id) {
   const r = [...state.recipes, ...state.favorites].find((x) => x.id === Number(id));
   if (!r) return;
   state.selectedRecipe = r;
-  let portions = 2;
+  let portions = 1;
   let pickedIngredients = new Set();
   const MIN_PORTIONS = 1;
   const MAX_PORTIONS = 10;
@@ -1439,7 +1439,6 @@ async function handleSwipeAction(action) {
   swipeSyncQueue = swipeSyncQueue.then(async () => {
     if (action === 'like') await api.post(`/api/recipes/${recipe.id}/like`);
     if (action === 'skip') await api.post(`/api/recipes/${recipe.id}/dislike`);
-    await reloadData({ withRender: false });
   }).catch((error) => {
     console.error('Swipe-Sync fehlgeschlagen:', error);
   });
@@ -1516,8 +1515,8 @@ function openFilter() {
   modal(`<div class="filter-modal">
       <div class="header"><button class="btn" id="closeModal">✕</button><h2>Filter</h2></div>
       <div class="filter-section"><h3>Kategorie</h3><div class="filter-options tags" id="catRow">${['Hauptgericht', 'Frühstück', 'Dinner', 'Nachtisch'].map((c) => `<button class="btn ${f.category === c ? 'active' : ''}" data-category="${c}">${c}</button>`).join('')}</div></div>
-      <div class="filter-section"><h3>Kalorien</h3><div class="filter-options tags"><button class="btn ${f.maxCalories === 300 ? 'active' : ''}" data-cal="300">unter 300</button><button class="btn ${f.maxCalories === 400 ? 'active' : ''}" data-cal="400">unter 400</button><button class="btn ${f.maxCalories === 500 ? 'active' : ''}" data-cal="500">unter 500</button><button class="btn ${f.maxCalories === 700 ? 'active' : ''}" data-cal="700">unter 700</button></div></div>
-      <div class="filter-section"><h3>Eiweiß</h3><div class="filter-options tags"><button class="btn ${f.minProtein === 30 ? 'active' : ''}" data-pro="30">über 30 g</button><button class="btn ${f.minProtein === 50 ? 'active' : ''}" data-pro="50">über 50 g</button><button class="btn ${f.minProtein === 70 ? 'active' : ''}" data-pro="70">über 70 g</button></div></div>
+      <div class="filter-section"><h3>Kalorien</h3><div class="filter-options tags"><button class="btn ${f.maxCalories === 300 ? 'active' : ''}" data-cal="300">unter 300</button><button class="btn ${f.maxCalories === 400 ? 'active' : ''}" data-cal="400">unter 400</button><button class="btn ${f.maxCalories === 500 ? 'active' : ''}" data-cal="500">unter 500</button><button class="btn ${f.maxCalories === 600 ? 'active' : ''}" data-cal="600">unter 600</button></div></div>
+      <div class="filter-section"><h3>Eiweiß</h3><div class="filter-options tags"><button class="btn ${f.minProtein === 20 ? 'active' : ''}" data-pro="20">über 20 g</button><button class="btn ${f.minProtein === 30 ? 'active' : ''}" data-pro="30">über 30 g</button><button class="btn ${f.minProtein === 40 ? 'active' : ''}" data-pro="40">über 40 g</button></div></div>
       <div class="filter-section"><h3>Dauer</h3><div class="filter-options tags"><button class="btn ${f.maxDuration === 15 ? 'active' : ''}" data-dur="15">&lt;15 Min</button><button class="btn ${f.maxDuration === 30 ? 'active' : ''}" data-dur="30">&lt;30 Min</button><button class="btn ${f.maxDuration === 60 ? 'active' : ''}" data-dur="60">&lt;1 Std</button></div></div>
       <div class="filter-actions">
         <button class="btn" id="resetFilter">Filter zurücksetzen</button>
