@@ -15,7 +15,6 @@ function withApiBase(url) {
 
 const MAX_SHOPPING_LISTS = 10;
 const MAX_LIST_NAME_LENGTH = 30;
-const FAVORITES_PAGE_SIZE = 10;
 const BASE_DAILY_SWIPE_LIMIT = 10;
 const REWARDED_SWIPE_BONUS = 10;
 const INTERSTITIAL_COOLDOWN_MS = 15 * 60 * 1000;
@@ -28,7 +27,6 @@ const state = {
   settings: null,
   filters: {},
   search: '',
-  favoritesVisibleCount: FAVORITES_PAGE_SIZE,
   selectedRecipe: null,
   selectedList: null,
   swipedRecipeIds: new Set(),
@@ -778,14 +776,11 @@ function filteredFavorites() {
 
 function renderFavorites() {
   const favorites = filteredFavorites();
-  const visibleFavorites = favorites.slice(0, state.favoritesVisibleCount);
-  const canShowMore = favorites.length > visibleFavorites.length;
   return `${header('Deine Favoriten', `<button class="btn" id="openFilter">▼ Filter</button>`)}
     <input class="search" placeholder="Rezept suchen" value="${state.search}" id="searchInput" />
     <div class="grid">
-      <div class="card favorite-add-card" id="toSwipe"><div class="recipe-img add-favorite-media"><span class="add-favorite-plus">＋</span></div><div class="favorite-add-label">Weitere Favoriten hinzufügen</div></div>${visibleFavorites.map((recipe) => recipeCard(recipe)).join('')}
-    </div>
-    ${canShowMore ? `<div class="row"><button class="btn" id="showMoreFavorites" type="button">Weitere anzeigen</button></div>` : ''}`;
+      <div class="card favorite-add-card" id="toSwipe"><div class="recipe-img add-favorite-media"><span class="add-favorite-plus">＋</span></div><div class="favorite-add-label">Weitere Favoriten hinzufügen</div></div>${favorites.map((recipe) => recipeCard(recipe)).join('')}
+    </div>`;
 }
 
 function renderLists() {
@@ -808,9 +803,10 @@ function renderProfile() {
   const s = state.settings;
   const profileImage = s.profile_image || '';
   const hasImageUrl = /^https?:\/\//.test(profileImage);
+  const avatarFallback = (s.username || '?').trim().charAt(0).toUpperCase() || '?';
   const avatarContent = hasImageUrl
-    ? `<img src="${profileImage}" alt="${s.username}" class="avatar-image" loading="lazy">`
-    : (s.username || '?').trim().charAt(0).toUpperCase() || '?';
+    ? `<img src="${profileImage}" alt="${s.username}" class="avatar-image" decoding="async" referrerpolicy="no-referrer" onerror="this.parentElement.textContent='${avatarFallback}'">`
+    : avatarFallback;
   return `${header('Profil', `<button class="btn profile-settings-btn" id="openSettings" aria-label="Einstellungen öffnen">⚙</button>`)}
   <div class="profile profile-hero"><div class="avatar" id="changeAvatar">${avatarContent}</div><h2>${s.username}</h2><p class="small profile-subtitle">Smart Meal Matching</p></div>
   <div class="stats profile-stats profile-stats-primary"><div class="card profile-card"><h2>${state.favorites.length} ♥</h2><div>Favoriten</div></div><div class="card profile-card"><h2>${state.lists.length} 🛒</h2><div>Einkaufslisten</div></div></div>
@@ -1938,7 +1934,6 @@ function bind() {
   const si = document.getElementById('searchInput');
   if (si) si.oninput = (e) => {
     state.search = e.target.value;
-    state.favoritesVisibleCount = FAVORITES_PAGE_SIZE;
     const caretStart = e.target.selectionStart ?? state.search.length;
     const caretEnd = e.target.selectionEnd ?? state.search.length;
     render();
@@ -1953,11 +1948,6 @@ function bind() {
     }
   };
   const openFilterBtn = document.getElementById('openFilter'); if (openFilterBtn) openFilterBtn.onclick = openFilter;
-  const showMoreFavoritesBtn = document.getElementById('showMoreFavorites');
-  if (showMoreFavoritesBtn) showMoreFavoritesBtn.onclick = () => {
-    state.favoritesVisibleCount += FAVORITES_PAGE_SIZE;
-    render();
-  };
   const sl = document.getElementById('swipeLike'); if (sl) sl.onclick = async () => handleSwipeAction('like');
   const sd = document.getElementById('swipeDislike'); if (sd) sd.onclick = async () => handleSwipeAction('skip');
   const sii = document.getElementById('swipeInfo'); if (sii) sii.onclick = () => currentSwipeRecipe() && openRecipe(currentSwipeRecipe().id);

@@ -1311,15 +1311,26 @@ def _normalize_recipe_entry(entry):
         nutrition = {}
 
     duration = int(_pick(entry, "duration", "duration_min", "time", "zubereitungsdauer_minuten", default=0) or 0)
-    calories = int(_pick(entry, "calories", "kcal", default=_pick(nutrition, "kcal", "kalorien_kcal", default=0)) or 0)
-    protein = int(_pick(entry, "protein", default=_pick(nutrition, "protein", "eiweiss", "eiweiss_g", default=0)) or 0)
+    calories = int(
+        _pick(
+            entry,
+            "calories",
+            "kcal",
+            default=_pick(nutrition, "kcal", "kalorien_kcal", "kilokalorien", default=0),
+        )
+        or 0
+    )
+    protein = int(
+        _pick(entry, "protein", default=_pick(nutrition, "protein", "eiweiss", "eiweiss_g", "eiweiss_gramm", "protein_gramm", default=0))
+        or 0
+    )
     ingredients_count = int(_pick(entry, "ingredients_count", default=len(ingredients)) or 0)
 
     normalized_nutrition = {
-        "kcal": int(_pick(nutrition, "kcal", "kalorien_kcal", default=calories) or 0),
-        "carbs": int(_pick(nutrition, "carbs", "kohlenhydrate", "kohlenhydrate_g", default=0) or 0),
-        "protein": int(_pick(nutrition, "protein", "eiweiss", "eiweiss_g", default=protein) or 0),
-        "fat": int(_pick(nutrition, "fat", "fett", "fett_g", default=0) or 0),
+        "kcal": int(_pick(nutrition, "kcal", "kalorien_kcal", "kilokalorien", default=calories) or 0),
+        "carbs": int(_pick(nutrition, "carbs", "kohlenhydrate", "kohlenhydrate_g", "kohlenhydrate_gramm", default=0) or 0),
+        "protein": int(_pick(nutrition, "protein", "eiweiss", "eiweiss_g", "eiweiss_gramm", "protein_gramm", default=protein) or 0),
+        "fat": int(_pick(nutrition, "fat", "fett", "fett_g", "fett_gramm", default=0) or 0),
     }
 
     diet_value = _pick(entry, "ernaehrungsart", "diet", default="")

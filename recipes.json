@@ -239,10 +239,10 @@
       }
     ],
     "naehrwerte": {
-      "kilokalorien": 600,
-      "eiweiss_gramm": 32,
-      "fett_gramm": 22,
-      "kohlenhydrate_gramm": 72
+      "kalorien_kcal": 600,
+      "kohlenhydrate_g": 72,
+      "eiweiss_g": 32,
+      "fett_g": 22
     },
     "zubereitung": [
       "Schritt 1: Pizzateig ausrollen und auf einen Pizzastein oder Backblech legen. Mit BBQ‑Sauce bestreichen.",
@@ -634,10 +634,10 @@
       }
     ],
     "naehrwerte": {
-      "kcal": 320,
-      "protein_g": 4,
-      "fett_g": 18,
-      "kohlenhydrate_g": 36
+      "kalorien_kcal": 320,
+      "kohlenhydrate_g": 36,
+      "eiweiss_g": 0,
+      "fett_g": 18
     },
     "zubereitung": [
       "Schritt 1: Kartoffeln waschen und mit der Schale in sehr dünne Scheiben schneiden (am besten mit einem Hobel).",
@@ -751,7 +751,7 @@
       }
     ],
     "naehrwerte": {
-      "kcal": 280,
+      "kalorien_kcal": 280,
       "kohlenhydrate_g": 45,
       "eiweiss_g": 16,
       "fett_g": 2
@@ -817,7 +817,7 @@
       }
     ],
     "naehrwerte": {
-      "kcal": 330,
+      "kalorien_kcal": 330,
       "kohlenhydrate_g": 15,
       "eiweiss_g": 14,
       "fett_g": 24
@@ -1179,10 +1179,10 @@
       }
     ],
     "naehrwerte": {
-      "kilokalorien": 600,
-      "eiweiss_gramm": 38,
-      "fett_gramm": 22,
-      "kohlenhydrate_gramm": 60
+      "kalorien_kcal": 600,
+      "kohlenhydrate_g": 60,
+      "eiweiss_g": 38,
+      "fett_g": 22
     },
     "zubereitung": [
       "Schritt 1: Kartoffeln schälen, würfeln und in Salzwasser gar kochen. Abgießen und mit etwas Butter und Milch zu Püree stampfen. Mit Salz, Pfeffer und Muskat würzen.",
@@ -1428,7 +1428,7 @@
       "kalorien_kcal": 100,
       "kohlenhydrate_g": 19,
       "eiweiss_g": 0,
-      "fett_g": 2.5
+      "fett_g": 2
     },
     "zubereitung": [
       "Schritt 1: Margarine in einer Pfanne schmelzen, Apfelscheiben dazugeben und anbraten.",
@@ -1525,7 +1525,7 @@
       }
     ],
     "naehrwerte": {
-      "kcal": 40,
+      "kalorien_kcal": 40,
       "kohlenhydrate_g": 8,
       "eiweiss_g": 1,
       "fett_g": 0
@@ -1594,7 +1594,7 @@
       "kalorien_kcal": 311,
       "kohlenhydrate_g": 20,
       "eiweiss_g": 25,
-      "fett_g": 10.5
+      "fett_g": 10
     },
     "zubereitung": [
       "Schritt 1: Aus Brokkoli‑Coleslaw, Karotten, Mayonnaise, Essig, Olivenöl und Zucker einen cremigen Salat anrühren.",
@@ -1804,7 +1804,7 @@
       }
     ],
     "naehrwerte": {
-      "kcal": 450,
+      "kalorien_kcal": 450,
       "kohlenhydrate_g": 10,
       "eiweiss_g": 32,
       "fett_g": 30
@@ -2413,10 +2413,10 @@
       }
     ],
     "naehrwerte": {
-      "kilokalorien": 500,
-      "eiweiss_gramm": 30,
-      "fett_gramm": 34,
-      "kohlenhydrate_gramm": 20
+      "kalorien_kcal": 500,
+      "kohlenhydrate_g": 20,
+      "eiweiss_g": 30,
+      "fett_g": 34
     },
     "zubereitung": [
       "Schritt 1: Kokosöl in einem Topf erhitzen. Senfkörner anrösten, bis sie springen, dann kleingeschnittene Perlzwiebeln, Knoblauch und Ingwer zufügen und anbraten.",
@@ -2859,10 +2859,10 @@
       }
     ],
     "naehrwerte": {
-      "kalorien": 400,
-      "protein_gramm": 30,
-      "kohlenhydrate_gramm": 10,
-      "fett_gramm": 25
+      "kalorien_kcal": 0,
+      "kohlenhydrate_g": 10,
+      "eiweiss_g": 30,
+      "fett_g": 25
     },
     "zubereitung": [
       "Schritt 1: Piment, Scotch-Bonnet, Ingwer, Knoblauch, Limettensaft, Sojasauce, Öl und Zucker zu einer Paste pürieren.",
@@ -3447,7 +3447,7 @@
       }
     ],
     "naehrwerte": {
-      "kcal": 180,
+      "kalorien_kcal": 180,
       "kohlenhydrate_g": 8,
       "eiweiss_g": 5,
       "fett_g": 12
@@ -3671,10 +3671,10 @@
       }
     ],
     "naehrwerte": {
-      "kcal": 210,
-      "protein_g": 2,
-      "fett_g": 18,
-      "kohlenhydrate_g": 10
+      "kalorien_kcal": 210,
+      "kohlenhydrate_g": 10,
+      "eiweiss_g": 0,
+      "fett_g": 18
     },
     "zubereitung": [
       "Schritt 1: Oliven, Kapern und Knoblauch fein hacken oder im Mixer zu einer Paste verarbeiten.",
@@ -4052,7 +4052,7 @@
       "kalorien_kcal": 190,
       "kohlenhydrate_g": 33,
       "eiweiss_g": 7,
-      "fett_g": 4.5
+      "fett_g": 4
     },
     "zubereitung": [
       "Schritt 1: Banane, Joghurt, Milch, Erdnussbutter, Kakaopulver und Chiasamen in einen Mixer geben.",
@@ -4095,10 +4095,10 @@
       }
     ],
     "naehrwerte": {
-      "kcal": 200,
-      "protein_g": 16,
-      "fett_g": 8,
-      "kohlenhydrate_g": 12
+      "kalorien_kcal": 200,
+      "kohlenhydrate_g": 12,
+      "eiweiss_g": 0,
+      "fett_g": 8
     },
     "zubereitung": [
       "Schritt 1: Shrimps abtropfen lassen und mit Zitronensaft beträufeln.",
@@ -4574,10 +4574,10 @@
       }
     ],
     "naehrwerte": {
-      "kalorien": 400,
-      "protein_gramm": 25,
-      "kohlenhydrate_gramm": 20,
-      "fett_gramm": 20
+      "kalorien_kcal": 0,
+      "kohlenhydrate_g": 20,
+      "eiweiss_g": 25,
+      "fett_g": 20
     },
     "zubereitung": [
       "Schritt 1: Hähnchen in Streifen schneiden und in einer Pfanne mit Sesamöl anbraten, bis es gar ist. Herausnehmen.",
@@ -5365,7 +5365,7 @@
       "kalorien_kcal": 250,
       "kohlenhydrate_g": 51,
       "eiweiss_g": 7,
-      "fett_g": 2.5
+      "fett_g": 2
     },
     "zubereitung": [
       "Schritt 1: Öl erhitzen und Zwiebel darin anbraten, Knoblauchpulver zufügen.",
@@ -5484,10 +5484,10 @@
       }
     ],
     "naehrwerte": {
-      "kcal": 300,
-      "protein_g": 6,
-      "fett_g": 18,
-      "kohlenhydrate_g": 28
+      "kalorien_kcal": 300,
+      "kohlenhydrate_g": 28,
+      "eiweiss_g": 0,
+      "fett_g": 18
     },
     "zubereitung": [
       "Schritt 1: Zwiebeln in feine Ringe schneiden.",
@@ -6030,7 +6030,7 @@
       }
     ],
     "naehrwerte": {
-      "kcal": 340,
+      "kalorien_kcal": 340,
       "kohlenhydrate_g": 50,
       "eiweiss_g": 8,
       "fett_g": 12
@@ -6247,10 +6247,10 @@
       }
     ],
     "naehrwerte": {
-      "kalorien": 550,
-      "protein_gramm": 25,
-      "kohlenhydrate_gramm": 60,
-      "fett_gramm": 20
+      "kalorien_kcal": 0,
+      "kohlenhydrate_g": 60,
+      "eiweiss_g": 25,
+      "fett_g": 20
     },
     "zubereitung": [
       "Schritt 1: Reis kochen und warm halten.",
@@ -6306,7 +6306,7 @@
       "kalorien_kcal": 80,
       "kohlenhydrate_g": 20,
       "eiweiss_g": 1,
-      "fett_g": 0.5
+      "fett_g": 0
     },
     "zubereitung": [
       "Schritt 1: Das Obst in mundgerechte Stücke schneiden und in einer Schüssel vermengen.",
@@ -6363,10 +6363,10 @@
       }
     ],
     "naehrwerte": {
-      "kilokalorien": 650,
-      "eiweiss_gramm": 32,
-      "fett_gramm": 38,
-      "kohlenhydrate_gramm": 32
+      "kalorien_kcal": 650,
+      "kohlenhydrate_g": 32,
+      "eiweiss_g": 32,
+      "fett_g": 38
     },
     "zubereitung": [
       "Schritt 1: Hackfleisch mit fein gehackter Zwiebel, Haferflocken, Ei, Milch, Salz und Pfeffer gründlich mischen und zu einem Laib formen.",
@@ -6607,10 +6607,10 @@
       }
     ],
     "naehrwerte": {
-      "kalorien": 700,
-      "protein_gramm": 25,
-      "kohlenhydrate_gramm": 40,
-      "fett_gramm": 45
+      "kalorien_kcal": 0,
+      "kohlenhydrate_g": 40,
+      "eiweiss_g": 25,
+      "fett_g": 45
     },
     "zubereitung": [
       "Schritt 1: Entenkeule mit Gewürzen, Sojasauce, Reiswein und Zucker einreiben und einige Stunden marinieren.",
@@ -6749,10 +6749,10 @@
       }
     ],
     "naehrwerte": {
-      "kilokalorien": 580,
-      "eiweiss_gramm": 48,
-      "fett_gramm": 18,
-      "kohlenhydrate_gramm": 32
+      "kalorien_kcal": 580,
+      "kohlenhydrate_g": 32,
+      "eiweiss_g": 48,
+      "fett_g": 18
     },
     "zubereitung": [
       "Schritt 1: Olivenöl in einem großen Topf erhitzen. Zwiebel und Knoblauch fein hacken und glasig anschwitzen. Chiliflocken hinzufügen.",
@@ -6891,10 +6891,10 @@
       }
     ],
     "naehrwerte": {
-      "kalorien": 650,
-      "protein_gramm": 35,
-      "kohlenhydrate_gramm": 35,
-      "fett_gramm": 30
+      "kalorien_kcal": 0,
+      "kohlenhydrate_g": 35,
+      "eiweiss_g": 35,
+      "fett_g": 30
     },
     "zubereitung": [
       "Schritt 1: Aus Essig, Wasser, gewürfeltem Gemüse und Gewürzen eine Marinade kochen und vollständig abkühlen lassen. Fleisch darin mehrere Stunden oder über Nacht marinieren.",
@@ -6992,10 +6992,10 @@
       }
     ],
     "naehrwerte": {
-      "kcal": 150,
-      "protein_g": 3,
-      "fett_g": 7,
-      "kohlenhydrate_g": 18
+      "kalorien_kcal": 150,
+      "kohlenhydrate_g": 18,
+      "eiweiss_g": 0,
+      "fett_g": 7
     },
     "zubereitung": [
       "Schritt 1: Brotscheibe rösten oder antoasten.",
@@ -7300,8 +7300,8 @@
     "naehrwerte": {
       "kalorien_kcal": 340,
       "kohlenhydrate_g": 32,
-      "eiweiss_g": 13.8,
-      "fett_g": 18.5
+      "eiweiss_g": 13,
+      "fett_g": 18
     },
     "zubereitung": [
       "Schritt 1: Blumenkohl in einem Mixer fein hacken und mit Kichererbsenmehl, Wasser und 0.5 TL Olivenöl zu einem Teig verrühren.",
@@ -7859,10 +7859,10 @@
       }
     ],
     "naehrwerte": {
-      "kilokalorien": 800,
-      "eiweiss_gramm": 50,
-      "fett_gramm": 55,
-      "kohlenhydrate_gramm": 14
+      "kalorien_kcal": 800,
+      "kohlenhydrate_g": 14,
+      "eiweiss_g": 50,
+      "fett_g": 55
     },
     "zubereitung": [
       "Schritt 1: Rinderippen trocken tupfen und mit Salz, Pfeffer, Knoblauch- und Zwiebelpulver würzen.",
@@ -7975,7 +7975,7 @@
       }
     ],
     "naehrwerte": {
-      "kcal": 220,
+      "kalorien_kcal": 220,
       "kohlenhydrate_g": 30,
       "eiweiss_g": 5,
       "fett_g": 10
@@ -8158,10 +8158,10 @@
       }
     ],
     "naehrwerte": {
-      "kalorien": 350,
-      "protein_gramm": 30,
-      "kohlenhydrate_gramm": 6,
-      "fett_gramm": 20
+      "kalorien_kcal": 0,
+      "kohlenhydrate_g": 6,
+      "eiweiss_g": 30,
+      "fett_g": 20
     },
     "zubereitung": [
       "Schritt 1: Joghurt mit Zitronensaft, gehacktem Knoblauch, Ingwer und Gewürzen verrühren.",
@@ -8247,7 +8247,7 @@
       "kalorien_kcal": 315,
       "kohlenhydrate_g": 38,
       "eiweiss_g": 18,
-      "fett_g": 8.5
+      "fett_g": 8
     },
     "zubereitung": [
       "Schritt 1: Zwiebel und Knoblauch hacken; Paprika würfeln; Putenwurst in Scheiben schneiden.",
@@ -8480,10 +8480,10 @@
       }
     ],
     "naehrwerte": {
-      "kcal": 380,
-      "protein_g": 7,
-      "fett_g": 18,
-      "kohlenhydrate_g": 47
+      "kalorien_kcal": 380,
+      "kohlenhydrate_g": 47,
+      "eiweiss_g": 0,
+      "fett_g": 18
     },
     "zubereitung": [
       "Schritt 1: Aus Mehl, Wasser, Öl und Salz einen geschmeidigen Teig kneten, abgedeckt ruhen lassen.",
@@ -9021,10 +9021,10 @@
       }
     ],
     "naehrwerte": {
-      "kilokalorien": 380,
-      "eiweiss_gramm": 32,
-      "fett_gramm": 22,
-      "kohlenhydrate_gramm": 12
+      "kalorien_kcal": 380,
+      "kohlenhydrate_g": 12,
+      "eiweiss_g": 32,
+      "fett_g": 22
     },
     "zubereitung": [
       "Schritt 1: Miso, Sake, Mirin, Sojasauce und Zucker in einer Schüssel verrühren. Ingwer fein reiben und hinzufügen.",
@@ -9139,9 +9139,9 @@
     ],
     "naehrwerte": {
       "kalorien_kcal": 356,
-      "kohlenhydrate_g": 72.3,
-      "eiweiss_g": 18.1,
-      "fett_g": 1.2
+      "kohlenhydrate_g": 72,
+      "eiweiss_g": 18,
+      "fett_g": 1
     },
     "zubereitung": [
       "Schritt 1: Kohlblätter in kochendem Wasser blanchieren, bis sie biegsam sind.",
@@ -9284,10 +9284,10 @@
       }
     ],
     "naehrwerte": {
-      "kilokalorien": 460,
-      "eiweiss_gramm": 32,
-      "fett_gramm": 32,
-      "kohlenhydrate_gramm": 8
+      "kalorien_kcal": 460,
+      "kohlenhydrate_g": 8,
+      "eiweiss_g": 32,
+      "fett_g": 32
     },
     "zubereitung": [
       "Schritt 1: Forellenfilet mit Salz und Pfeffer würzen und in Mehl wenden. In einer Pfanne Olivenöl erhitzen und das Filet auf der Hautseite 3–4 Minuten anbraten.",
@@ -9526,9 +9526,9 @@
     ],
     "naehrwerte": {
       "kalorien_kcal": 130,
-      "kohlenhydrate_g": 32.8,
-      "eiweiss_g": 0.9,
-      "fett_g": 0.2
+      "kohlenhydrate_g": 32,
+      "eiweiss_g": 0,
+      "fett_g": 0
     },
     "zubereitung": [
       "Schritt 1: Kirschsaft in einem Topf mit Zucker und Stärke verrühren und unter Rühren erhitzen, bis die Flüssigkeit eindickt.",
@@ -9684,7 +9684,7 @@
       "kalorien_kcal": 220,
       "kohlenhydrate_g": 40,
       "eiweiss_g": 12,
-      "fett_g": 3.5
+      "fett_g": 3
     },
     "zubereitung": [
       "Schritt 1: Soba‑Nudeln nach Packungsanweisung kochen und abtropfen lassen.",
@@ -9809,10 +9809,10 @@
       }
     ],
     "naehrwerte": {
-      "kalorien": 600,
-      "protein_gramm": 35,
-      "kohlenhydrate_gramm": 15,
-      "fett_gramm": 35
+      "kalorien_kcal": 0,
+      "kohlenhydrate_g": 15,
+      "eiweiss_g": 35,
+      "fett_g": 35
     },
     "zubereitung": [
       "Schritt 1: Hähnchenstücke in Joghurt und Gewürzen marinieren und anschießend grillen oder im Ofen braten, bis sie leicht gebräunt sind.",
@@ -9955,10 +9955,10 @@
       }
     ],
     "naehrwerte": {
-      "kcal": 280,
-      "protein_g": 7,
-      "fett_g": 6,
-      "kohlenhydrate_g": 45
+      "kalorien_kcal": 280,
+      "kohlenhydrate_g": 45,
+      "eiweiss_g": 0,
+      "fett_g": 6
     },
     "zubereitung": [
       "Schritt 1: Zwiebel, Karotte, Sellerie und Kartoffel klein würfeln.",
@@ -10000,7 +10000,7 @@
       "kalorien_kcal": 192,
       "kohlenhydrate_g": 48,
       "eiweiss_g": 1,
-      "fett_g": 0.2
+      "fett_g": 0
     },
     "zubereitung": [
       "Schritt 1: Zucker und Wasser in einem kleinen Topf erhitzen, bis der Zucker sich auflöst.",
@@ -10267,7 +10267,7 @@
       }
     ],
     "naehrwerte": {
-      "kcal": 380,
+      "kalorien_kcal": 380,
       "kohlenhydrate_g": 45,
       "eiweiss_g": 14,
       "fett_g": 15
@@ -10439,10 +10439,10 @@
       }
     ],
     "naehrwerte": {
-      "kilokalorien": 400,
-      "eiweiss_gramm": 28,
-      "fett_gramm": 20,
-      "kohlenhydrate_gramm": 18
+      "kalorien_kcal": 400,
+      "kohlenhydrate_g": 18,
+      "eiweiss_g": 28,
+      "fett_g": 20
     },
     "zubereitung": [
       "Schritt 1: Garnelen schälen und entdarmen. Mit Öl, gepresstem Knoblauch, Paprika und Chilipulver marinieren.",
@@ -10551,10 +10551,10 @@
       }
     ],
     "naehrwerte": {
-      "kcal": 480,
-      "protein_g": 21,
-      "fett_g": 33,
-      "kohlenhydrate_g": 24
+      "kalorien_kcal": 480,
+      "kohlenhydrate_g": 24,
+      "eiweiss_g": 0,
+      "fett_g": 33
     },
     "zubereitung": [
       "Schritt 1: Mozzarella in Sticks schneiden.",
@@ -10799,10 +10799,10 @@
       }
     ],
     "naehrwerte": {
-      "kcal": 300,
-      "protein_g": 7,
-      "fett_g": 22,
-      "kohlenhydrate_g": 15
+      "kalorien_kcal": 300,
+      "kohlenhydrate_g": 15,
+      "eiweiss_g": 0,
+      "fett_g": 22
     },
     "zubereitung": [
       "Schritt 1: Pilze putzen und in Scheiben schneiden, Zwiebel fein hacken.",
@@ -10843,7 +10843,7 @@
       "kalorien_kcal": 15,
       "kohlenhydrate_g": 1,
       "eiweiss_g": 2,
-      "fett_g": 0.5
+      "fett_g": 0
     },
     "zubereitung": [
       "Schritt 1: Hüttenkäse mit Joghurt pürieren, bis eine cremige Masse entsteht.",
@@ -10971,10 +10971,10 @@
       }
     ],
     "naehrwerte": {
-      "kilokalorien": 380,
-      "eiweiss_gramm": 35,
-      "fett_gramm": 18,
-      "kohlenhydrate_gramm": 18
+      "kalorien_kcal": 380,
+      "kohlenhydrate_g": 18,
+      "eiweiss_g": 35,
+      "fett_g": 18
     },
     "zubereitung": [
       "Schritt 1: Den gesalzenen Kabeljau 24 Stunden wässern (Wasser mehrmals wechseln) und anschließend in Stücke schneiden.",
@@ -11043,10 +11043,10 @@
       }
     ],
     "naehrwerte": {
-      "kcal": 450,
-      "protein_g": 16,
-      "fett_g": 30,
-      "kohlenhydrate_g": 28
+      "kalorien_kcal": 450,
+      "kohlenhydrate_g": 28,
+      "eiweiss_g": 0,
+      "fett_g": 30
     },
     "zubereitung": [
       "Schritt 1: Butter in einem Topf schmelzen, Mehl einrühren und eine Mehlschwitze herstellen.",
@@ -11130,10 +11130,10 @@
       }
     ],
     "naehrwerte": {
-      "kilokalorien": 560,
-      "eiweiss_gramm": 30,
-      "fett_gramm": 18,
-      "kohlenhydrate_gramm": 68
+      "kalorien_kcal": 560,
+      "kohlenhydrate_g": 68,
+      "eiweiss_g": 30,
+      "fett_g": 18
     },
     "zubereitung": [
       "Schritt 1: Reis waschen und in reichlich Wasser fast gar kochen, dann abgießen. Safran in etwas warmem Wasser einweichen.",
@@ -11801,10 +11801,10 @@
       }
     ],
     "naehrwerte": {
-      "kilokalorien": 450,
-      "eiweiss_gramm": 28,
-      "fett_gramm": 16,
-      "kohlenhydrate_gramm": 52
+      "kalorien_kcal": 450,
+      "kohlenhydrate_g": 52,
+      "eiweiss_g": 28,
+      "fett_g": 16
     },
     "zubereitung": [
       "Schritt 1: Kabeljau in Streifen schneiden, mit Salz, Pfeffer und Chilipulver würzen, in Maismehl wenden und in heißem Olivenöl von allen Seiten knusprig braten.",
@@ -11872,10 +11872,10 @@
       }
     ],
     "naehrwerte": {
-      "kilokalorien": 650,
-      "eiweiss_gramm": 36,
-      "fett_gramm": 30,
-      "kohlenhydrate_gramm": 52
+      "kalorien_kcal": 650,
+      "kohlenhydrate_g": 52,
+      "eiweiss_g": 36,
+      "fett_g": 30
     },
     "zubereitung": [
       "Schritt 1: Hähnchenschenkel vom Knochen lösen und klein schneiden. Wurst in Scheiben schneiden.",
@@ -11992,7 +11992,7 @@
       "kalorien_kcal": 40,
       "kohlenhydrate_g": 4,
       "eiweiss_g": 1,
-      "fett_g": 2.5
+      "fett_g": 2
     },
     "zubereitung": [
       "Schritt 1: Ofen auf 230°C vorheizen. Blumenkohlröschen mit Öl, Rosmarin, Salz und Pfeffer mischen.",
@@ -12166,10 +12166,10 @@
       }
     ],
     "naehrwerte": {
-      "kilokalorien": 680,
-      "eiweiss_gramm": 38,
-      "fett_gramm": 46,
-      "kohlenhydrate_gramm": 20
+      "kalorien_kcal": 680,
+      "kohlenhydrate_g": 20,
+      "eiweiss_g": 38,
+      "fett_g": 46
     },
     "zubereitung": [
       "Schritt 1: Die Rippenspitzen mit der Gewürzmischung bestreuen und gut einmassieren.",
@@ -12552,8 +12552,8 @@
     ],
     "naehrwerte": {
       "kalorien_kcal": 120,
-      "kohlenhydrate_g": 15.3,
-      "eiweiss_g": 3.1,
+      "kohlenhydrate_g": 15,
+      "eiweiss_g": 3,
       "fett_g": 4
     },
     "zubereitung": [
@@ -12653,7 +12653,7 @@
       }
     ],
     "naehrwerte": {
-      "kcal": 340,
+      "kalorien_kcal": 340,
       "kohlenhydrate_g": 50,
       "eiweiss_g": 5,
       "fett_g": 13
@@ -12841,7 +12841,7 @@
       }
     ],
     "naehrwerte": {
-      "kcal": 300,
+      "kalorien_kcal": 300,
       "kohlenhydrate_g": 12,
       "eiweiss_g": 10,
       "fett_g": 23
@@ -12880,7 +12880,7 @@
       "kalorien_kcal": 150,
       "kohlenhydrate_g": 33,
       "eiweiss_g": 4,
-      "fett_g": 0.5
+      "fett_g": 0
     },
     "zubereitung": [
       "Schritt 1: Die Hälfte der Früchte in ein Glas geben, mit einem Teil des Joghurts bedecken.",
@@ -13155,7 +13155,7 @@
       }
     ],
     "naehrwerte": {
-      "kcal": 200,
+      "kalorien_kcal": 200,
       "kohlenhydrate_g": 18,
       "eiweiss_g": 5,
       "fett_g": 12
@@ -13312,10 +13312,10 @@
       }
     ],
     "naehrwerte": {
-      "kalorien": 700,
-      "protein_gramm": 35,
-      "kohlenhydrate_gramm": 50,
-      "fett_gramm": 35
+      "kalorien_kcal": 0,
+      "kohlenhydrate_g": 50,
+      "eiweiss_g": 35,
+      "fett_g": 35
     },
     "zubereitung": [
       "Schritt 1: Fettuccine in gesalzenem Wasser al dente kochen und abgießen.",
@@ -13531,7 +13531,7 @@
       }
     ],
     "naehrwerte": {
-      "kcal": 400,
+      "kalorien_kcal": 400,
       "kohlenhydrate_g": 35,
       "eiweiss_g": 15,
       "fett_g": 18
@@ -13963,10 +13963,10 @@
       }
     ],
     "naehrwerte": {
-      "kilokalorien": 560,
-      "eiweiss_gramm": 36,
-      "fett_gramm": 32,
-      "kohlenhydrate_gramm": 20
+      "kalorien_kcal": 560,
+      "kohlenhydrate_g": 20,
+      "eiweiss_g": 36,
+      "fett_g": 32
     },
     "zubereitung": [
       "Schritt 1: Drumsticks mit Öl bestreichen und großzügig mit der Gewürzmischung einreiben.",
@@ -14486,10 +14486,10 @@
       }
     ],
     "naehrwerte": {
-      "kalorien": 500,
-      "protein_gramm": 20,
-      "kohlenhydrate_gramm": 60,
-      "fett_gramm": 20
+      "kalorien_kcal": 0,
+      "kohlenhydrate_g": 60,
+      "eiweiss_g": 20,
+      "fett_g": 20
     },
     "zubereitung": [
       "Schritt 1: Backofen auf maximale Temperatur vorheizen. Pizzateig dünn ausrollen.",
@@ -14761,10 +14761,10 @@
       }
     ],
     "naehrwerte": {
-      "kcal": 150,
-      "protein_g": 2,
-      "fett_g": 14,
-      "kohlenhydrate_g": 3
+      "kalorien_kcal": 150,
+      "kohlenhydrate_g": 3,
+      "eiweiss_g": 0,
+      "fett_g": 14
     },
     "zubereitung": [
       "Schritt 1: Padrón-Paprika waschen und trocken tupfen.",
@@ -14870,7 +14870,7 @@
       "kalorien_kcal": 49,
       "kohlenhydrate_g": 9,
       "eiweiss_g": 1,
-      "fett_g": 1.6
+      "fett_g": 1
     },
     "zubereitung": [
       "Schritt 1: Steckrüben schälen, in Stifte schneiden und in kochendem Wasser 5–6 Minuten weich kochen.",
@@ -14947,10 +14947,10 @@
       }
     ],
     "naehrwerte": {
-      "kalorien": 600,
-      "protein_gramm": 30,
-      "kohlenhydrate_gramm": 30,
-      "fett_gramm": 30
+      "kalorien_kcal": 0,
+      "kohlenhydrate_g": 30,
+      "eiweiss_g": 30,
+      "fett_g": 30
     },
     "zubereitung": [
       "Schritt 1: Lammfleisch würzen und in Olivenöl anbraten, bis es Farbe angenommen hat, dann herausnehmen.",
@@ -15210,10 +15210,10 @@
       }
     ],
     "naehrwerte": {
-      "kilokalorien": 610,
-      "eiweiss_gramm": 32,
-      "fett_gramm": 28,
-      "kohlenhydrate_gramm": 48
+      "kalorien_kcal": 610,
+      "kohlenhydrate_g": 48,
+      "eiweiss_g": 32,
+      "fett_g": 28
     },
     "zubereitung": [
       "Schritt 1: Schweinehackfleisch mit Salz und Pfeffer würzen und zu einem Patty formen.",
@@ -15333,10 +15333,10 @@
       }
     ],
     "naehrwerte": {
-      "kilokalorien": 620,
-      "eiweiss_gramm": 34,
-      "fett_gramm": 30,
-      "kohlenhydrate_gramm": 48
+      "kalorien_kcal": 620,
+      "kohlenhydrate_g": 48,
+      "eiweiss_g": 34,
+      "fett_g": 30
     },
     "zubereitung": [
       "Schritt 1: Aus dem Rinderhack einen Patty formen, salzen und pfeffern. Garnelen schälen und mit gehacktem Knoblauch und Zitronensaft marinieren.",
@@ -16149,7 +16149,7 @@
       }
     ],
     "naehrwerte": {
-      "kcal": 350,
+      "kalorien_kcal": 350,
       "kohlenhydrate_g": 50,
       "eiweiss_g": 8,
       "fett_g": 12
@@ -16467,10 +16467,10 @@
       }
     ],
     "naehrwerte": {
-      "kalorien": 500,
-      "protein_gramm": 30,
-      "kohlenhydrate_gramm": 15,
-      "fett_gramm": 30
+      "kalorien_kcal": 0,
+      "kohlenhydrate_g": 15,
+      "eiweiss_g": 30,
+      "fett_g": 30
     },
     "zubereitung": [
       "Schritt 1: Aus Essig, Knoblauch, Ingwer, Chilipulver und Gewürzen eine Paste herstellen und das Fleisch darin marinieren.",
@@ -16538,10 +16538,10 @@
       }
     ],
     "naehrwerte": {
-      "kilokalorien": 420,
-      "eiweiss_gramm": 32,
-      "fett_gramm": 25,
-      "kohlenhydrate_gramm": 12
+      "kalorien_kcal": 420,
+      "kohlenhydrate_g": 12,
+      "eiweiss_g": 32,
+      "fett_g": 25
     },
     "zubereitung": [
       "Schritt 1: Olivenöl in einer ofenfesten Pfanne erhitzen. Zwiebel und Knoblauch fein hacken und darin glasig dünsten.",
@@ -16664,7 +16664,7 @@
       "kalorien_kcal": 127,
       "kohlenhydrate_g": 9,
       "eiweiss_g": 18,
-      "fett_g": 2.3
+      "fett_g": 2
     },
     "zubereitung": [
       "Schritt 1: Gurke fein raspeln, Knoblauch pressen und beides mit Joghurt verrühren.",
@@ -16850,7 +16850,7 @@
       }
     ],
     "naehrwerte": {
-      "kcal": 260,
+      "kalorien_kcal": 260,
       "kohlenhydrate_g": 37,
       "eiweiss_g": 6,
       "fett_g": 10
@@ -17078,10 +17078,10 @@
       }
     ],
     "naehrwerte": {
-      "kilokalorien": 180,
-      "eiweiss_gramm": 18,
-      "fett_gramm": 6,
-      "kohlenhydrate_gramm": 12
+      "kalorien_kcal": 180,
+      "kohlenhydrate_g": 12,
+      "eiweiss_g": 18,
+      "fett_g": 6
     },
     "zubereitung": [
       "Schritt 1: Brühe in einem Topf erhitzen. Zitronengras leicht andrücken, Galangal in Scheiben schneiden und zusammen mit Kaffirlimettenblättern und Chilischoten in die Brühe geben.",
@@ -17442,10 +17442,10 @@
       }
     ],
     "naehrwerte": {
-      "kalorien": 350,
-      "protein_gramm": 30,
-      "kohlenhydrate_gramm": 1,
-      "fett_gramm": 25
+      "kalorien_kcal": 0,
+      "kohlenhydrate_g": 1,
+      "eiweiss_g": 30,
+      "fett_g": 25
     },
     "zubereitung": [
       "Schritt 1: Kalbschnitzel dünn klopfen, mit Salbei belegen und mit Parmaschinken umwickeln.",
@@ -17498,7 +17498,7 @@
       }
     ],
     "naehrwerte": {
-      "kcal": 280,
+      "kalorien_kcal": 280,
       "kohlenhydrate_g": 45,
       "eiweiss_g": 6,
       "fett_g": 10
@@ -17629,10 +17629,10 @@
       }
     ],
     "naehrwerte": {
-      "kalorien": 450,
-      "protein_gramm": 30,
-      "kohlenhydrate_gramm": 15,
-      "fett_gramm": 25
+      "kalorien_kcal": 0,
+      "kohlenhydrate_g": 15,
+      "eiweiss_g": 30,
+      "fett_g": 25
     },
     "zubereitung": [
       "Schritt 1: Hähnchen würfeln und in etwas Sojasauce und Stärke kurz marinieren.",
@@ -17938,10 +17938,10 @@
       }
     ],
     "naehrwerte": {
-      "kilokalorien": 680,
-      "eiweiss_gramm": 48,
-      "fett_gramm": 50,
-      "kohlenhydrate_gramm": 2
+      "kalorien_kcal": 680,
+      "kohlenhydrate_g": 2,
+      "eiweiss_g": 48,
+      "fett_g": 50
     },
     "zubereitung": [
       "Schritt 1: Steak mit Öl einreiben und mit Salz und Pfeffer würzen. Kräuter fein hacken, Knoblauch pressen und mit Butter vermengen.",
@@ -17989,7 +17989,7 @@
       }
     ],
     "naehrwerte": {
-      "kcal": 350,
+      "kalorien_kcal": 350,
       "kohlenhydrate_g": 35,
       "eiweiss_g": 6,
       "fett_g": 20
@@ -18092,7 +18092,7 @@
       }
     ],
     "naehrwerte": {
-      "kcal": 220,
+      "kalorien_kcal": 220,
       "kohlenhydrate_g": 35,
       "eiweiss_g": 4,
       "fett_g": 7
@@ -18380,7 +18380,7 @@
       }
     ],
     "naehrwerte": {
-      "kcal": 200,
+      "kalorien_kcal": 200,
       "kohlenhydrate_g": 30,
       "eiweiss_g": 6,
       "fett_g": 6
@@ -18513,10 +18513,10 @@
       }
     ],
     "naehrwerte": {
-      "kalorien": 400,
-      "protein_gramm": 30,
-      "kohlenhydrate_gramm": 10,
-      "fett_gramm": 25
+      "kalorien_kcal": 0,
+      "kohlenhydrate_g": 10,
+      "eiweiss_g": 30,
+      "fett_g": 25
     },
     "zubereitung": [
       "Schritt 1: Fleisch und Gemüse in gleich große Würfel schneiden. Aus Öl, Zitronensaft, zerdrückter Knoblauchzehe und Gewürzen eine Marinade herstellen.",
@@ -18832,7 +18832,7 @@
       }
     ],
     "naehrwerte": {
-      "kcal": 180,
+      "kalorien_kcal": 180,
       "kohlenhydrate_g": 14,
       "eiweiss_g": 2,
       "fett_g": 13
@@ -18975,10 +18975,10 @@
       }
     ],
     "naehrwerte": {
-      "kilokalorien": 420,
-      "eiweiss_gramm": 30,
-      "fett_gramm": 26,
-      "kohlenhydrate_gramm": 14
+      "kalorien_kcal": 420,
+      "kohlenhydrate_g": 14,
+      "eiweiss_g": 30,
+      "fett_g": 26
     },
     "zubereitung": [
       "Schritt 1: Öl in einer Pfanne erhitzen. Zwiebel, Knoblauch und fein geschnittene Chilischote anbraten.",
@@ -19197,10 +19197,10 @@
       }
     ],
     "naehrwerte": {
-      "kilokalorien": 700,
-      "eiweiss_gramm": 42,
-      "fett_gramm": 45,
-      "kohlenhydrate_gramm": 22
+      "kalorien_kcal": 700,
+      "kohlenhydrate_g": 22,
+      "eiweiss_g": 42,
+      "fett_g": 45
     },
     "zubereitung": [
       "Schritt 1: Die Gewürze mischen und die Baby Back Ribs damit einreiben. 30 Minuten ziehen lassen.",
@@ -19634,10 +19634,10 @@
       }
     ],
     "naehrwerte": {
-      "kcal": 320,
-      "protein_g": 6,
-      "fett_g": 18,
-      "kohlenhydrate_g": 36
+      "kalorien_kcal": 320,
+      "kohlenhydrate_g": 36,
+      "eiweiss_g": 0,
+      "fett_g": 18
     },
     "zubereitung": [
       "Schritt 1: Gemüse in dünne Stifte schneiden.",
@@ -19859,10 +19859,10 @@
       }
     ],
     "naehrwerte": {
-      "kilokalorien": 380,
-      "eiweiss_gramm": 6,
-      "fett_gramm": 14,
-      "kohlenhydrate_gramm": 58
+      "kalorien_kcal": 380,
+      "kohlenhydrate_g": 58,
+      "eiweiss_g": 6,
+      "fett_g": 14
     },
     "zubereitung": [
       "Schritt 1: Gemüse in mundgerechte Stücke schneiden, Maiskolben halbieren.",
@@ -19941,9 +19941,9 @@
     ],
     "naehrwerte": {
       "kalorien_kcal": 142,
-      "kohlenhydrate_g": 9.2,
-      "eiweiss_g": 1.2,
-      "fett_g": 11.9
+      "kohlenhydrate_g": 9,
+      "eiweiss_g": 1,
+      "fett_g": 11
     },
     "zubereitung": [
       "Schritt 1: Kohl, Karotte, Apfel und rote Beete in feine Streifen hobeln und vermengen.",
@@ -20243,7 +20243,7 @@
       }
     ],
     "naehrwerte": {
-      "kcal": 150,
+      "kalorien_kcal": 150,
       "kohlenhydrate_g": 6,
       "eiweiss_g": 7,
       "fett_g": 10
@@ -20289,10 +20289,10 @@
       }
     ],
     "naehrwerte": {
-      "kilokalorien": 520,
-      "eiweiss_gramm": 20,
-      "fett_gramm": 36,
-      "kohlenhydrate_gramm": 20
+      "kalorien_kcal": 520,
+      "kohlenhydrate_g": 20,
+      "eiweiss_g": 20,
+      "fett_g": 36
     },
     "zubereitung": [
       "Schritt 1: Die Würste auf dem Grill bei mittlerer Hitze etwa 15 Minuten grillen, bis sie Farbe angenommen haben.",
@@ -20396,10 +20396,10 @@
       }
     ],
     "naehrwerte": {
-      "kilokalorien": 820,
-      "eiweiss_gramm": 30,
-      "fett_gramm": 70,
-      "kohlenhydrate_gramm": 22
+      "kalorien_kcal": 820,
+      "kohlenhydrate_g": 22,
+      "eiweiss_g": 30,
+      "fett_g": 70
     },
     "zubereitung": [
       "Schritt 1: Schweinebauch in Würfel schneiden und mit Zucker, Paprika, Chili und Salz würzen.",
@@ -20826,7 +20826,7 @@
       "kalorien_kcal": 110,
       "kohlenhydrate_g": 13,
       "eiweiss_g": 5,
-      "fett_g": 4.5
+      "fett_g": 4
     },
     "zubereitung": [
       "Schritt 1: Öl in einer Pfanne erhitzen, Knoblauch und Schalotten anbraten.",
@@ -21157,10 +21157,10 @@
       }
     ],
     "naehrwerte": {
-      "kcal": 400,
-      "protein_g": 20,
-      "fett_g": 20,
-      "kohlenhydrate_g": 32
+      "kalorien_kcal": 400,
+      "kohlenhydrate_g": 32,
+      "eiweiss_g": 0,
+      "fett_g": 20
     },
     "zubereitung": [
       "Schritt 1: Zwiebeln fein hacken und in Öl anbraten, bis sie goldbraun sind.",
@@ -21417,10 +21417,10 @@
       }
     ],
     "naehrwerte": {
-      "kilokalorien": 500,
-      "eiweiss_gramm": 28,
-      "fett_gramm": 16,
-      "kohlenhydrate_gramm": 58
+      "kalorien_kcal": 500,
+      "kohlenhydrate_g": 58,
+      "eiweiss_g": 28,
+      "fett_g": 16
     },
     "zubereitung": [
       "Schritt 1: Linguine in Salzwasser al dente kochen. Knoblauch fein hacken.",
@@ -21872,10 +21872,10 @@
       }
     ],
     "naehrwerte": {
-      "kalorien": 450,
-      "protein_gramm": 25,
-      "kohlenhydrate_gramm": 10,
-      "fett_gramm": 30
+      "kalorien_kcal": 0,
+      "kohlenhydrate_g": 10,
+      "eiweiss_g": 25,
+      "fett_g": 30
     },
     "zubereitung": [
       "Schritt 1: Tofu in Würfel schneiden und kurz in heißem Salzwasser blanchieren, anschließend abtropfen lassen.",
@@ -22025,10 +22025,10 @@
       }
     ],
     "naehrwerte": {
-      "kilokalorien": 450,
-      "eiweiss_gramm": 35,
-      "fett_gramm": 24,
-      "kohlenhydrate_gramm": 18
+      "kalorien_kcal": 450,
+      "kohlenhydrate_g": 18,
+      "eiweiss_g": 35,
+      "fett_g": 24
     },
     "zubereitung": [
       "Schritt 1: Ofen auf 180 °C vorheizen. Karotte, Zwiebel und Knoblauch in feine Streifen schneiden und mit einem Teil der Butter auf einem Stück Alufolie als Gemüsebett auslegen. Frühlingszwiebel hinzufügen.",
@@ -22269,7 +22269,7 @@
       "kalorien_kcal": 136,
       "kohlenhydrate_g": 22,
       "eiweiss_g": 4,
-      "fett_g": 1.5
+      "fett_g": 1
     },
     "zubereitung": [
       "Schritt 1: Kartoffeln schälen und in Stücke schneiden. In einem Topf mit Wasser weich kochen.",
@@ -22503,10 +22503,10 @@
       }
     ],
     "naehrwerte": {
-      "kcal": 320,
-      "protein_g": 8,
-      "fett_g": 16,
-      "kohlenhydrate_g": 34
+      "kalorien_kcal": 320,
+      "kohlenhydrate_g": 34,
+      "eiweiss_g": 0,
+      "fett_g": 16
     },
     "zubereitung": [
       "Schritt 1: Kartoffel in dünne Scheiben schneiden, Zwiebel in Ringe schneiden, Spinat grob hacken.",
@@ -22570,10 +22570,10 @@
       }
     ],
     "naehrwerte": {
-      "kilokalorien": 650,
-      "eiweiss_gramm": 40,
-      "fett_gramm": 40,
-      "kohlenhydrate_gramm": 30
+      "kalorien_kcal": 650,
+      "kohlenhydrate_g": 30,
+      "eiweiss_g": 40,
+      "fett_g": 40
     },
     "zubereitung": [
       "Schritt 1: Für den Rub braunen Zucker, Paprika, Chilipulver, Senfpulver und Salz mischen. Das Fleisch rundum damit einreiben.",
@@ -22647,9 +22647,9 @@
     ],
     "naehrwerte": {
       "kalorien_kcal": 432,
-      "kohlenhydrate_g": 40.3,
-      "eiweiss_g": 21.5,
-      "fett_g": 21.1
+      "kohlenhydrate_g": 40,
+      "eiweiss_g": 21,
+      "fett_g": 21
     },
     "zubereitung": [
       "Schritt 1: Paprika der Länge nach halbieren und entkernen.",
@@ -22998,10 +22998,10 @@
       }
     ],
     "naehrwerte": {
-      "kilokalorien": 650,
-      "eiweiss_gramm": 46,
-      "fett_gramm": 32,
-      "kohlenhydrate_gramm": 10
+      "kalorien_kcal": 650,
+      "kohlenhydrate_g": 10,
+      "eiweiss_g": 46,
+      "fett_g": 32
     },
     "zubereitung": [
       "Schritt 1: Rinderfilet mit Öl einreiben, salzen und pfeffern. Garnelen schälen und mit gehacktem Knoblauch und Zitronensaft marinieren.",
@@ -23147,10 +23147,10 @@
       }
     ],
     "naehrwerte": {
-      "kilokalorien": 620,
-      "eiweiss_gramm": 50,
-      "fett_gramm": 32,
-      "kohlenhydrate_gramm": 15
+      "kalorien_kcal": 620,
+      "kohlenhydrate_g": 15,
+      "eiweiss_g": 50,
+      "fett_g": 32
     },
     "zubereitung": [
       "Schritt 1: Die Keule 4 Stunden in der Salzlake einlegen, dann abspülen und trocken tupfen.",
@@ -23772,10 +23772,10 @@
       }
     ],
     "naehrwerte": {
-      "kalorien": 600,
-      "protein_gramm": 30,
-      "kohlenhydrate_gramm": 50,
-      "fett_gramm": 25
+      "kalorien_kcal": 0,
+      "kohlenhydrate_g": 50,
+      "eiweiss_g": 30,
+      "fett_g": 25
     },
     "zubereitung": [
       "Schritt 1: Rindfleisch mit Sojasauce und Essig marinieren. In einer Pfanne anbraten und beiseitestellen.",
@@ -23990,10 +23990,10 @@
       }
     ],
     "naehrwerte": {
-      "kcal": 350,
-      "protein_g": 22,
-      "fett_g": 7,
-      "kohlenhydrate_g": 50
+      "kalorien_kcal": 350,
+      "kohlenhydrate_g": 50,
+      "eiweiss_g": 0,
+      "fett_g": 7
     },
     "zubereitung": [
       "Schritt 1: Brühe mit Sternanis, Zimt und Ingwer aufkochen und 15 Minuten ziehen lassen.",
@@ -24209,10 +24209,10 @@
       }
     ],
     "naehrwerte": {
-      "kilokalorien": 480,
-      "eiweiss_gramm": 40,
-      "fett_gramm": 22,
-      "kohlenhydrate_gramm": 8
+      "kalorien_kcal": 480,
+      "kohlenhydrate_g": 8,
+      "eiweiss_g": 40,
+      "fett_g": 22
     },
     "zubereitung": [
       "Schritt 1: Hirschsteak mit Öl einreiben und mit gehacktem Rosmarin, Salz und Pfeffer würzen.",
@@ -24728,10 +24728,10 @@
       }
     ],
     "naehrwerte": {
-      "kilokalorien": 520,
-      "eiweiss_gramm": 28,
-      "fett_gramm": 18,
-      "kohlenhydrate_gramm": 60
+      "kalorien_kcal": 520,
+      "kohlenhydrate_g": 60,
+      "eiweiss_g": 28,
+      "fett_g": 18
     },
     "zubereitung": [
       "Schritt 1: Butter in einer Pfanne schmelzen, Knoblauch pressen und kurz anbraten. Garnelen dazugeben und 3 Minuten braten.",
@@ -24917,10 +24917,10 @@
       }
     ],
     "naehrwerte": {
-      "kilokalorien": 520,
-      "eiweiss_gramm": 30,
-      "fett_gramm": 32,
-      "kohlenhydrate_gramm": 18
+      "kalorien_kcal": 520,
+      "kohlenhydrate_g": 18,
+      "eiweiss_g": 30,
+      "fett_g": 32
     },
     "zubereitung": [
       "Schritt 1: Hähnchenflügel trocken tupfen und mit Salz, Paprika, Cayenne und Knoblauchpulver würzen.",
@@ -25422,10 +25422,10 @@
       }
     ],
     "naehrwerte": {
-      "kilokalorien": 740,
-      "eiweiss_gramm": 46,
-      "fett_gramm": 52,
-      "kohlenhydrate_gramm": 18
+      "kalorien_kcal": 740,
+      "kohlenhydrate_g": 18,
+      "eiweiss_g": 46,
+      "fett_g": 52
     },
     "zubereitung": [
       "Schritt 1: Den Point‑Cut der Rinderbrust mit der Gewürzmischung einreiben und über Nacht im Kühlschrank ziehen lassen.",
@@ -25612,10 +25612,10 @@
       }
     ],
     "naehrwerte": {
-      "kcal": 330,
-      "protein_g": 12,
-      "fett_g": 15,
-      "kohlenhydrate_g": 32
+      "kalorien_kcal": 330,
+      "kohlenhydrate_g": 32,
+      "eiweiss_g": 0,
+      "fett_g": 15
     },
     "zubereitung": [
       "Schritt 1: Kohl fein hacken, mit Salz bestreuen und kurz stehen lassen, dann ausdrücken.",
@@ -25730,10 +25730,10 @@
       }
     ],
     "naehrwerte": {
-      "kilokalorien": 520,
-      "eiweiss_gramm": 35,
-      "fett_gramm": 16,
-      "kohlenhydrate_gramm": 60
+      "kalorien_kcal": 520,
+      "kohlenhydrate_g": 60,
+      "eiweiss_g": 35,
+      "fett_g": 16
     },
     "zubereitung": [
       "Schritt 1: Hähnchenbrust in einen Topf geben, mit Brühe bedecken und weich garen (ca. 1,5 Stunden).",
@@ -25919,10 +25919,10 @@
       }
     ],
     "naehrwerte": {
-      "kilokalorien": 680,
-      "eiweiss_gramm": 48,
-      "fett_gramm": 42,
-      "kohlenhydrate_gramm": 5
+      "kalorien_kcal": 680,
+      "kohlenhydrate_g": 5,
+      "eiweiss_g": 48,
+      "fett_g": 42
     },
     "zubereitung": [
       "Schritt 1: Rinderbrust trocken tupfen. Salz, Pfeffer, Paprika, Knoblauch- und Zwiebelpulver zu einem Rub mischen.",
@@ -26042,7 +26042,7 @@
       }
     ],
     "naehrwerte": {
-      "kcal": 350,
+      "kalorien_kcal": 350,
       "kohlenhydrate_g": 55,
       "eiweiss_g": 5,
       "fett_g": 12
@@ -26083,10 +26083,10 @@
       }
     ],
     "naehrwerte": {
-      "kilokalorien": 650,
-      "eiweiss_gramm": 44,
-      "fett_gramm": 40,
-      "kohlenhydrate_gramm": 12
+      "kalorien_kcal": 650,
+      "kohlenhydrate_g": 12,
+      "eiweiss_g": 44,
+      "fett_g": 40
     },
     "zubereitung": [
       "Schritt 1: Tri‑Tip mit Öl bestreichen und den Rub einmassieren. Bei Raumtemperatur 30 Minuten ruhen lassen.",
@@ -26588,7 +26588,7 @@
       "kalorien_kcal": 105,
       "kohlenhydrate_g": 20,
       "eiweiss_g": 3,
-      "fett_g": 3.5
+      "fett_g": 3
     },
     "zubereitung": [
       "Schritt 1: Maiskörner, rote Paprika und Schalotte fein würfeln.",
@@ -26962,10 +26962,10 @@
       }
     ],
     "naehrwerte": {
-      "kilokalorien": 720,
-      "eiweiss_gramm": 45,
-      "fett_gramm": 47,
-      "kohlenhydrate_gramm": 22
+      "kalorien_kcal": 720,
+      "kohlenhydrate_g": 22,
+      "eiweiss_g": 45,
+      "fett_g": 47
     },
     "zubereitung": [
       "Schritt 1: Alle Gewürze vermengen und die Rippchen damit einreiben. 30 Minuten ziehen lassen.",
@@ -27258,10 +27258,10 @@
       }
     ],
     "naehrwerte": {
-      "kilokalorien": 450,
-      "eiweiss_gramm": 26,
-      "fett_gramm": 12,
-      "kohlenhydrate_gramm": 55
+      "kalorien_kcal": 450,
+      "kohlenhydrate_g": 55,
+      "eiweiss_g": 26,
+      "fett_g": 12
     },
     "zubereitung": [
       "Schritt 1: Spaghetti in Salzwasser al dente kochen.",
@@ -27516,7 +27516,7 @@
     "naehrwerte": {
       "kalorien_kcal": 62,
       "kohlenhydrate_g": 3,
-      "eiweiss_g": 4.5,
+      "eiweiss_g": 4,
       "fett_g": 3
     },
     "zubereitung": [
@@ -27575,10 +27575,10 @@
       }
     ],
     "naehrwerte": {
-      "kcal": 420,
-      "protein_g": 16,
-      "fett_g": 28,
-      "kohlenhydrate_g": 30
+      "kalorien_kcal": 420,
+      "kohlenhydrate_g": 30,
+      "eiweiss_g": 0,
+      "fett_g": 28
     },
     "zubereitung": [
       "Schritt 1: Spinat blanchieren, ausdrücken und grob hacken; Zwiebel fein würfeln und in Olivenöl glasig dünsten.",
@@ -27692,10 +27692,10 @@
       }
     ],
     "naehrwerte": {
-      "kalorien": 550,
-      "protein_gramm": 30,
-      "kohlenhydrate_gramm": 40,
-      "fett_gramm": 25
+      "kalorien_kcal": 0,
+      "kohlenhydrate_g": 40,
+      "eiweiss_g": 30,
+      "fett_g": 25
     },
     "zubereitung": [
       "Schritt 1: Eine Marinade aus Adobada-Gewürz, Knoblauch und Öl herstellen und das Schweinefleisch darin marinieren.",
@@ -28600,7 +28600,7 @@
       "kalorien_kcal": 80,
       "kohlenhydrate_g": 9,
       "eiweiss_g": 3,
-      "fett_g": 1.5
+      "fett_g": 1
     },
     "zubereitung": [
       "Schritt 1: Banane und Tofu in einem Mixer cremig pürieren.",
@@ -28713,10 +28713,10 @@
       }
     ],
     "naehrwerte": {
-      "kilokalorien": 320,
-      "eiweiss_gramm": 32,
-      "fett_gramm": 18,
-      "kohlenhydrate_gramm": 6
+      "kalorien_kcal": 320,
+      "kohlenhydrate_g": 6,
+      "eiweiss_g": 32,
+      "fett_g": 18
     },
     "zubereitung": [
       "Schritt 1: Das Kabeljaufilet trockentupfen, salzen und pfeffern, dann in Mehl wenden.",
@@ -28765,10 +28765,10 @@
       }
     ],
     "naehrwerte": {
-      "kilokalorien": 550,
-      "eiweiss_gramm": 38,
-      "fett_gramm": 28,
-      "kohlenhydrate_gramm": 20
+      "kalorien_kcal": 550,
+      "kohlenhydrate_g": 20,
+      "eiweiss_g": 38,
+      "fett_g": 28
     },
     "zubereitung": [
       "Schritt 1: Schweinelende mit Öl einreiben, anschließend den Rub auftragen und 30 Minuten ziehen lassen.",
@@ -29739,7 +29739,7 @@
       }
     ],
     "naehrwerte": {
-      "kcal": 320,
+      "kalorien_kcal": 320,
       "kohlenhydrate_g": 35,
       "eiweiss_g": 11,
       "fett_g": 15
@@ -29810,10 +29810,10 @@
       }
     ],
     "naehrwerte": {
-      "kcal": 340,
-      "protein_g": 6,
-      "fett_g": 26,
-      "kohlenhydrate_g": 18
+      "kalorien_kcal": 340,
+      "kohlenhydrate_g": 18,
+      "eiweiss_g": 0,
+      "fett_g": 26
     },
     "zubereitung": [
       "Schritt 1: Walnüsse grob hacken und in einer Pfanne ohne Fett anrösten.",
@@ -29890,7 +29890,7 @@
       }
     ],
     "naehrwerte": {
-      "kcal": 200,
+      "kalorien_kcal": 200,
       "kohlenhydrate_g": 12,
       "eiweiss_g": 4,
       "fett_g": 14
@@ -30549,10 +30549,10 @@
       }
     ],
     "naehrwerte": {
-      "kcal": 310,
-      "protein_g": 5,
-      "fett_g": 18,
-      "kohlenhydrate_g": 35
+      "kalorien_kcal": 310,
+      "kohlenhydrate_g": 35,
+      "eiweiss_g": 0,
+      "fett_g": 18
     },
     "zubereitung": [
       "Schritt 1: Kartoffeln waschen und in Würfel schneiden, in Öl goldbraun frittieren oder backen.",
@@ -30660,10 +30660,10 @@
       }
     ],
     "naehrwerte": {
-      "kalorien": 550,
-      "protein_gramm": 35,
-      "kohlenhydrate_gramm": 40,
-      "fett_gramm": 25
+      "kalorien_kcal": 0,
+      "kohlenhydrate_g": 40,
+      "eiweiss_g": 35,
+      "fett_g": 25
     },
     "zubereitung": [
       "Schritt 1: Zwiebel und Paprika würfeln und in Öl anbraten. Zerzupftes Hähnchenfleisch und etwas Enchilada-Sauce hinzufügen und erwärmen.",
@@ -30807,10 +30807,10 @@
       }
     ],
     "naehrwerte": {
-      "kcal": 450,
-      "protein_g": 17,
-      "fett_g": 28,
-      "kohlenhydrate_g": 33
+      "kalorien_kcal": 450,
+      "kohlenhydrate_g": 33,
+      "eiweiss_g": 0,
+      "fett_g": 28
     },
     "zubereitung": [
       "Schritt 1: Zwiebel, Knoblauch und Paprika fein hacken.",
@@ -30986,10 +30986,10 @@
       }
     ],
     "naehrwerte": {
-      "kalorien": 600,
-      "protein_gramm": 30,
-      "kohlenhydrate_gramm": 30,
-      "fett_gramm": 35
+      "kalorien_kcal": 0,
+      "kohlenhydrate_g": 30,
+      "eiweiss_g": 30,
+      "fett_g": 35
     },
     "zubereitung": [
       "Schritt 1: Fleisch dünn klopfen, salzen und pfeffern. Im Mehl wenden, durch das verquirlte Ei ziehen und mit Paniermehl umhüllen.",
@@ -31407,10 +31407,10 @@
       }
     ],
     "naehrwerte": {
-      "kalorien": 500,
-      "protein_gramm": 25,
-      "kohlenhydrate_gramm": 40,
-      "fett_gramm": 20
+      "kalorien_kcal": 0,
+      "kohlenhydrate_g": 40,
+      "eiweiss_g": 25,
+      "fett_g": 20
     },
     "zubereitung": [
       "Schritt 1: Schweinefleisch in mundgerechte Stücke schneiden, leicht würzen und in etwas Öl anbraten, bis es rundum braun ist. Herausnehmen.",
@@ -31478,7 +31478,7 @@
       }
     ],
     "naehrwerte": {
-      "kcal": 330,
+      "kalorien_kcal": 330,
       "kohlenhydrate_g": 35,
       "eiweiss_g": 8,
       "fett_g": 14
@@ -31737,9 +31737,9 @@
     ],
     "naehrwerte": {
       "kalorien_kcal": 93,
-      "kohlenhydrate_g": 7.4,
-      "eiweiss_g": 7.9,
-      "fett_g": 4.3
+      "kohlenhydrate_g": 7,
+      "eiweiss_g": 7,
+      "fett_g": 4
     },
     "zubereitung": [
       "Schritt 1: Wasser in einem Topf zum Kochen bringen.",
@@ -31812,10 +31812,10 @@
       }
     ],
     "naehrwerte": {
-      "kalorien": 650,
-      "protein_gramm": 35,
-      "kohlenhydrate_gramm": 40,
-      "fett_gramm": 30
+      "kalorien_kcal": 0,
+      "kohlenhydrate_g": 40,
+      "eiweiss_g": 35,
+      "fett_g": 30
     },
     "zubereitung": [
       "Schritt 1: Kalbshaxe salzen, in Mehl wenden und in Öl anbraten, bis sie Farbe annimmt. Herausnehmen.",
@@ -32009,7 +32009,7 @@
       "kalorien_kcal": 245,
       "kohlenhydrate_g": 27,
       "eiweiss_g": 24,
-      "fett_g": 5.5
+      "fett_g": 5
     },
     "zubereitung": [
       "Schritt 1: Salatblätter waschen und in eine Schüssel geben.",
@@ -32701,10 +32701,10 @@
       }
     ],
     "naehrwerte": {
-      "kilokalorien": 520,
-      "eiweiss_gramm": 30,
-      "fett_gramm": 20,
-      "kohlenhydrate_gramm": 50
+      "kalorien_kcal": 520,
+      "kohlenhydrate_g": 50,
+      "eiweiss_g": 30,
+      "fett_g": 20
     },
     "zubereitung": [
       "Schritt 1: Paprika und Zwiebel in Streifen schneiden. Garnelen trocken tupfen.",
@@ -32762,10 +32762,10 @@
       }
     ],
     "naehrwerte": {
-      "kilokalorien": 420,
-      "eiweiss_gramm": 32,
-      "fett_gramm": 26,
-      "kohlenhydrate_gramm": 10
+      "kalorien_kcal": 420,
+      "kohlenhydrate_g": 10,
+      "eiweiss_g": 32,
+      "fett_g": 26
     },
     "zubereitung": [
       "Schritt 1: Knoblauch fein hacken und in Olivenöl in einer Pfanne anschwitzen. Seehechtfilet salzen, pfeffern und von beiden Seiten je 3–4 Minuten braten.",
@@ -32982,7 +32982,7 @@
       "kalorien_kcal": 316,
       "kohlenhydrate_g": 39,
       "eiweiss_g": 28,
-      "fett_g": 5.5
+      "fett_g": 5
     },
     "zubereitung": [
       "Schritt 1: Zwiebel und Knoblauch in Olivenöl anschwitzen.",
@@ -33045,10 +33045,10 @@
       }
     ],
     "naehrwerte": {
-      "kilokalorien": 680,
-      "eiweiss_gramm": 42,
-      "fett_gramm": 45,
-      "kohlenhydrate_gramm": 20
+      "kalorien_kcal": 680,
+      "kohlenhydrate_g": 20,
+      "eiweiss_g": 42,
+      "fett_g": 45
     },
     "zubereitung": [
       "Schritt 1: Zucker, Paprika, Cayenne, Knoblauch-, Zwiebelpulver, Kreuzkümmel, Salz und Pfeffer zu einem trockenen Rub vermengen.",
@@ -33530,9 +33530,9 @@
     ],
     "naehrwerte": {
       "kalorien_kcal": 142,
-      "kohlenhydrate_g": 7.11,
-      "eiweiss_g": 7.1,
-      "fett_g": 5.2
+      "kohlenhydrate_g": 7,
+      "eiweiss_g": 7,
+      "fett_g": 5
     },
     "zubereitung": [
       "Schritt 1: Kartoffel gründlich waschen und mit einer Gabel einstechen. Bei 200 °C 45–60 Minuten backen, bis sie weich ist.",
@@ -33909,10 +33909,10 @@
       }
     ],
     "naehrwerte": {
-      "kilokalorien": 650,
-      "eiweiss_gramm": 55,
-      "fett_gramm": 40,
-      "kohlenhydrate_gramm": 12
+      "kalorien_kcal": 650,
+      "kohlenhydrate_g": 12,
+      "eiweiss_g": 55,
+      "fett_g": 40
     },
     "zubereitung": [
       "Schritt 1: Hähnchen innen und außen mit der Gewürzmischung einreiben und mit Zitronensaft beträufeln.",
@@ -34055,7 +34055,7 @@
       "kalorien_kcal": 130,
       "kohlenhydrate_g": 20,
       "eiweiss_g": 4,
-      "fett_g": 4.5
+      "fett_g": 4
     },
     "zubereitung": [
       "Schritt 1: Tomaten, Gurken und rote Zwiebel in kleine Würfel schneiden.",
@@ -34610,7 +34610,7 @@
       }
     ],
     "naehrwerte": {
-      "kcal": 320,
+      "kalorien_kcal": 320,
       "kohlenhydrate_g": 30,
       "eiweiss_g": 7,
       "fett_g": 20
@@ -34658,7 +34658,7 @@
     "naehrwerte": {
       "kalorien_kcal": 15,
       "kohlenhydrate_g": 3,
-      "eiweiss_g": 0.5,
+      "eiweiss_g": 0,
       "fett_g": 0
     },
     "zubereitung": [
@@ -34908,10 +34908,10 @@
       }
     ],
     "naehrwerte": {
-      "kilokalorien": 620,
-      "eiweiss_gramm": 35,
-      "fett_gramm": 28,
-      "kohlenhydrate_gramm": 48
+      "kalorien_kcal": 620,
+      "kohlenhydrate_g": 48,
+      "eiweiss_g": 35,
+      "fett_g": 28
     },
     "zubereitung": [
       "Schritt 1: Das Hackfleisch mit Salz und Pfeffer würzen und zu einem Patty formen.",
@@ -35494,10 +35494,10 @@
       }
     ],
     "naehrwerte": {
-      "kcal": 250,
-      "protein_g": 6,
-      "fett_g": 10,
-      "kohlenhydrate_g": 32
+      "kalorien_kcal": 250,
+      "kohlenhydrate_g": 32,
+      "eiweiss_g": 0,
+      "fett_g": 10
     },
     "zubereitung": [
       "Schritt 1: Kartoffeln schälen und würfeln, Zwiebel und Knoblauch hacken.",
@@ -35600,7 +35600,7 @@
       "kalorien_kcal": 140,
       "kohlenhydrate_g": 25,
       "eiweiss_g": 2,
-      "fett_g": 4.5
+      "fett_g": 4
     },
     "zubereitung": [
       "Schritt 1: Ofen auf 220°C vorheizen; Süßkartoffeln in Scheiben schneiden und mit Öl und Salz mischen.",
@@ -35961,10 +35961,10 @@
       }
     ],
     "naehrwerte": {
-      "kcal": 330,
-      "protein_g": 14,
-      "fett_g": 17,
-      "kohlenhydrate_g": 30
+      "kalorien_kcal": 330,
+      "kohlenhydrate_g": 30,
+      "eiweiss_g": 0,
+      "fett_g": 17
     },
     "zubereitung": [
       "Schritt 1: Paprika und Zwiebel fein würfeln und in einer Pfanne mit Öl anbraten.",
@@ -36158,7 +36158,7 @@
       "kalorien_kcal": 317,
       "kohlenhydrate_g": 1,
       "eiweiss_g": 36,
-      "fett_g": 16.5
+      "fett_g": 16
     },
     "zubereitung": [
       "Schritt 1: Hähnchenbrust mit Olivenöl, Sojasauce, gehacktem Knoblauch, Zimt und Thymian einreiben und 10 Minuten marinieren.",
@@ -36205,10 +36205,10 @@
       }
     ],
     "naehrwerte": {
-      "kcal": 350,
-      "protein_g": 12,
-      "fett_g": 22,
-      "kohlenhydrate_g": 26
+      "kalorien_kcal": 350,
+      "kohlenhydrate_g": 26,
+      "eiweiss_g": 0,
+      "fett_g": 22
     },
     "zubereitung": [
       "Schritt 1: Kartoffeln schälen und in dünne Scheiben schneiden, Zwiebel fein würfeln.",
@@ -36450,10 +36450,10 @@
       }
     ],
     "naehrwerte": {
-      "kilokalorien": 620,
-      "eiweiss_gramm": 35,
-      "fett_gramm": 28,
-      "kohlenhydrate_gramm": 50
+      "kalorien_kcal": 620,
+      "kohlenhydrate_g": 50,
+      "eiweiss_g": 35,
+      "fett_g": 28
     },
     "zubereitung": [
       "Schritt 1: Die fertig geräucherte Rinderbrust in dünne Scheiben schneiden.",
@@ -36962,7 +36962,7 @@
       "kalorien_kcal": 273,
       "kohlenhydrate_g": 33,
       "eiweiss_g": 18,
-      "fett_g": 9.1
+      "fett_g": 9
     },
     "zubereitung": [
       "Schritt 1: Zwiebel und Knoblauch fein hacken und in Kokosöl anbraten.",
@@ -37157,10 +37157,10 @@
       }
     ],
     "naehrwerte": {
-      "kilokalorien": 540,
-      "eiweiss_gramm": 30,
-      "fett_gramm": 28,
-      "kohlenhydrate_gramm": 34
+      "kalorien_kcal": 540,
+      "kohlenhydrate_g": 34,
+      "eiweiss_g": 30,
+      "fett_g": 28
     },
     "zubereitung": [
       "Schritt 1: Hackfleisch mit Semmelbröseln, Ei, Milch, fein gehackter Zwiebel, Salz und Pfeffer mischen und kleine Bällchen formen.",
@@ -37400,7 +37400,7 @@
       }
     ],
     "naehrwerte": {
-      "kcal": 220,
+      "kalorien_kcal": 220,
       "kohlenhydrate_g": 15,
       "eiweiss_g": 7,
       "fett_g": 15
@@ -37456,10 +37456,10 @@
       }
     ],
     "naehrwerte": {
-      "kcal": 280,
-      "protein_g": 5,
-      "fett_g": 20,
-      "kohlenhydrate_g": 18
+      "kalorien_kcal": 280,
+      "kohlenhydrate_g": 18,
+      "eiweiss_g": 0,
+      "fett_g": 20
     },
     "zubereitung": [
       "Schritt 1: Kartoffeln weich kochen und noch warm durch eine Presse drücken.",
@@ -37659,10 +37659,10 @@
       }
     ],
     "naehrwerte": {
-      "kilokalorien": 520,
-      "eiweiss_gramm": 32,
-      "fett_gramm": 36,
-      "kohlenhydrate_gramm": 10
+      "kalorien_kcal": 520,
+      "kohlenhydrate_g": 10,
+      "eiweiss_g": 32,
+      "fett_g": 36
     },
     "zubereitung": [
       "Schritt 1: Lammkoteletts mit Öl einstreichen und mit Rosmarin, gehacktem Knoblauch, Salz und Pfeffer würzen.",
@@ -37710,10 +37710,10 @@
       }
     ],
     "naehrwerte": {
-      "kcal": 430,
-      "protein_g": 12,
-      "fett_g": 24,
-      "kohlenhydrate_g": 40
+      "kalorien_kcal": 430,
+      "kohlenhydrate_g": 40,
+      "eiweiss_g": 0,
+      "fett_g": 24
     },
     "zubereitung": [
       "Schritt 1: Tortilla-Chips auf einem Backblech verteilen und mit Käse bestreuen.",
@@ -38051,10 +38051,10 @@
       }
     ],
     "naehrwerte": {
-      "kcal": 480,
-      "protein_g": 17,
-      "fett_g": 22,
-      "kohlenhydrate_g": 51
+      "kalorien_kcal": 480,
+      "kohlenhydrate_g": 51,
+      "eiweiss_g": 0,
+      "fett_g": 22
     },
     "zubereitung": [
       "Schritt 1: Reis in Brühe garen, bis er weich ist, Butter und Parmesan einrühren und abkühlen lassen.",
@@ -38528,10 +38528,10 @@
       }
     ],
     "naehrwerte": {
-      "kalorien": 500,
-      "protein_gramm": 30,
-      "kohlenhydrate_gramm": 10,
-      "fett_gramm": 35
+      "kalorien_kcal": 0,
+      "kohlenhydrate_g": 10,
+      "eiweiss_g": 30,
+      "fett_g": 35
     },
     "zubereitung": [
       "Schritt 1: Lamm in Ghee anbraten und herausnehmen.",
@@ -38620,10 +38620,10 @@
       }
     ],
     "naehrwerte": {
-      "kilokalorien": 900,
-      "eiweiss_gramm": 32,
-      "fett_gramm": 80,
-      "kohlenhydrate_gramm": 18
+      "kalorien_kcal": 900,
+      "kohlenhydrate_g": 18,
+      "eiweiss_g": 32,
+      "fett_g": 80
     },
     "zubereitung": [
       "Schritt 1: Schweinebauch mit dem Rub würzen und 30 Minuten ziehen lassen.",
@@ -39329,10 +39329,10 @@
       }
     ],
     "naehrwerte": {
-      "kcal": 270,
-      "protein_g": 9,
-      "fett_g": 17,
-      "kohlenhydrate_g": 20
+      "kalorien_kcal": 270,
+      "kohlenhydrate_g": 20,
+      "eiweiss_g": 0,
+      "fett_g": 17
     },
     "zubereitung": [
       "Schritt 1: Wasser mit Butter und Salz aufkochen.",
@@ -39567,10 +39567,10 @@
       }
     ],
     "naehrwerte": {
-      "kalorien": 600,
-      "protein_gramm": 40,
-      "kohlenhydrate_gramm": 10,
-      "fett_gramm": 40
+      "kalorien_kcal": 0,
+      "kohlenhydrate_g": 10,
+      "eiweiss_g": 40,
+      "fett_g": 40
     },
     "zubereitung": [
       "Schritt 1: Hähnchenschenkel mit Salz und Pfeffer würzen und in heißem Öl von allen Seiten anbraten, dann herausnehmen.",
@@ -40228,9 +40228,9 @@
     ],
     "naehrwerte": {
       "kalorien_kcal": 84,
-      "kohlenhydrate_g": 0.5,
-      "eiweiss_g": 5.6,
-      "fett_g": 6.6
+      "kohlenhydrate_g": 0,
+      "eiweiss_g": 5,
+      "fett_g": 6
     },
     "zubereitung": [
       "Schritt 1: Eier schälen, halbieren und das Eigelb herauslösen.",
@@ -40313,10 +40313,10 @@
       }
     ],
     "naehrwerte": {
-      "kilokalorien": 550,
-      "eiweiss_gramm": 28,
-      "fett_gramm": 20,
-      "kohlenhydrate_gramm": 60
+      "kalorien_kcal": 550,
+      "kohlenhydrate_g": 60,
+      "eiweiss_g": 28,
+      "fett_g": 20
     },
     "zubereitung": [
       "Schritt 1: Reisnudeln nach Packungsanweisung in warmem Wasser einweichen. Garnelen schälen und entdarmen. Tofu in kleine Würfel schneiden.",
@@ -41120,10 +41120,10 @@
       }
     ],
     "naehrwerte": {
-      "kcal": 350,
-      "protein_g": 22,
-      "fett_g": 20,
-      "kohlenhydrate_g": 18
+      "kalorien_kcal": 350,
+      "kohlenhydrate_g": 18,
+      "eiweiss_g": 0,
+      "fett_g": 20
     },
     "zubereitung": [
       "Schritt 1: Krabbenfleisch mit Semmelbröseln, Mayonnaise, Senf, Ei, gehackter Petersilie, Zitronensaft, Salz und Pfeffer vermengen.",
@@ -41253,10 +41253,10 @@
       }
     ],
     "naehrwerte": {
-      "kilokalorien": 720,
-      "eiweiss_gramm": 40,
-      "fett_gramm": 36,
-      "kohlenhydrate_gramm": 56
+      "kalorien_kcal": 720,
+      "kohlenhydrate_g": 56,
+      "eiweiss_g": 40,
+      "fett_g": 36
     },
     "zubereitung": [
       "Schritt 1: Hähnchenbrust würfeln und kurz in einer Pfanne anbraten. Kartoffeln schälen und in Stücke schneiden, Brokkoli in Röschen teilen.",
@@ -41692,10 +41692,10 @@
       }
     ],
     "naehrwerte": {
-      "kilokalorien": 320,
-      "eiweiss_gramm": 27,
-      "fett_gramm": 11,
-      "kohlenhydrate_gramm": 10
+      "kalorien_kcal": 320,
+      "kohlenhydrate_g": 10,
+      "eiweiss_g": 27,
+      "fett_g": 11
     },
     "zubereitung": [
       "Schritt 1: Die Muscheln gründlich waschen und bereits geöffnete Exemplare aussortieren.",
@@ -41819,10 +41819,10 @@
       }
     ],
     "naehrwerte": {
-      "kilokalorien": 700,
-      "eiweiss_gramm": 45,
-      "fett_gramm": 45,
-      "kohlenhydrate_gramm": 25
+      "kalorien_kcal": 700,
+      "kohlenhydrate_g": 25,
+      "eiweiss_g": 45,
+      "fett_g": 45
     },
     "zubereitung": [
       "Schritt 1: Für den Rub braunen Zucker, Paprika, Pfeffer, Chili‑, Knoblauch- und Zwiebelpulver sowie Salz in einer Schüssel mischen.",
@@ -42079,10 +42079,10 @@
       }
     ],
     "naehrwerte": {
-      "kcal": 420,
-      "protein_g": 12,
-      "fett_g": 28,
-      "kohlenhydrate_g": 28
+      "kalorien_kcal": 420,
+      "kohlenhydrate_g": 28,
+      "eiweiss_g": 0,
+      "fett_g": 28
     },
     "zubereitung": [
       "Schritt 1: Blätterteig ausrollen und in Rechtecke schneiden.",
@@ -42140,10 +42140,10 @@
       }
     ],
     "naehrwerte": {
-      "kcal": 350,
-      "protein_g": 20,
-      "fett_g": 18,
-      "kohlenhydrate_g": 25
+      "kalorien_kcal": 350,
+      "kohlenhydrate_g": 25,
+      "eiweiss_g": 0,
+      "fett_g": 18
     },
     "zubereitung": [
       "Schritt 1: Tintenfischringe waschen und trocken tupfen.",
@@ -42766,10 +42766,10 @@
       }
     ],
     "naehrwerte": {
-      "kilokalorien": 600,
-      "eiweiss_gramm": 33,
-      "fett_gramm": 28,
-      "kohlenhydrate_gramm": 46
+      "kalorien_kcal": 600,
+      "kohlenhydrate_g": 46,
+      "eiweiss_g": 33,
+      "fett_g": 28
     },
     "zubereitung": [
       "Schritt 1: Hackfleisch zu einem Patty formen, salzen und pfeffern.",
@@ -42965,10 +42965,10 @@
       }
     ],
     "naehrwerte": {
-      "kcal": 280,
-      "protein_g": 6,
-      "fett_g": 12,
-      "kohlenhydrate_g": 34
+      "kalorien_kcal": 280,
+      "kohlenhydrate_g": 34,
+      "eiweiss_g": 0,
+      "fett_g": 12
     },
     "zubereitung": [
       "Schritt 1: Kohl und Karotten fein raspeln, Frühlingszwiebel hacken.",
@@ -43304,10 +43304,10 @@
       }
     ],
     "naehrwerte": {
-      "kilokalorien": 380,
-      "eiweiss_gramm": 34,
-      "fett_gramm": 24,
-      "kohlenhydrate_gramm": 5
+      "kalorien_kcal": 380,
+      "kohlenhydrate_g": 5,
+      "eiweiss_g": 34,
+      "fett_g": 24
     },
     "zubereitung": [
       "Schritt 1: Die ausgenommene Forelle innen und außen mit Salz und Pfeffer würzen und in Mehl wenden.",
@@ -43638,10 +43638,10 @@
       }
     ],
     "naehrwerte": {
-      "kcal": 180,
-      "protein_g": 3,
-      "fett_g": 10,
-      "kohlenhydrate_g": 18
+      "kalorien_kcal": 180,
+      "kohlenhydrate_g": 18,
+      "eiweiss_g": 0,
+      "fett_g": 10
     },
     "zubereitung": [
       "Schritt 1: Brot in kaltem Wasser einweichen und ausdrücken.",
@@ -43954,10 +43954,10 @@
       }
     ],
     "naehrwerte": {
-      "kilokalorien": 550,
-      "eiweiss_gramm": 32,
-      "fett_gramm": 20,
-      "kohlenhydrate_gramm": 56
+      "kalorien_kcal": 550,
+      "kohlenhydrate_g": 56,
+      "eiweiss_g": 32,
+      "fett_g": 20
     },
     "zubereitung": [
       "Schritt 1: Sojasauce, Mirin und Zucker in einem Topf erhitzen, gehackten Ingwer und Knoblauch zugeben und zu einer sirupartigen Teriyaki‑Sauce einkochen.",
@@ -44267,10 +44267,10 @@
       }
     ],
     "naehrwerte": {
-      "kalorien": 600,
-      "protein_gramm": 25,
-      "kohlenhydrate_gramm": 50,
-      "fett_gramm": 30
+      "kalorien_kcal": 0,
+      "kohlenhydrate_g": 50,
+      "eiweiss_g": 25,
+      "fett_g": 30
     },
     "zubereitung": [
       "Schritt 1: Kartoffeln in Stäbchen schneiden, in Wasser einlegen und anschließend trocken tupfen. In heißem Öl frittieren, bis sie knusprig sind.",
@@ -44520,10 +44520,10 @@
       }
     ],
     "naehrwerte": {
-      "kilokalorien": 500,
-      "eiweiss_gramm": 28,
-      "fett_gramm": 24,
-      "kohlenhydrate_gramm": 38
+      "kalorien_kcal": 500,
+      "kohlenhydrate_g": 38,
+      "eiweiss_g": 28,
+      "fett_g": 24
     },
     "zubereitung": [
       "Schritt 1: Die Paprika halbieren und entkernen. Zwiebel hacken und mit Hackfleisch in einer Pfanne anbraten.",
@@ -44739,10 +44739,10 @@
       }
     ],
     "naehrwerte": {
-      "kilokalorien": 380,
-      "eiweiss_gramm": 32,
-      "fett_gramm": 18,
-      "kohlenhydrate_gramm": 8
+      "kalorien_kcal": 380,
+      "kohlenhydrate_g": 8,
+      "eiweiss_g": 32,
+      "fett_g": 18
     },
     "zubereitung": [
       "Schritt 1: Limettensaft, Olivenöl, gehackten Knoblauch, Thymian, Chilipaste, Salz und Pfeffer zu einer Marinade verrühren.",
@@ -46043,10 +46043,10 @@
       }
     ],
     "naehrwerte": {
-      "kilokalorien": 550,
-      "eiweiss_gramm": 36,
-      "fett_gramm": 28,
-      "kohlenhydrate_gramm": 20
+      "kalorien_kcal": 550,
+      "kohlenhydrate_g": 20,
+      "eiweiss_g": 36,
+      "fett_g": 28
     },
     "zubereitung": [
       "Schritt 1: Rindfleisch in Würfel schneiden, Paprika und Zucchini ebenfalls in Stücke schneiden und alles mit Öl, Salz und Pfeffer marinieren.",
@@ -46711,10 +46711,10 @@
       }
     ],
     "naehrwerte": {
-      "kilokalorien": 720,
-      "eiweiss_gramm": 50,
-      "fett_gramm": 46,
-      "kohlenhydrate_gramm": 24
+      "kalorien_kcal": 720,
+      "kohlenhydrate_g": 24,
+      "eiweiss_g": 50,
+      "fett_g": 46
     },
     "zubereitung": [
       "Schritt 1: Die Schweineschulter mit Senf bestreichen und mit dem trockenen Rub einreiben.",
@@ -46772,7 +46772,7 @@
       }
     ],
     "naehrwerte": {
-      "kcal": 280,
+      "kalorien_kcal": 280,
       "kohlenhydrate_g": 1,
       "eiweiss_g": 24,
       "fett_g": 19
@@ -47107,10 +47107,10 @@
       }
     ],
     "naehrwerte": {
-      "kalorien": 700,
-      "protein_gramm": 35,
-      "kohlenhydrate_gramm": 60,
-      "fett_gramm": 35
+      "kalorien_kcal": 0,
+      "kohlenhydrate_g": 60,
+      "eiweiss_g": 35,
+      "fett_g": 35
     },
     "zubereitung": [
       "Schritt 1: Ziti in reichlich Salzwasser nur halbgar kochen und abtropfen lassen.",
@@ -47824,10 +47824,10 @@
       }
     ],
     "naehrwerte": {
-      "kalorien": 800,
-      "protein_gramm": 40,
-      "kohlenhydrate_gramm": 30,
-      "fett_gramm": 45
+      "kalorien_kcal": 0,
+      "kohlenhydrate_g": 30,
+      "eiweiss_g": 40,
+      "fett_g": 45
     },
     "zubereitung": [
       "Schritt 1: Bohnen über Nacht einweichen und danach in frischem Wasser gar kochen.",
@@ -48062,10 +48062,10 @@
       }
     ],
     "naehrwerte": {
-      "kilokalorien": 560,
-      "eiweiss_gramm": 28,
-      "fett_gramm": 24,
-      "kohlenhydrate_gramm": 60
+      "kalorien_kcal": 560,
+      "kohlenhydrate_g": 60,
+      "eiweiss_g": 28,
+      "fett_g": 24
     },
     "zubereitung": [
       "Schritt 1: Safran in etwas warmem Wasser einweichen. Pasta in Salzwasser al dente kochen.",
@@ -48586,10 +48586,10 @@
       }
     ],
     "naehrwerte": {
-      "kilokalorien": 300,
-      "eiweiss_gramm": 26,
-      "fett_gramm": 6,
-      "kohlenhydrate_gramm": 30
+      "kalorien_kcal": 300,
+      "kohlenhydrate_g": 30,
+      "eiweiss_g": 26,
+      "fett_g": 6
     },
     "zubereitung": [
       "Schritt 1: Das Fischfilet in kleine Würfel schneiden und mit Limettensaft in einer Schüssel bedecken. 20 Minuten marinieren, bis der Fisch durch den Saft weißlich wird.",
@@ -48647,10 +48647,10 @@
       }
     ],
     "naehrwerte": {
-      "kcal": 340,
-      "protein_g": 8,
-      "fett_g": 25,
-      "kohlenhydrate_g": 18
+      "kalorien_kcal": 340,
+      "kohlenhydrate_g": 18,
+      "eiweiss_g": 0,
+      "fett_g": 25
     },
     "zubereitung": [
       "Schritt 1: Jalapeños längs aufschneiden und entkernen.",
@@ -48780,10 +48780,10 @@
       }
     ],
     "naehrwerte": {
-      "kilokalorien": 420,
-      "eiweiss_gramm": 22,
-      "fett_gramm": 20,
-      "kohlenhydrate_gramm": 40
+      "kalorien_kcal": 420,
+      "kohlenhydrate_g": 40,
+      "eiweiss_g": 22,
+      "fett_g": 20
     },
     "zubereitung": [
       "Schritt 1: Muscheln gründlich reinigen. Kartoffeln schälen und würfeln, Zwiebel und Sellerie fein hacken.",
@@ -48883,10 +48883,10 @@
       }
     ],
     "naehrwerte": {
-      "kilokalorien": 480,
-      "eiweiss_gramm": 42,
-      "fett_gramm": 20,
-      "kohlenhydrate_gramm": 12
+      "kalorien_kcal": 480,
+      "kohlenhydrate_g": 12,
+      "eiweiss_g": 42,
+      "fett_g": 20
     },
     "zubereitung": [
       "Schritt 1: Truthahnbrust mit Öl einstreichen und mit der Gewürzmischung einreiben. Mit Zitronensaft beträufeln.",
@@ -49015,7 +49015,7 @@
       }
     ],
     "naehrwerte": {
-      "kcal": 320,
+      "kalorien_kcal": 320,
       "kohlenhydrate_g": 40,
       "eiweiss_g": 7,
       "fett_g": 15
