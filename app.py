@@ -2171,8 +2171,15 @@ class Handler(BaseHTTPRequestHandler):
                     if list_count >= MAX_SHOPPING_LISTS:
                         self.send_json({"error": "Maximal 10 Einkaufslisten erlaubt"}, 400)
                         return
-                    db.execute("INSERT INTO shopping_lists (name,color,updated_at,user_id) VALUES (?,?,?,?)", (name, b.get("color", "#7ed6df"), datetime.utcnow().isoformat(), uid))
-                    lid = db.execute("SELECT id FROM shopping_lists ORDER BY id DESC LIMIT 1").fetchone()[0]
+                    created_at = datetime.utcnow().isoformat()
+                    db.execute(
+                        "INSERT INTO shopping_lists (name,color,updated_at,user_id) VALUES (?,?,?,?)",
+                        (name, b.get("color", "#7ed6df"), created_at, uid),
+                    )
+                    lid = db.execute(
+                        "SELECT id FROM shopping_lists WHERE user_id=? ORDER BY id DESC LIMIT 1",
+                        (uid,),
+                    ).fetchone()["id"]
                     self.send_json(dict(db.execute("SELECT * FROM shopping_lists WHERE id=?", (lid,)).fetchone()))
                 return
 
@@ -2263,6 +2270,7 @@ class Handler(BaseHTTPRequestHandler):
                     s["profile_image"] = b.get("profile_image", s["profile_image"])
                 else:
                     uid = ident["user_id"]
+                    self.ensure_user_defaults(db, uid)
                     cur = dict(db.execute("SELECT * FROM user_settings WHERE user_id=?", (uid,)).fetchone())
                     db.execute("UPDATE user_settings SET username=?,diet=?,profile_image=? WHERE user_id=?", (b.get("username", cur["username"]), b.get("diet", cur["diet"]), b.get("profile_image", cur["profile_image"]), uid))
                     db.execute("UPDATE users SET username=?, profile_image=?, updated_at=? WHERE id=?", (b.get("username", cur["username"]), b.get("profile_image", cur["profile_image"]), datetime.utcnow().isoformat(), uid))
