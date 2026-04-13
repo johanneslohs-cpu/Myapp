@@ -6,8 +6,9 @@ import secrets
 import smtplib
 import sqlite3
 import traceback
+import gzip
 from datetime import datetime
-from http.server import BaseHTTPRequestHandler, HTTPServer
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 from urllib.error import HTTPError, URLError
@@ -22,6 +23,7 @@ MAX_SHOPPING_LISTS = 10
 MAX_LIST_NAME_LENGTH = 30
 
 GUEST_DATA = {}
+RECIPE_CACHE = []
 GOOGLE_CLIENT_ID = os.getenv(
     "GOOGLE_CLIENT_ID",
     "1014015739173-sj85p3bdscndu859jtveok8kjrgfqr2q.apps.googleusercontent.com",
@@ -110,7 +112,10 @@ def send_feedback_email(sender_email, subject, message):
 
 
 def conn():
-    c = sqlite3.connect(DB_PATH)
+    c = sqlite3.connect(DB_PATH, timeout=10)
+    c.execute("PRAGMA journal_mode=WAL;")
+    c.execute("PRAGMA synchronous=NORMAL;")
+    c.execute("PRAGMA temp_store=MEMORY;")
     c.row_factory = sqlite3.Row
     return c
 
@@ -1411,6 +1416,13 @@ def seed_recipes(db):
                 (r[0], r[1], r[2], r[3], r[4], r[5], r[6], r[7], r[8], json.dumps(r[9]), json.dumps(r[10]), json.dumps(r[11]), json.dumps(r[12])),
             )
 
+def refresh_recipe_cache(db):
+    global RECIPE_CACHE
+    RECIPE_CACHE = [
+        row_to_recipe(r)
+        for r in db.execute("SELECT * FROM recipes ORDER BY id").fetchall()
+    ]
+
 
 def init_db():
     with conn() as db:
@@ -1459,6 +1471,7 @@ def init_db():
         ensure_column(db, "user_settings", "diet", "TEXT NOT NULL DEFAULT 'Ich esse alles'")
 
         seed_recipes(db)
+        refresh_recipe_cache(db)
 
 
 def verify_google_id_token(id_token):
@@ -1569,9 +1582,15 @@ class Handler(BaseHTTPRequestHandler):
         self.end_headers()
 
     def send_json(self, data, status=200):
-        b = json.dumps(data).encode("utf-8")
+        b = json.dumps(data, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
+        accept_encoding = self.headers.get("Accept-Encoding", "")
+        use_gzip = "gzip" in accept_encoding.lower() and len(b) > 1024
+        if use_gzip:
+            b = gzip.compress(b, compresslevel=5)
         self.send_response(status)
         self.send_header("Content-Type", "application/json; charset=utf-8")
+        if use_gzip:
+            self.send_header("Content-Encoding", "gzip")
         self.send_header("Content-Length", str(len(b)))
         self.end_headers()
         self.wfile.write(b)
@@ -1591,6 +1610,8 @@ class Handler(BaseHTTPRequestHandler):
         token = token or self.headers.get("X-Auth-Token", "")
         if not token:
             return None
+        if token in GUEST_DATA:
+            return {"token": token, "is_guest": True, "user_id": None}
         s = db.execute("SELECT token,user_id,is_guest FROM sessions WHERE token=?", (token,)).fetchone()
         if not s:
             return None
@@ -1645,7 +1666,11 @@ class Handler(BaseHTTPRequestHandler):
                 ident = None
 
             if p == "/api/recipes":
-                rows = [row_to_recipe(r) for r in db.execute("SELECT * FROM recipes WHERE name LIKE ? ORDER BY id", (f"%{q.get('search', [''])[0]}%",)).fetchall()]
+                search_term = q.get("search", [""])[0]
+                if search_term:
+                    rows = [row_to_recipe(r) for r in db.execute("SELECT * FROM recipes WHERE name LIKE ? ORDER BY id", (f"%{search_term}%",)).fetchall()]
+                else:
+                    rows = RECIPE_CACHE
                 if ident["is_guest"]:
                     guest = ensure_guest(ident["token"])
                     favs = guest["favorites"]
@@ -1657,6 +1682,11 @@ class Handler(BaseHTTPRequestHandler):
                     s = db.execute("SELECT diet FROM user_settings WHERE user_id=?", (uid,)).fetchone()
                     diet = s["diet"] if s else "Ich esse alles"
                     excludes = [r["name"].lower() for r in db.execute("SELECT name FROM excluded_ingredients WHERE active=1 AND user_id=?", (uid,)).fetchall()]
+
+                has_query_filters = any(k in q for k in ("category", "maxCalories", "minProtein", "maxDuration")) or q.get("favoritesOnly", ["0"])[0] == "1"
+                if not search_term and not has_query_filters and not excludes and diet == "Ich esse alles":
+                    self.send_json(rows)
+                    return
 
                 def ok(r):
                     if "category" in q and r["category"] != q["category"][0]:
@@ -1679,7 +1709,11 @@ class Handler(BaseHTTPRequestHandler):
                 return
 
             if p == "/api/swipe-recipes":
-                rows = [row_to_recipe(r) for r in db.execute("SELECT * FROM recipes WHERE name LIKE ? ORDER BY id", (f"%{q.get('search', [''])[0]}%",)).fetchall()]
+                search_term = q.get("search", [""])[0]
+                if search_term:
+                    rows = [row_to_recipe(r) for r in db.execute("SELECT * FROM recipes WHERE name LIKE ? ORDER BY id", (f"%{search_term}%",)).fetchall()]
+                else:
+                    rows = RECIPE_CACHE
                 if ident["is_guest"]:
                     guest = ensure_guest(ident["token"])
                     disliked, favs = guest["dislikes"], guest["favorites"]
@@ -1692,6 +1726,11 @@ class Handler(BaseHTTPRequestHandler):
                     s = db.execute("SELECT diet FROM user_settings WHERE user_id=?", (uid,)).fetchone()
                     diet = s["diet"] if s else "Ich esse alles"
                     excludes = [r["name"].lower() for r in db.execute("SELECT name FROM excluded_ingredients WHERE active=1 AND user_id=?", (uid,)).fetchall()]
+
+                has_query_filters = any(k in q for k in ("category", "maxCalories", "minProtein", "maxDuration"))
+                if not search_term and not has_query_filters and not excludes and diet == "Ich esse alles" and not disliked and not favs:
+                    self.send_json(rows)
+                    return
 
                 def ok(r):
                     if r["id"] in disliked or r["id"] in favs:
@@ -1840,7 +1879,6 @@ class Handler(BaseHTTPRequestHandler):
 
             if p == "/api/auth/guest":
                 token = secrets.token_urlsafe(32)
-                db.execute("INSERT INTO sessions (token,user_id,is_guest) VALUES (?,NULL,1)", (token,))
                 ensure_guest(token)
                 self.send_json({"token": token, "mode": "guest"})
                 return
@@ -1885,9 +1923,10 @@ class Handler(BaseHTTPRequestHandler):
                 return
 
             if p == "/api/auth/logout":
-                db.execute("DELETE FROM sessions WHERE token=?", (ident["token"],))
-                if ident["is_guest"] and ident["token"] in GUEST_DATA:
-                    del GUEST_DATA[ident["token"]]
+                if ident["is_guest"]:
+                    GUEST_DATA.pop(ident["token"], None)
+                else:
+                    db.execute("DELETE FROM sessions WHERE token=?", (ident["token"],))
                 self.send_json({"ok": True})
                 return
 
@@ -2156,6 +2195,6 @@ class Handler(BaseHTTPRequestHandler):
 
 if __name__ == "__main__":
     init_db()
-    server = HTTPServer((HOST, PORT), Handler)
+    server = ThreadingHTTPServer((HOST, PORT), Handler)
     print(f"App läuft auf http://{HOST}:{PORT}")
     server.serve_forever()
