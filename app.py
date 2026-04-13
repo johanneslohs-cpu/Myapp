@@ -1882,11 +1882,24 @@ class Handler(BaseHTTPRequestHandler):
         return ident
 
     def ensure_user_defaults(self, db, user_id, username="Nutzer", picture="👤"):
-        if not db.execute("SELECT 1 FROM user_settings WHERE user_id=?", (user_id,)).fetchone():
+        if DB_DIALECT == "postgres":
             db.execute(
-                "INSERT INTO user_settings (user_id, username, profile_image, diet, manage_subscription_note) VALUES (?, ?, ?, ?, ?)",
+                """
+                INSERT INTO user_settings (user_id, username, profile_image, diet, manage_subscription_note)
+                VALUES (?, ?, ?, ?, ?)
+                ON CONFLICT (user_id) DO NOTHING
+                """,
                 (user_id, username, picture, "Ich esse alles", "Hier könntest du dein Abo verwalten."),
             )
+            return
+
+        db.execute(
+            """
+            INSERT OR IGNORE INTO user_settings (user_id, username, profile_image, diet, manage_subscription_note)
+            VALUES (?, ?, ?, ?, ?)
+            """,
+            (user_id, username, picture, "Ich esse alles", "Hier könntest du dein Abo verwalten."),
+        )
 
     def do_GET(self):
         parsed = urlparse(self.path)
