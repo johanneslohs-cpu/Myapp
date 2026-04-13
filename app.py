@@ -1762,7 +1762,15 @@ def matches_diet(recipe, diet):
     if diet == "Ich esse alles":
         return True
 
-    tags = set(recipe["diet_tags"])
+    raw_tags = recipe.get("diet_tags", [])
+    if isinstance(raw_tags, str):
+        try:
+            raw_tags = json.loads(raw_tags)
+        except (TypeError, ValueError, json.JSONDecodeError):
+            raw_tags = []
+    if not isinstance(raw_tags, list):
+        raw_tags = []
+    tags = set(raw_tags)
     if diet == "Vegan":
         return "vegan" in tags
     if diet == "Vegetarisch":
@@ -1796,6 +1804,7 @@ def recipe_to_card(recipe):
         "protein": recipe["protein"],
         "image": recipe["image"],
         "description": recipe.get("description", ""),
+        "diet_tags": recipe.get("diet_tags", []),
     }
 
 
@@ -1946,7 +1955,7 @@ class Handler(BaseHTTPRequestHandler):
                     if full_payload:
                         rows = [row_to_recipe(r) for r in db.execute("SELECT * FROM recipes WHERE name LIKE ? ORDER BY id", (f"%{search_term}%",)).fetchall()]
                     else:
-                        rows = [dict(r) for r in db.execute("SELECT id,name,category,duration,ingredients_count,cuisine,calories,protein,image,description FROM recipes WHERE name LIKE ? ORDER BY id", (f"%{search_term}%",)).fetchall()]
+                        rows = [dict(r) for r in db.execute("SELECT id,name,category,duration,ingredients_count,cuisine,calories,protein,image,description,diet_tags FROM recipes WHERE name LIKE ? ORDER BY id", (f"%{search_term}%",)).fetchall()]
                 else:
                     rows = RECIPE_CACHE if full_payload else RECIPE_CARD_CACHE
                 if ident["is_guest"]:
@@ -1993,7 +2002,7 @@ class Handler(BaseHTTPRequestHandler):
                     if full_payload:
                         rows = [row_to_recipe(r) for r in db.execute("SELECT * FROM recipes WHERE name LIKE ? ORDER BY id", (f"%{search_term}%",)).fetchall()]
                     else:
-                        rows = [dict(r) for r in db.execute("SELECT id,name,category,duration,ingredients_count,cuisine,calories,protein,image,description FROM recipes WHERE name LIKE ? ORDER BY id", (f"%{search_term}%",)).fetchall()]
+                        rows = [dict(r) for r in db.execute("SELECT id,name,category,duration,ingredients_count,cuisine,calories,protein,image,description,diet_tags FROM recipes WHERE name LIKE ? ORDER BY id", (f"%{search_term}%",)).fetchall()]
                 else:
                     rows = RECIPE_CACHE if full_payload else RECIPE_CARD_CACHE
                 if ident["is_guest"]:
