@@ -36,6 +36,7 @@ MAX_LIST_NAME_LENGTH = 30
 GUEST_DATA = {}
 RECIPE_CACHE = []
 RECIPE_CARD_CACHE = []
+RECIPE_INGREDIENTS_TEXT_BY_ID = {}
 GOOGLE_CLIENT_ID = os.getenv(
     "GOOGLE_CLIENT_ID",
     "1014015739173-sj85p3bdscndu859jtveok8kjrgfqr2q.apps.googleusercontent.com",
@@ -1585,12 +1586,27 @@ def seed_recipes(db):
             )
 
 def refresh_recipe_cache(db):
-    global RECIPE_CACHE, RECIPE_CARD_CACHE
+    global RECIPE_CACHE, RECIPE_CARD_CACHE, RECIPE_INGREDIENTS_TEXT_BY_ID
     RECIPE_CACHE = [
         row_to_recipe(r)
         for r in db.execute("SELECT * FROM recipes ORDER BY id").fetchall()
     ]
     RECIPE_CARD_CACHE = [recipe_to_card(r) for r in RECIPE_CACHE]
+    RECIPE_INGREDIENTS_TEXT_BY_ID = {
+        recipe["id"]: ingredients_to_text(recipe.get("ingredients", []))
+        for recipe in RECIPE_CACHE
+    }
+
+
+def recipe_matches_excluded_ingredients(recipe, excludes):
+    if not excludes:
+        return True
+    ingredients = recipe.get("ingredients")
+    if ingredients is not None:
+        ing_text = ingredients_to_text(ingredients)
+    else:
+        ing_text = RECIPE_INGREDIENTS_TEXT_BY_ID.get(recipe.get("id"), "")
+    return not any(excluded in ing_text for excluded in excludes)
 
 
 def init_db():
@@ -1999,8 +2015,7 @@ class Handler(BaseHTTPRequestHandler):
                         return False
                     if not matches_diet(r, diet):
                         return False
-                    ing = ingredients_to_text(r.get("ingredients", []))
-                    return not any(e in ing for e in excludes)
+                    return recipe_matches_excluded_ingredients(r, excludes)
 
                 filtered_rows = [r for r in rows if ok(r)]
                 self.send_json(apply_window(filtered_rows, q))
@@ -2047,8 +2062,7 @@ class Handler(BaseHTTPRequestHandler):
                         return False
                     if not matches_diet(r, diet):
                         return False
-                    ing = ingredients_to_text(r.get("ingredients", []))
-                    return not any(e in ing for e in excludes)
+                    return recipe_matches_excluded_ingredients(r, excludes)
 
                 self.send_json(apply_window([r for r in rows if ok(r)], q))
                 return
