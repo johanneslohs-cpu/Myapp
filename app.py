@@ -1,6 +1,7 @@
 import hashlib
 import hmac
 import json
+import multiprocessing
 import os
 import secrets
 import smtplib
@@ -14,6 +15,16 @@ from urllib.parse import parse_qs, urlparse
 from urllib.error import HTTPError, URLError
 from urllib.request import urlopen
 from email.message import EmailMessage
+try:
+    import redis
+except Exception:
+    redis = None
+try:
+    import psycopg
+    from psycopg.rows import dict_row
+except Exception:
+    psycopg = None
+    dict_row = None
 
 ROOT = Path(__file__).resolve().parent
 PUBLIC = ROOT / "public"
@@ -24,6 +35,7 @@ MAX_LIST_NAME_LENGTH = 30
 
 GUEST_DATA = {}
 RECIPE_CACHE = []
+RECIPE_CARD_CACHE = []
 GOOGLE_CLIENT_ID = os.getenv(
     "GOOGLE_CLIENT_ID",
     "1014015739173-sj85p3bdscndu859jtveok8kjrgfqr2q.apps.googleusercontent.com",
@@ -41,7 +53,27 @@ def parse_google_client_ids():
 GOOGLE_ALLOWED_CLIENT_IDS = parse_google_client_ids()
 HOST = os.getenv("HOST", "0.0.0.0")
 PORT = int(os.getenv("PORT", "3000"))
+WEB_CONCURRENCY = max(1, int(os.getenv("WEB_CONCURRENCY", "1")))
 CORS_ALLOW_ORIGIN = os.getenv("CORS_ALLOW_ORIGIN", "*")
+REDIS_URL = os.getenv("REDIS_URL", "").strip()
+GUEST_TOKEN_TTL_SECONDS = int(os.getenv("GUEST_TOKEN_TTL_SECONDS", "86400"))
+DATABASE_URL = os.getenv("DATABASE_URL", "").strip()
+DB_DIALECT = "postgres" if DATABASE_URL.startswith("postgres") else "sqlite"
+
+
+def build_redis_client():
+    if not REDIS_URL or redis is None:
+        return None
+    try:
+        client = redis.from_url(REDIS_URL, decode_responses=True)
+        client.ping()
+        return client
+    except Exception as exc:
+        print(f"[redis] deaktiviert: {exc}")
+        return None
+
+
+REDIS_CLIENT = build_redis_client()
 
 
 
@@ -111,16 +143,64 @@ def send_feedback_email(sender_email, subject, message):
     raise RuntimeError("FEEDBACK_SMTP_SECURITY muss auto, ssl oder starttls sein")
 
 
+def _to_db_sql(sql_text):
+    if DB_DIALECT != "postgres":
+        return sql_text
+    return sql_text.replace("?", "%s")
+
+
+class DBConn:
+    def __init__(self, raw_conn):
+        self.raw = raw_conn
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc, tb):
+        if exc_type is None:
+            self.raw.commit()
+        else:
+            self.raw.rollback()
+        self.raw.close()
+
+    def execute(self, sql_text, params=()):
+        return self.raw.execute(_to_db_sql(sql_text), params)
+
+    def executescript(self, sql_script):
+        if DB_DIALECT == "postgres":
+            statements = [s.strip() for s in sql_script.split(";") if s.strip()]
+            with self.raw.cursor() as cur:
+                for statement in statements:
+                    cur.execute(statement)
+            return
+        return self.raw.executescript(sql_script)
+
+
 def conn():
+    if DB_DIALECT == "postgres":
+        if psycopg is None:
+            raise RuntimeError("DATABASE_URL ist gesetzt, aber psycopg ist nicht installiert.")
+        return DBConn(psycopg.connect(DATABASE_URL, row_factory=dict_row))
+
     c = sqlite3.connect(DB_PATH, timeout=10)
     c.execute("PRAGMA journal_mode=WAL;")
     c.execute("PRAGMA synchronous=NORMAL;")
     c.execute("PRAGMA temp_store=MEMORY;")
     c.row_factory = sqlite3.Row
-    return c
+    return DBConn(c)
 
 
 def table_columns(db, table_name):
+    if DB_DIALECT == "postgres":
+        rows = db.execute(
+            """
+            SELECT column_name AS name
+            FROM information_schema.columns
+            WHERE table_schema='public' AND table_name=%s
+            """,
+            (table_name,),
+        ).fetchall()
+        return {r["name"] for r in rows}
     return {r["name"] for r in db.execute(f"PRAGMA table_info({table_name})").fetchall()}
 
 
@@ -206,6 +286,26 @@ def ensure_guest(token):
             "settings": default_settings("Gast", "👤"),
         }
     return GUEST_DATA[token]
+
+
+def guest_token_key(token):
+    return f"guest_token:{token}"
+
+
+def register_guest_token(token):
+    if REDIS_CLIENT:
+        REDIS_CLIENT.setex(guest_token_key(token), GUEST_TOKEN_TTL_SECONDS, "1")
+
+
+def guest_token_exists(token):
+    if REDIS_CLIENT:
+        return bool(REDIS_CLIENT.exists(guest_token_key(token)))
+    return token in GUEST_DATA
+
+
+def unregister_guest_token(token):
+    if REDIS_CLIENT:
+        REDIS_CLIENT.delete(guest_token_key(token))
 
 
 def hash_password(password):
@@ -1417,15 +1517,50 @@ def seed_recipes(db):
             )
 
 def refresh_recipe_cache(db):
-    global RECIPE_CACHE
+    global RECIPE_CACHE, RECIPE_CARD_CACHE
     RECIPE_CACHE = [
         row_to_recipe(r)
         for r in db.execute("SELECT * FROM recipes ORDER BY id").fetchall()
     ]
+    RECIPE_CARD_CACHE = [recipe_to_card(r) for r in RECIPE_CACHE]
 
 
 def init_db():
     with conn() as db:
+        if DB_DIALECT == "postgres":
+            db.executescript(
+                """
+                CREATE TABLE IF NOT EXISTS recipes (
+                  id SERIAL PRIMARY KEY,
+                  name TEXT NOT NULL UNIQUE,
+                  category TEXT NOT NULL,
+                  duration INTEGER NOT NULL,
+                  ingredients_count INTEGER NOT NULL,
+                  cuisine TEXT NOT NULL,
+                  calories INTEGER NOT NULL,
+                  protein INTEGER NOT NULL,
+                  image TEXT NOT NULL,
+                  description TEXT,
+                  ingredients_json TEXT NOT NULL,
+                  steps_json TEXT NOT NULL,
+                  nutrition_json TEXT NOT NULL,
+                  diet_tags TEXT NOT NULL
+                );
+                CREATE TABLE IF NOT EXISTS favorites (id SERIAL PRIMARY KEY, recipe_id INTEGER NOT NULL, user_id INTEGER, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, UNIQUE(recipe_id, user_id));
+                CREATE TABLE IF NOT EXISTS dislikes (id SERIAL PRIMARY KEY, recipe_id INTEGER NOT NULL, user_id INTEGER, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, UNIQUE(recipe_id, user_id));
+                CREATE TABLE IF NOT EXISTS shopping_lists (id SERIAL PRIMARY KEY, name TEXT NOT NULL, color TEXT NOT NULL, updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, user_id INTEGER);
+                CREATE TABLE IF NOT EXISTS shopping_items (id SERIAL PRIMARY KEY, list_id INTEGER NOT NULL, name TEXT NOT NULL, checked INTEGER DEFAULT 0, image TEXT DEFAULT '🧾');
+                CREATE TABLE IF NOT EXISTS excluded_ingredients (id SERIAL PRIMARY KEY, name TEXT NOT NULL, active INTEGER DEFAULT 1, user_id INTEGER, UNIQUE(name, user_id));
+                CREATE TABLE IF NOT EXISTS feedback_messages (id SERIAL PRIMARY KEY, email TEXT, subject TEXT, message TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, user_id INTEGER);
+                CREATE TABLE IF NOT EXISTS users (id SERIAL PRIMARY KEY, google_sub TEXT UNIQUE NOT NULL, email TEXT, name TEXT, picture TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, password_hash TEXT, username TEXT, profile_image TEXT);
+                CREATE TABLE IF NOT EXISTS sessions (token TEXT PRIMARY KEY, user_id INTEGER, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, is_guest INTEGER NOT NULL DEFAULT 0);
+                CREATE TABLE IF NOT EXISTS user_settings (user_id INTEGER PRIMARY KEY, username TEXT NOT NULL DEFAULT 'Nutzer', profile_image TEXT NOT NULL DEFAULT '👤', diet TEXT NOT NULL DEFAULT 'Ich esse alles', manage_subscription_note TEXT NOT NULL DEFAULT 'Hier könntest du dein Abo verwalten.');
+                """
+            )
+            seed_recipes(db)
+            refresh_recipe_cache(db)
+            return
+
         db.executescript(
             """
             CREATE TABLE IF NOT EXISTS recipes (
@@ -1570,6 +1705,35 @@ def row_to_recipe(r):
     }
 
 
+def recipe_to_card(recipe):
+    return {
+        "id": recipe["id"],
+        "name": recipe["name"],
+        "category": recipe["category"],
+        "duration": recipe["duration"],
+        "ingredients_count": recipe["ingredients_count"],
+        "cuisine": recipe["cuisine"],
+        "calories": recipe["calories"],
+        "protein": recipe["protein"],
+        "image": recipe["image"],
+        "description": recipe.get("description", ""),
+    }
+
+
+def apply_window(rows, q):
+    try:
+        limit = int(q.get("limit", ["120"])[0])
+    except (TypeError, ValueError):
+        limit = 120
+    try:
+        offset = int(q.get("offset", ["0"])[0])
+    except (TypeError, ValueError):
+        offset = 0
+    limit = max(1, min(limit, 300))
+    offset = max(0, offset)
+    return rows[offset:offset + limit]
+
+
 class Handler(BaseHTTPRequestHandler):
     def end_headers(self):
         self.send_header("Access-Control-Allow-Origin", CORS_ALLOW_ORIGIN)
@@ -1610,7 +1774,8 @@ class Handler(BaseHTTPRequestHandler):
         token = token or self.headers.get("X-Auth-Token", "")
         if not token:
             return None
-        if token in GUEST_DATA:
+        if guest_token_exists(token):
+            ensure_guest(token)
             return {"token": token, "is_guest": True, "user_id": None}
         s = db.execute("SELECT token,user_id,is_guest FROM sessions WHERE token=?", (token,)).fetchone()
         if not s:
@@ -1665,12 +1830,26 @@ class Handler(BaseHTTPRequestHandler):
             else:
                 ident = None
 
+            if p.startswith("/api/recipes/"):
+                rid = p.split("/")[3] if len(p.split("/")) > 3 else ""
+                if rid.isdigit():
+                    row = db.execute("SELECT * FROM recipes WHERE id=?", (int(rid),)).fetchone()
+                    if not row:
+                        self.send_json({"error": "Nicht gefunden"}, 404)
+                        return
+                    self.send_json(row_to_recipe(row))
+                    return
+
             if p == "/api/recipes":
+                full_payload = q.get("full", ["0"])[0] == "1"
                 search_term = q.get("search", [""])[0]
                 if search_term:
-                    rows = [row_to_recipe(r) for r in db.execute("SELECT * FROM recipes WHERE name LIKE ? ORDER BY id", (f"%{search_term}%",)).fetchall()]
+                    if full_payload:
+                        rows = [row_to_recipe(r) for r in db.execute("SELECT * FROM recipes WHERE name LIKE ? ORDER BY id", (f"%{search_term}%",)).fetchall()]
+                    else:
+                        rows = [dict(r) for r in db.execute("SELECT id,name,category,duration,ingredients_count,cuisine,calories,protein,image,description FROM recipes WHERE name LIKE ? ORDER BY id", (f"%{search_term}%",)).fetchall()]
                 else:
-                    rows = RECIPE_CACHE
+                    rows = RECIPE_CACHE if full_payload else RECIPE_CARD_CACHE
                 if ident["is_guest"]:
                     guest = ensure_guest(ident["token"])
                     favs = guest["favorites"]
@@ -1685,7 +1864,7 @@ class Handler(BaseHTTPRequestHandler):
 
                 has_query_filters = any(k in q for k in ("category", "maxCalories", "minProtein", "maxDuration")) or q.get("favoritesOnly", ["0"])[0] == "1"
                 if not search_term and not has_query_filters and not excludes and diet == "Ich esse alles":
-                    self.send_json(rows)
+                    self.send_json(apply_window(rows, q))
                     return
 
                 def ok(r):
@@ -1701,19 +1880,23 @@ class Handler(BaseHTTPRequestHandler):
                         return False
                     if not matches_diet(r, diet):
                         return False
-                    ing = ingredients_to_text(r["ingredients"])
+                    ing = ingredients_to_text(r.get("ingredients", []))
                     return not any(e in ing for e in excludes)
 
                 filtered_rows = [r for r in rows if ok(r)]
-                self.send_json(filtered_rows)
+                self.send_json(apply_window(filtered_rows, q))
                 return
 
             if p == "/api/swipe-recipes":
+                full_payload = q.get("full", ["0"])[0] == "1"
                 search_term = q.get("search", [""])[0]
                 if search_term:
-                    rows = [row_to_recipe(r) for r in db.execute("SELECT * FROM recipes WHERE name LIKE ? ORDER BY id", (f"%{search_term}%",)).fetchall()]
+                    if full_payload:
+                        rows = [row_to_recipe(r) for r in db.execute("SELECT * FROM recipes WHERE name LIKE ? ORDER BY id", (f"%{search_term}%",)).fetchall()]
+                    else:
+                        rows = [dict(r) for r in db.execute("SELECT id,name,category,duration,ingredients_count,cuisine,calories,protein,image,description FROM recipes WHERE name LIKE ? ORDER BY id", (f"%{search_term}%",)).fetchall()]
                 else:
-                    rows = RECIPE_CACHE
+                    rows = RECIPE_CACHE if full_payload else RECIPE_CARD_CACHE
                 if ident["is_guest"]:
                     guest = ensure_guest(ident["token"])
                     disliked, favs = guest["dislikes"], guest["favorites"]
@@ -1729,7 +1912,7 @@ class Handler(BaseHTTPRequestHandler):
 
                 has_query_filters = any(k in q for k in ("category", "maxCalories", "minProtein", "maxDuration"))
                 if not search_term and not has_query_filters and not excludes and diet == "Ich esse alles" and not disliked and not favs:
-                    self.send_json(rows)
+                    self.send_json(apply_window(rows, q))
                     return
 
                 def ok(r):
@@ -1745,10 +1928,10 @@ class Handler(BaseHTTPRequestHandler):
                         return False
                     if not matches_diet(r, diet):
                         return False
-                    ing = ingredients_to_text(r["ingredients"])
+                    ing = ingredients_to_text(r.get("ingredients", []))
                     return not any(e in ing for e in excludes)
 
-                self.send_json([r for r in rows if ok(r)])
+                self.send_json(apply_window([r for r in rows if ok(r)], q))
                 return
 
             if p == "/api/dislikes":
@@ -1879,6 +2062,7 @@ class Handler(BaseHTTPRequestHandler):
 
             if p == "/api/auth/guest":
                 token = secrets.token_urlsafe(32)
+                register_guest_token(token)
                 ensure_guest(token)
                 self.send_json({"token": token, "mode": "guest"})
                 return
@@ -1924,6 +2108,7 @@ class Handler(BaseHTTPRequestHandler):
 
             if p == "/api/auth/logout":
                 if ident["is_guest"]:
+                    unregister_guest_token(ident["token"])
                     GUEST_DATA.pop(ident["token"], None)
                 else:
                     db.execute("DELETE FROM sessions WHERE token=?", (ident["token"],))
@@ -2193,8 +2378,26 @@ class Handler(BaseHTTPRequestHandler):
         self.send_json({"error": "Unbekannt"}, 404)
 
 
+class ReusableThreadingHTTPServer(ThreadingHTTPServer):
+    allow_reuse_address = True
+    allow_reuse_port = True
+
+
+def run_server(worker_no=1):
+    server = ReusableThreadingHTTPServer((HOST, PORT), Handler)
+    print(f"Worker {worker_no}/{WEB_CONCURRENCY} läuft auf http://{HOST}:{PORT}")
+    server.serve_forever()
+
+
 if __name__ == "__main__":
     init_db()
-    server = ThreadingHTTPServer((HOST, PORT), Handler)
-    print(f"App läuft auf http://{HOST}:{PORT}")
-    server.serve_forever()
+    if WEB_CONCURRENCY <= 1:
+        run_server(1)
+    else:
+        workers = []
+        for i in range(WEB_CONCURRENCY):
+            p = multiprocessing.Process(target=run_server, args=(i + 1,))
+            p.start()
+            workers.append(p)
+        for p in workers:
+            p.join()
