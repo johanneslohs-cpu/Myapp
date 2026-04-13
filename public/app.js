@@ -2135,7 +2135,7 @@ async function reloadData(options = {}) {
     if (scope === 'all' || scope === 'recipes') {
       const [recipes, swipeRecipes] = await Promise.all([
         api.get(`/api/recipes?${q}&full=0&limit=120`),
-        api.get(`/api/swipe-recipes?${q}&full=0&limit=120`)
+        api.get(`/api/swipe-recipes?${q}&full=0&limit=800`)
       ]);
       state.recipes = recipes;
       state.swipeRecipes = swipeRecipes;

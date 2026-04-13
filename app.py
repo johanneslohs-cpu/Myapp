@@ -1729,7 +1729,7 @@ def apply_window(rows, q):
         offset = int(q.get("offset", ["0"])[0])
     except (TypeError, ValueError):
         offset = 0
-    limit = max(1, min(limit, 300))
+    limit = max(1, min(limit, 1000))
     offset = max(0, offset)
     return rows[offset:offset + limit]
 
@@ -2123,7 +2123,10 @@ class Handler(BaseHTTPRequestHandler):
                     g["dislikes"].discard(rid)
                 else:
                     uid = ident["user_id"]
-                    db.execute("INSERT OR IGNORE INTO favorites (recipe_id,user_id) VALUES (?,?)", (rid, uid))
+                    db.execute(
+                        "INSERT INTO favorites (recipe_id,user_id) VALUES (?,?) ON CONFLICT(recipe_id, user_id) DO NOTHING",
+                        (rid, uid),
+                    )
                     db.execute("DELETE FROM dislikes WHERE recipe_id=? AND user_id=?", (rid, uid))
                 self.send_json({"ok": True})
                 return
@@ -2136,7 +2139,10 @@ class Handler(BaseHTTPRequestHandler):
                     g["favorites"].discard(rid)
                 else:
                     uid = ident["user_id"]
-                    db.execute("INSERT OR IGNORE INTO dislikes (recipe_id,user_id) VALUES (?,?)", (rid, uid))
+                    db.execute(
+                        "INSERT INTO dislikes (recipe_id,user_id) VALUES (?,?) ON CONFLICT(recipe_id, user_id) DO NOTHING",
+                        (rid, uid),
+                    )
                     db.execute("DELETE FROM favorites WHERE recipe_id=? AND user_id=?", (rid, uid))
                 self.send_json({"ok": True})
                 return
@@ -2184,7 +2190,10 @@ class Handler(BaseHTTPRequestHandler):
                         next_id = max([x["id"] for x in g["settings"]["excluded"]], default=0) + 1
                         g["settings"]["excluded"].append({"id": next_id, "name": name, "active": 1})
                 else:
-                    db.execute("INSERT OR IGNORE INTO excluded_ingredients (name,active,user_id) VALUES (?,?,?)", (b.get("name"), 1, ident["user_id"]))
+                    db.execute(
+                        "INSERT INTO excluded_ingredients (name,active,user_id) VALUES (?,?,?) ON CONFLICT(name, user_id) DO NOTHING",
+                        (b.get("name"), 1, ident["user_id"]),
+                    )
                 self.send_json({"ok": True})
                 return
 
