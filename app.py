@@ -1603,6 +1603,8 @@ class Handler(BaseHTTPRequestHandler):
         token = token or self.headers.get("X-Auth-Token", "")
         if not token:
             return None
+        if token in GUEST_DATA:
+            return {"token": token, "is_guest": True, "user_id": None}
         s = db.execute("SELECT token,user_id,is_guest FROM sessions WHERE token=?", (token,)).fetchone()
         if not s:
             return None
@@ -1860,7 +1862,6 @@ class Handler(BaseHTTPRequestHandler):
 
             if p == "/api/auth/guest":
                 token = secrets.token_urlsafe(32)
-                db.execute("INSERT INTO sessions (token,user_id,is_guest) VALUES (?,NULL,1)", (token,))
                 ensure_guest(token)
                 self.send_json({"token": token, "mode": "guest"})
                 return
@@ -1905,9 +1906,10 @@ class Handler(BaseHTTPRequestHandler):
                 return
 
             if p == "/api/auth/logout":
-                db.execute("DELETE FROM sessions WHERE token=?", (ident["token"],))
-                if ident["is_guest"] and ident["token"] in GUEST_DATA:
-                    del GUEST_DATA[ident["token"]]
+                if ident["is_guest"]:
+                    GUEST_DATA.pop(ident["token"], None)
+                else:
+                    db.execute("DELETE FROM sessions WHERE token=?", (ident["token"],))
                 self.send_json({"ok": True})
                 return
 
