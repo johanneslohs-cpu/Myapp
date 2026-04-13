@@ -6,6 +6,7 @@ import secrets
 import smtplib
 import sqlite3
 import traceback
+import gzip
 from datetime import datetime
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -1581,9 +1582,15 @@ class Handler(BaseHTTPRequestHandler):
         self.end_headers()
 
     def send_json(self, data, status=200):
-        b = json.dumps(data).encode("utf-8")
+        b = json.dumps(data, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
+        accept_encoding = self.headers.get("Accept-Encoding", "")
+        use_gzip = "gzip" in accept_encoding.lower() and len(b) > 1024
+        if use_gzip:
+            b = gzip.compress(b, compresslevel=5)
         self.send_response(status)
         self.send_header("Content-Type", "application/json; charset=utf-8")
+        if use_gzip:
+            self.send_header("Content-Encoding", "gzip")
         self.send_header("Content-Length", str(len(b)))
         self.end_headers()
         self.wfile.write(b)
@@ -1676,6 +1683,11 @@ class Handler(BaseHTTPRequestHandler):
                     diet = s["diet"] if s else "Ich esse alles"
                     excludes = [r["name"].lower() for r in db.execute("SELECT name FROM excluded_ingredients WHERE active=1 AND user_id=?", (uid,)).fetchall()]
 
+                has_query_filters = any(k in q for k in ("category", "maxCalories", "minProtein", "maxDuration")) or q.get("favoritesOnly", ["0"])[0] == "1"
+                if not search_term and not has_query_filters and not excludes and diet == "Ich esse alles":
+                    self.send_json(rows)
+                    return
+
                 def ok(r):
                     if "category" in q and r["category"] != q["category"][0]:
                         return False
@@ -1714,6 +1726,11 @@ class Handler(BaseHTTPRequestHandler):
                     s = db.execute("SELECT diet FROM user_settings WHERE user_id=?", (uid,)).fetchone()
                     diet = s["diet"] if s else "Ich esse alles"
                     excludes = [r["name"].lower() for r in db.execute("SELECT name FROM excluded_ingredients WHERE active=1 AND user_id=?", (uid,)).fetchall()]
+
+                has_query_filters = any(k in q for k in ("category", "maxCalories", "minProtein", "maxDuration"))
+                if not search_term and not has_query_filters and not excludes and diet == "Ich esse alles" and not disliked and not favs:
+                    self.send_json(rows)
+                    return
 
                 def ok(r):
                     if r["id"] in disliked or r["id"] in favs:
