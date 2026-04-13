@@ -8,7 +8,7 @@ import smtplib
 import sqlite3
 import traceback
 import gzip
-from datetime import datetime
+from datetime import date, datetime
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
@@ -1823,6 +1823,12 @@ def apply_window(rows, q):
 
 
 class Handler(BaseHTTPRequestHandler):
+    @staticmethod
+    def _json_default(value):
+        if isinstance(value, (datetime, date)):
+            return value.isoformat()
+        raise TypeError(f"Object of type {value.__class__.__name__} is not JSON serializable")
+
     def end_headers(self):
         self.send_header("Access-Control-Allow-Origin", CORS_ALLOW_ORIGIN)
         self.send_header("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Auth-Token")
@@ -1834,7 +1840,12 @@ class Handler(BaseHTTPRequestHandler):
         self.end_headers()
 
     def send_json(self, data, status=200):
-        b = json.dumps(data, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
+        b = json.dumps(
+            data,
+            separators=(",", ":"),
+            ensure_ascii=False,
+            default=self._json_default,
+        ).encode("utf-8")
         accept_encoding = self.headers.get("Accept-Encoding", "")
         use_gzip = "gzip" in accept_encoding.lower() and len(b) > 1024
         if use_gzip:
