@@ -212,6 +212,74 @@ def ensure_column(db, table_name, column_name, ddl):
 
 
 def migrate_user_scoped_tables(db):
+    if DB_DIALECT == "postgres":
+        fav_cols = table_columns(db, "favorites")
+        if "user_id" not in fav_cols:
+            db.execute("ALTER TABLE favorites ADD COLUMN user_id INTEGER")
+            fav_cols = table_columns(db, "favorites")
+        if "id" not in fav_cols:
+            db.executescript(
+                """
+                CREATE TABLE IF NOT EXISTS favorites_new (
+                  id SERIAL PRIMARY KEY,
+                  recipe_id INTEGER NOT NULL,
+                  user_id INTEGER,
+                  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                  UNIQUE(recipe_id, user_id)
+                );
+                INSERT INTO favorites_new (recipe_id, user_id, created_at)
+                SELECT recipe_id, user_id, COALESCE(created_at, CURRENT_TIMESTAMP) FROM favorites
+                ON CONFLICT(recipe_id, user_id) DO NOTHING;
+                DROP TABLE favorites;
+                ALTER TABLE favorites_new RENAME TO favorites;
+                """
+            )
+
+        dis_cols = table_columns(db, "dislikes")
+        if "user_id" not in dis_cols:
+            db.execute("ALTER TABLE dislikes ADD COLUMN user_id INTEGER")
+            dis_cols = table_columns(db, "dislikes")
+        if "id" not in dis_cols:
+            db.executescript(
+                """
+                CREATE TABLE IF NOT EXISTS dislikes_new (
+                  id SERIAL PRIMARY KEY,
+                  recipe_id INTEGER NOT NULL,
+                  user_id INTEGER,
+                  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                  UNIQUE(recipe_id, user_id)
+                );
+                INSERT INTO dislikes_new (recipe_id, user_id, created_at)
+                SELECT recipe_id, user_id, COALESCE(created_at, CURRENT_TIMESTAMP) FROM dislikes
+                ON CONFLICT(recipe_id, user_id) DO NOTHING;
+                DROP TABLE dislikes;
+                ALTER TABLE dislikes_new RENAME TO dislikes;
+                """
+            )
+
+        ex_cols = table_columns(db, "excluded_ingredients")
+        if "user_id" not in ex_cols:
+            db.execute("ALTER TABLE excluded_ingredients ADD COLUMN user_id INTEGER")
+            ex_cols = table_columns(db, "excluded_ingredients")
+        if "id" not in ex_cols:
+            db.executescript(
+                """
+                CREATE TABLE IF NOT EXISTS excluded_ingredients_new (
+                  id SERIAL PRIMARY KEY,
+                  name TEXT NOT NULL,
+                  active INTEGER DEFAULT 1,
+                  user_id INTEGER,
+                  UNIQUE(name, user_id)
+                );
+                INSERT INTO excluded_ingredients_new (name, active, user_id)
+                SELECT name, active, user_id FROM excluded_ingredients
+                ON CONFLICT(name, user_id) DO NOTHING;
+                DROP TABLE excluded_ingredients;
+                ALTER TABLE excluded_ingredients_new RENAME TO excluded_ingredients;
+                """
+            )
+        return
+
     fav_cols = table_columns(db, "favorites")
     if "id" not in fav_cols:
         db.executescript(
@@ -249,7 +317,7 @@ def migrate_user_scoped_tables(db):
         )
 
     ex_cols = table_columns(db, "excluded_ingredients")
-    if "user_id" in ex_cols:
+    if "id" not in ex_cols or "user_id" in ex_cols:
         db.executescript(
             """
             CREATE TABLE IF NOT EXISTS excluded_ingredients_new (
@@ -1557,6 +1625,17 @@ def init_db():
                 CREATE TABLE IF NOT EXISTS user_settings (user_id INTEGER PRIMARY KEY, username TEXT NOT NULL DEFAULT 'Nutzer', profile_image TEXT NOT NULL DEFAULT '👤', diet TEXT NOT NULL DEFAULT 'Ich esse alles', manage_subscription_note TEXT NOT NULL DEFAULT 'Hier könntest du dein Abo verwalten.');
                 """
             )
+            for t in ["favorites", "dislikes", "shopping_lists", "excluded_ingredients", "feedback_messages"]:
+                ensure_column(db, t, "user_id", "INTEGER")
+            migrate_user_scoped_tables(db)
+            ensure_column(db, "users", "password_hash", "TEXT")
+            ensure_column(db, "users", "username", "TEXT")
+            ensure_column(db, "users", "profile_image", "TEXT")
+            ensure_column(db, "sessions", "is_guest", "INTEGER NOT NULL DEFAULT 0")
+            ensure_column(db, "user_settings", "manage_subscription_note", "TEXT NOT NULL DEFAULT 'Hier könntest du dein Abo verwalten.'")
+            ensure_column(db, "user_settings", "username", "TEXT NOT NULL DEFAULT 'Nutzer'")
+            ensure_column(db, "user_settings", "profile_image", "TEXT NOT NULL DEFAULT '👤'")
+            ensure_column(db, "user_settings", "diet", "TEXT NOT NULL DEFAULT 'Ich esse alles'")
             seed_recipes(db)
             refresh_recipe_cache(db)
             return
@@ -1765,6 +1844,13 @@ class Handler(BaseHTTPRequestHandler):
             return {}
         return json.loads(self.rfile.read(l).decode("utf-8"))
 
+    def parse_path_id(self, path_value, position=3):
+        parts = path_value.split("/")
+        if len(parts) <= position or not parts[position].isdigit():
+            self.send_json({"error": "Ungültige ID"}, 400)
+            return None
+        return int(parts[position])
+
     def auth_identity(self, db):
         auth = self.headers.get("Authorization", "")
         if auth.startswith("Bearer "):
@@ -1970,7 +2056,9 @@ class Handler(BaseHTTPRequestHandler):
                 return
 
             if p.startswith("/api/lists/"):
-                lid = int(p.split("/")[3])
+                lid = self.parse_path_id(p)
+                if lid is None:
+                    return
                 if ident["is_guest"]:
                     lst = next((x for x in ensure_guest(ident["token"])["lists"] if x["id"] == lid), None)
                     if not lst:
@@ -2116,7 +2204,9 @@ class Handler(BaseHTTPRequestHandler):
                 return
 
             if p.endswith("/like") and p.startswith("/api/recipes/"):
-                rid = int(p.split("/")[3])
+                rid = self.parse_path_id(p)
+                if rid is None:
+                    return
                 if ident["is_guest"]:
                     g = ensure_guest(ident["token"])
                     g["favorites"].add(rid)
@@ -2132,7 +2222,9 @@ class Handler(BaseHTTPRequestHandler):
                 return
 
             if p.endswith("/dislike") and p.startswith("/api/recipes/"):
-                rid = int(p.split("/")[3])
+                rid = self.parse_path_id(p)
+                if rid is None:
+                    return
                 if ident["is_guest"]:
                     g = ensure_guest(ident["token"])
                     g["dislikes"].add(rid)
@@ -2278,7 +2370,9 @@ class Handler(BaseHTTPRequestHandler):
                 return
 
             if p.startswith("/api/excluded/"):
-                eid = int(p.split("/")[3])
+                eid = self.parse_path_id(p)
+                if eid is None:
+                    return
                 if ident["is_guest"]:
                     ex = next((e for e in ensure_guest(ident["token"])["settings"]["excluded"] if e["id"] == eid), None)
                     if ex:
@@ -2297,7 +2391,9 @@ class Handler(BaseHTTPRequestHandler):
             if not ident:
                 return
             if p.startswith("/api/lists/"):
-                lid = int(p.split("/")[3])
+                lid = self.parse_path_id(p)
+                if lid is None:
+                    return
                 incoming_name = b.get("name")
                 if incoming_name is not None:
                     incoming_name = incoming_name.strip()
@@ -2359,7 +2455,9 @@ class Handler(BaseHTTPRequestHandler):
                 self.send_json({"ok": True})
                 return
             if p.startswith("/api/favorites/"):
-                rid = int(p.split("/")[3])
+                rid = self.parse_path_id(p)
+                if rid is None:
+                    return
                 if ident["is_guest"]:
                     g = ensure_guest(ident["token"])
                     g["favorites"].discard(rid)
@@ -2371,7 +2469,9 @@ class Handler(BaseHTTPRequestHandler):
                 self.send_json({"ok": True})
                 return
             if p.startswith("/api/lists/"):
-                lid = int(p.split("/")[3])
+                lid = self.parse_path_id(p)
+                if lid is None:
+                    return
                 if ident["is_guest"]:
                     g = ensure_guest(ident["token"])
                     g["lists"] = [l for l in g["lists"] if l["id"] != lid]
@@ -2383,7 +2483,9 @@ class Handler(BaseHTTPRequestHandler):
                 return
 
             if p.startswith("/api/excluded/"):
-                eid = int(p.split("/")[3])
+                eid = self.parse_path_id(p)
+                if eid is None:
+                    return
                 if ident["is_guest"]:
                     g = ensure_guest(ident["token"])
                     g["settings"]["excluded"] = [e for e in g["settings"]["excluded"] if e["id"] != eid]
