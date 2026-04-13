@@ -3,10 +3,18 @@ services:
     name: myapp-rezepte
     runtime: python
     plan: free
-    buildCommand: "echo 'No build step required'"
+    buildCommand: "pip install -r requirements.txt"
     startCommand: "python3 app.py"
     envVars:
       - key: HOST
         value: 0.0.0.0
       - key: CORS_ALLOW_ORIGIN
         value: "*"
+      - key: WEB_CONCURRENCY
+        value: "1"
+      - key: GUEST_TOKEN_TTL_SECONDS
+        value: "86400"
+      - key: DATABASE_URL
+        sync: false
+      - key: REDIS_URL
+        sync: false

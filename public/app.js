@@ -1307,9 +1307,16 @@ async function showRewardedAdForSwipeCredits() {
   }
 }
 
-function openRecipe(id) {
-  const r = [...state.recipes, ...state.favorites].find((x) => x.id === Number(id));
+async function openRecipe(id) {
+  const recipeId = Number(id);
+  let r = [...state.recipes, ...state.favorites].find((x) => x.id === recipeId);
   if (!r) return;
+  if (!Array.isArray(r.ingredients) || !Array.isArray(r.steps) || !r.nutrition) {
+    r = await api.get(`/api/recipes/${recipeId}`);
+    state.recipes = state.recipes.map((entry) => (entry.id === recipeId ? r : entry));
+    state.swipeRecipes = state.swipeRecipes.map((entry) => (entry.id === recipeId ? r : entry));
+    state.favorites = state.favorites.map((entry) => (entry.id === recipeId ? r : entry));
+  }
   state.selectedRecipe = r;
   let portions = 1;
   let pickedIngredients = new Set();
@@ -2127,8 +2134,8 @@ async function reloadData(options = {}) {
 
     if (scope === 'all' || scope === 'recipes') {
       const [recipes, swipeRecipes] = await Promise.all([
-        api.get(`/api/recipes?${q}`),
-        api.get(`/api/swipe-recipes?${q}`)
+        api.get(`/api/recipes?${q}&full=0&limit=120`),
+        api.get(`/api/swipe-recipes?${q}&full=0&limit=120`)
       ]);
       state.recipes = recipes;
       state.swipeRecipes = swipeRecipes;

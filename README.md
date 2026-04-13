@@ -143,6 +143,18 @@ Wenn du möchtest, dass die App auch auf anderen Geräten (z. B. Android) funkti
 
 Dann ist die App weltweit erreichbar.
 
+## Render Option B (Postgres + Redis aktiv)
+
+Wenn du die neue Architektur mit Postgres + Redis nutzen willst:
+
+1. In Render sicherstellen, dass der Build `pip install -r requirements.txt` ausführt
+2. In Render eine PostgreSQL-Instanz erstellen und `DATABASE_URL` am Web-Service setzen
+3. In Render eine Redis/Key-Value-Instanz erstellen und `REDIS_URL` am Web-Service setzen
+4. Optional `WEB_CONCURRENCY=2` und `GUEST_TOKEN_TTL_SECONDS=86400` setzen
+5. Neu deployen
+
+Die App schaltet dann automatisch auf Postgres um, sobald `DATABASE_URL` mit `postgres` beginnt; ohne diese Variable bleibt SQLite aktiv.
+
 ## Cordova / APK
 
 Falls du eine Cordova-APK nutzt und die API auf einer anderen Domain läuft, kannst du die API-URL setzen:
