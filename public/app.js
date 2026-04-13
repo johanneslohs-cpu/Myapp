@@ -7,10 +7,26 @@ const API_BASE_URL = (
   || (isCordovaFileRuntime ? DEFAULT_CORDOVA_API_BASE_URL : '')
 ).replace(/\/$/, '');
 
-function withApiBase(url) {
+function withApiBase(url, baseUrl = API_BASE_URL) {
   if (!url) return url;
   if (/^https?:\/\//i.test(url)) return url;
-  return `${API_BASE_URL}${url}`;
+  return `${baseUrl}${url}`;
+}
+
+function buildApiUrlCandidates(url) {
+  if (!url || /^https?:\/\//i.test(url)) return [url];
+
+  const candidates = [];
+  if (API_BASE_URL) candidates.push(withApiBase(url, API_BASE_URL));
+
+  if (!isCordovaFileRuntime) {
+    candidates.push(url);
+  } else if (API_BASE_URL !== DEFAULT_CORDOVA_API_BASE_URL) {
+    candidates.push(withApiBase(url, DEFAULT_CORDOVA_API_BASE_URL));
+  }
+
+  if (!candidates.length) candidates.push(url);
+  return [...new Set(candidates)];
 }
 
 const MAX_SHOPPING_LISTS = 10;
@@ -307,7 +323,19 @@ function legalContentToHtml(text = '') {
 async function request(url, options = {}) {
   const headers = { ...(options.headers || {}) };
   if (state.token) headers.Authorization = `Bearer ${state.token}`;
-  const response = await fetch(withApiBase(url), { ...options, headers });
+  const urls = buildApiUrlCandidates(url);
+  let response;
+  let networkError;
+  for (const candidate of urls) {
+    try {
+      response = await fetch(candidate, { ...options, headers });
+      networkError = null;
+      break;
+    } catch (error) {
+      networkError = error;
+    }
+  }
+  if (!response) throw networkError || new Error('Request fehlgeschlagen');
   const raw = await response.text();
   let data = {};
   try {
