@@ -7,7 +7,7 @@ import smtplib
 import sqlite3
 import traceback
 from datetime import datetime
-from http.server import BaseHTTPRequestHandler, HTTPServer
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 from urllib.error import HTTPError, URLError
@@ -22,6 +22,7 @@ MAX_SHOPPING_LISTS = 10
 MAX_LIST_NAME_LENGTH = 30
 
 GUEST_DATA = {}
+RECIPE_CACHE = []
 GOOGLE_CLIENT_ID = os.getenv(
     "GOOGLE_CLIENT_ID",
     "1014015739173-sj85p3bdscndu859jtveok8kjrgfqr2q.apps.googleusercontent.com",
@@ -110,7 +111,10 @@ def send_feedback_email(sender_email, subject, message):
 
 
 def conn():
-    c = sqlite3.connect(DB_PATH)
+    c = sqlite3.connect(DB_PATH, timeout=10)
+    c.execute("PRAGMA journal_mode=WAL;")
+    c.execute("PRAGMA synchronous=NORMAL;")
+    c.execute("PRAGMA temp_store=MEMORY;")
     c.row_factory = sqlite3.Row
     return c
 
@@ -1411,6 +1415,13 @@ def seed_recipes(db):
                 (r[0], r[1], r[2], r[3], r[4], r[5], r[6], r[7], r[8], json.dumps(r[9]), json.dumps(r[10]), json.dumps(r[11]), json.dumps(r[12])),
             )
 
+def refresh_recipe_cache(db):
+    global RECIPE_CACHE
+    RECIPE_CACHE = [
+        row_to_recipe(r)
+        for r in db.execute("SELECT * FROM recipes ORDER BY id").fetchall()
+    ]
+
 
 def init_db():
     with conn() as db:
@@ -1459,6 +1470,7 @@ def init_db():
         ensure_column(db, "user_settings", "diet", "TEXT NOT NULL DEFAULT 'Ich esse alles'")
 
         seed_recipes(db)
+        refresh_recipe_cache(db)
 
 
 def verify_google_id_token(id_token):
@@ -1645,7 +1657,11 @@ class Handler(BaseHTTPRequestHandler):
                 ident = None
 
             if p == "/api/recipes":
-                rows = [row_to_recipe(r) for r in db.execute("SELECT * FROM recipes WHERE name LIKE ? ORDER BY id", (f"%{q.get('search', [''])[0]}%",)).fetchall()]
+                search_term = q.get("search", [""])[0]
+                if search_term:
+                    rows = [row_to_recipe(r) for r in db.execute("SELECT * FROM recipes WHERE name LIKE ? ORDER BY id", (f"%{search_term}%",)).fetchall()]
+                else:
+                    rows = RECIPE_CACHE
                 if ident["is_guest"]:
                     guest = ensure_guest(ident["token"])
                     favs = guest["favorites"]
@@ -1679,7 +1695,11 @@ class Handler(BaseHTTPRequestHandler):
                 return
 
             if p == "/api/swipe-recipes":
-                rows = [row_to_recipe(r) for r in db.execute("SELECT * FROM recipes WHERE name LIKE ? ORDER BY id", (f"%{q.get('search', [''])[0]}%",)).fetchall()]
+                search_term = q.get("search", [""])[0]
+                if search_term:
+                    rows = [row_to_recipe(r) for r in db.execute("SELECT * FROM recipes WHERE name LIKE ? ORDER BY id", (f"%{search_term}%",)).fetchall()]
+                else:
+                    rows = RECIPE_CACHE
                 if ident["is_guest"]:
                     guest = ensure_guest(ident["token"])
                     disliked, favs = guest["dislikes"], guest["favorites"]
@@ -2156,6 +2176,6 @@ class Handler(BaseHTTPRequestHandler):
 
 if __name__ == "__main__":
     init_db()
-    server = HTTPServer((HOST, PORT), Handler)
+    server = ThreadingHTTPServer((HOST, PORT), Handler)
     print(f"App läuft auf http://{HOST}:{PORT}")
     server.serve_forever()
