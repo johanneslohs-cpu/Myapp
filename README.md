@@ -293,3 +293,16 @@ Beispiel lokal:
 ```bash
 HOST=0.0.0.0 PORT=3000 CORS_ALLOW_ORIGIN=* python3 app.py
 ```
+
+## Lasttest (k6): Free vs Starter vergleichen
+
+Für einen schnellen Vergleich der Kapazität zwischen Render Free und Starter gibt es ein fertiges k6-Profil:
+
+- Skript: `loadtests/k6-free-vs-starter.js`
+- Anleitung: `loadtests/README.md`
+
+Beispiel:
+
+```bash
+BASE_URL=https://dein-service.onrender.com k6 run loadtests/k6-free-vs-starter.js
+```
