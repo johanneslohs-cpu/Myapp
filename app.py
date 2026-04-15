@@ -8,6 +8,7 @@ import smtplib
 import sqlite3
 import traceback
 import gzip
+import time
 from datetime import date, datetime
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -60,6 +61,9 @@ REDIS_URL = os.getenv("REDIS_URL", "").strip()
 GUEST_TOKEN_TTL_SECONDS = int(os.getenv("GUEST_TOKEN_TTL_SECONDS", "86400"))
 DATABASE_URL = os.getenv("DATABASE_URL", "").strip()
 DB_DIALECT = "postgres" if DATABASE_URL.startswith("postgres") else "sqlite"
+DB_CONNECT_TIMEOUT_SECONDS = max(1, int(os.getenv("DB_CONNECT_TIMEOUT_SECONDS", "10")))
+DB_CONNECT_RETRIES = max(1, int(os.getenv("DB_CONNECT_RETRIES", "5")))
+DB_CONNECT_RETRY_DELAY_SECONDS = max(1, int(os.getenv("DB_CONNECT_RETRY_DELAY_SECONDS", "2")))
 
 
 def build_redis_client():
@@ -181,7 +185,31 @@ def conn():
     if DB_DIALECT == "postgres":
         if psycopg is None:
             raise RuntimeError("DATABASE_URL ist gesetzt, aber psycopg ist nicht installiert.")
-        return DBConn(psycopg.connect(DATABASE_URL, row_factory=dict_row))
+        last_error = None
+        for attempt in range(1, DB_CONNECT_RETRIES + 1):
+            try:
+                return DBConn(
+                    psycopg.connect(
+                        DATABASE_URL,
+                        row_factory=dict_row,
+                        connect_timeout=DB_CONNECT_TIMEOUT_SECONDS,
+                    )
+                )
+            except Exception as exc:
+                last_error = exc
+                print(
+                    "[db] Verbindung fehlgeschlagen "
+                    f"(Versuch {attempt}/{DB_CONNECT_RETRIES}): "
+                    f"{exc.__class__.__name__}: {exc}"
+                )
+                if attempt < DB_CONNECT_RETRIES:
+                    time.sleep(DB_CONNECT_RETRY_DELAY_SECONDS)
+        raise RuntimeError(
+            "Postgres-Verbindung nicht möglich nach "
+            f"{DB_CONNECT_RETRIES} Versuchen "
+            f"(Timeout {DB_CONNECT_TIMEOUT_SECONDS}s). "
+            f"Prüfe DATABASE_URL/Netzwerk oder erhöhe DB_CONNECT_RETRIES."
+        ) from last_error
 
     c = sqlite3.connect(DB_PATH, timeout=10)
     c.execute("PRAGMA journal_mode=WAL;")
