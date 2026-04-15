@@ -5,8 +5,12 @@ import { Counter } from 'k6/metrics';
 const BASE_URL = (__ENV.BASE_URL || 'http://localhost:3000').replace(/\/$/, '');
 const SEARCH_TERM = __ENV.SEARCH_TERM || '';
 const PAUSE_SECONDS = Number(__ENV.PAUSE_SECONDS || '1');
+const AUTH_PER_ITERATION = (__ENV.AUTH_PER_ITERATION || '0') === '1';
+const REAUTH_EVERY = Math.max(0, Number(__ENV.REAUTH_EVERY || '50'));
 
 const errorCounter = new Counter('scenario_errors');
+let sessionToken = null;
+let iterationCount = 0;
 
 export const options = {
   scenarios: {
@@ -43,7 +47,7 @@ function failStep(name, response) {
   console.error(`${name} failed with ${response.status}: ${response.body?.slice?.(0, 200) || ''}`);
 }
 
-export default function () {
+function guestLogin() {
   const guestLogin = http.post(
     `${BASE_URL}/api/auth/guest`,
     JSON.stringify({}),
@@ -63,11 +67,51 @@ export default function () {
 
   if (!loginOk) {
     failStep('guest_login', guestLogin);
+    return null;
+  }
+
+  return guestLogin.json('token');
+}
+
+function logoutGuest(token) {
+  if (!token) {
+    return;
+  }
+  const authParams = { headers: jsonHeaders(token) };
+  const logout = http.post(
+    `${BASE_URL}/api/auth/logout`,
+    JSON.stringify({}),
+    authParams
+  );
+  const logoutOk = check(logout, {
+    'logout status 200': (r) => r.status === 200,
+  });
+  if (!logoutOk) {
+    failStep('logout', logout);
+  }
+}
+
+function ensureSessionToken() {
+  if (AUTH_PER_ITERATION) {
+    return guestLogin();
+  }
+  if (!sessionToken) {
+    sessionToken = guestLogin();
+    return sessionToken;
+  }
+  if (REAUTH_EVERY > 0 && iterationCount > 0 && iterationCount % REAUTH_EVERY === 0) {
+    logoutGuest(sessionToken);
+    sessionToken = guestLogin();
+  }
+  return sessionToken;
+}
+
+export default function () {
+  const token = ensureSessionToken();
+  if (!token) {
     sleep(PAUSE_SECONDS);
     return;
   }
-
-  const token = guestLogin.json('token');
   const authParams = { headers: jsonHeaders(token) };
 
   const recipes = http.get(
@@ -106,17 +150,10 @@ export default function () {
     failStep('swipe_recipes', swipe);
   }
 
-  const logout = http.post(
-    `${BASE_URL}/api/auth/logout`,
-    JSON.stringify({}),
-    authParams
-  );
-  const logoutOk = check(logout, {
-    'logout status 200': (r) => r.status === 200,
-  });
-  if (!logoutOk) {
-    failStep('logout', logout);
+  if (AUTH_PER_ITERATION) {
+    logoutGuest(token);
   }
 
+  iterationCount += 1;
   sleep(PAUSE_SECONDS);
 }
