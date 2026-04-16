@@ -735,8 +735,8 @@ function renderSwipe() {
       <p class="small">${swipeHeader}</p>
       <div class="empty-state swipe-limit-empty-state">
         <h3>Deine Swipes für heute sind aufgebraucht</h3>
-        <p>Schau dir eine Rewarded Ad an und erhalte sofort ${REWARDED_SWIPE_BONUS} weitere Swipes.</p>
-        <button class="btn" id="watchRewardedForSwipes">Rewarded Ad ansehen (+${REWARDED_SWIPE_BONUS} Swipes)</button>
+        <p>Schau dir eine Werbeanzeige an und erhalte sofort ${REWARDED_SWIPE_BONUS} weitere Swipes.</p>
+        <button class="btn" id="watchRewardedForSwipes">${REWARDED_SWIPE_BONUS} weitere Swipes freischalten</button>
       </div>`;
   }
   if (!current) {
@@ -1413,7 +1413,7 @@ async function openRecipe(id) {
         await api.post(`/api/recipes/${r.id}/like`);
         syncRecipeCollections(r, 'like');
       }
-      if (state.tab === 'swipe') render();
+      render();
       draw();
     };
     document.getElementById('addToList').onclick = () => openAddToList(r.ingredients);
@@ -1707,7 +1707,7 @@ function openExcluded() {
       <div class="excluded-count ${maxReached ? 'is-limit' : ''}">${excluded.length}/20</div>
     </div>
     <div class="excluded-add-row">
-      <input id="excludeName" class="search" placeholder="z. B. Pilze, Sellerie, Lachs" ${maxReached ? 'disabled' : ''} />
+      <input id="excludeName" class="search" placeholder="z. B. Käse, Sellerie, Lachs" ${maxReached ? 'disabled' : ''} />
       <button class="btn" id="addExclude" ${maxReached ? 'disabled' : ''}>Hinzufügen</button>
     </div>
     ${maxReached ? '<p class="excluded-limit-note">Maximal 20 Zutaten gleichzeitig möglich. Entferne erst eine Zutat, bevor du eine neue hinzufügst.</p>' : ''}
