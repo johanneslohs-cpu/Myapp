@@ -967,6 +967,21 @@ function createInterstitialLoadHelp(error, adUnitId) {
   return `Werbung konnte nicht geladen werden: ${detail}\n\n${hints.map((hint) => `• ${hint}`).join('\n')}`;
 }
 
+function sanitizeAdUnitId(value) {
+  return String(value || '').trim();
+}
+
+function isRealAdUnitId(value) {
+  return /^ca-app-pub-\d+\/\d+$/.test(sanitizeAdUnitId(value));
+}
+
+function resolveAdUnitId({ configuredId, testId, label, allowTestAds }) {
+  const adUnitId = sanitizeAdUnitId(configuredId);
+  if (isRealAdUnitId(adUnitId) && adUnitId !== testId) return adUnitId;
+  if (allowTestAds) return testId;
+  throw new Error(`${label}-Ad-Unit-ID fehlt oder ist ungültig. Trage in public/admob-config.js eine echte ID im Format ca-app-pub-.../... ein.`);
+}
+
 function readAdMobConfig() {
   const runtimeConfig = window.MYAPP_ADMOB_CONFIG && typeof window.MYAPP_ADMOB_CONFIG === 'object'
     ? window.MYAPP_ADMOB_CONFIG
@@ -983,15 +998,32 @@ function readAdMobConfig() {
     ...(storedConfig[platformKey] || {}),
     ...(runtimeConfig[platformKey] || {})
   };
-  const bannerAdUnitId = merged.bannerAdUnitId || platformConfig.bannerAdUnitId || ADMOB_TEST_IDS[platformKey].banner;
-  const interstitialAdUnitId = merged.interstitialAdUnitId || platformConfig.interstitialAdUnitId || ADMOB_TEST_IDS[platformKey].interstitial;
-  const rewardedAdUnitId = merged.rewardedAdUnitId || platformConfig.rewardedAdUnitId || ADMOB_TEST_IDS[platformKey].rewarded;
+  const allowTestAds = merged.allowTestAds === true || platformConfig.allowTestAds === true;
+  const bannerAdUnitId = resolveAdUnitId({
+    configuredId: merged.bannerAdUnitId || platformConfig.bannerAdUnitId,
+    testId: ADMOB_TEST_IDS[platformKey].banner,
+    label: 'Banner',
+    allowTestAds
+  });
+  const interstitialAdUnitId = resolveAdUnitId({
+    configuredId: merged.interstitialAdUnitId || platformConfig.interstitialAdUnitId,
+    testId: ADMOB_TEST_IDS[platformKey].interstitial,
+    label: 'Interstitial',
+    allowTestAds
+  });
+  const rewardedAdUnitId = resolveAdUnitId({
+    configuredId: merged.rewardedAdUnitId || platformConfig.rewardedAdUnitId,
+    testId: ADMOB_TEST_IDS[platformKey].rewarded,
+    label: 'Rewarded',
+    allowTestAds
+  });
   const usingTestIds = interstitialAdUnitId === ADMOB_TEST_IDS[platformKey].interstitial
     || bannerAdUnitId === ADMOB_TEST_IDS[platformKey].banner
     || rewardedAdUnitId === ADMOB_TEST_IDS[platformKey].rewarded;
   state.adMob.usingTestIds = usingTestIds;
   logAdMob('config resolved', {
     platformKey,
+    allowTestAds,
     usingTestIds,
     interstitialAdUnitId: maskAdUnitId(interstitialAdUnitId),
     rewardedAdUnitId: maskAdUnitId(rewardedAdUnitId),

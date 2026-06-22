@@ -209,17 +209,23 @@ Wichtig:
   - Android: `ca-app-pub-3940256099942544~3347511713`
   - iOS: `ca-app-pub-3940256099942544~1458002511`
 - Wenn das Laden trotz korrekter App-ID hängt, liegt es in der Praxis oft an Consent/Datenschutz-Flow (UMP) oder Netzwerkrestriktionen auf dem Gerät.
-- Das Frontend nutzt aktuell automatisch Googles **Test-Interstitial-ID**, solange keine eigene Ad-Unit gesetzt wurde.
-- Deine echte Interstitial-Ad-Unit kannst du später z. B. per Runtime-Konfiguration setzen:
+- Das Frontend lädt `public/admob-config.js` vor `public/app.js`. Dort müssen echte Ad-Unit-IDs mit `/` eingetragen werden. Ohne echte IDs lädt die App keine Testwerbung mehr.
+- Für Testwerbung kannst du in `public/admob-config.js` bewusst `allowTestAds: true` setzen. Für Produktion muss der Wert `false` bleiben.
+- Beispiel für echte Ad-Units:
 
 ```js
 window.MYAPP_ADMOB_CONFIG = {
+  allowTestAds: false,
   android: {
+    bannerAdUnitId: 'ca-app-pub-.../...',
     interstitialAdUnitId: 'ca-app-pub-.../...',
+    rewardedAdUnitId: 'ca-app-pub-.../...'
   },
   ios: {
+    bannerAdUnitId: 'ca-app-pub-.../...',
     interstitialAdUnitId: 'ca-app-pub-.../...',
-  },
+    rewardedAdUnitId: 'ca-app-pub-.../...'
+  }
 };
 ```
 
