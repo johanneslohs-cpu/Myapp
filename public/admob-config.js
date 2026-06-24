@@ -3,9 +3,9 @@
 window.MYAPP_ADMOB_CONFIG = {
   allowTestAds: false,
   android: {
-    bannerAdUnitId: '',
-    interstitialAdUnitId: '',
-    rewardedAdUnitId: ''
+    bannerAdUnitId: 'ca-app-pub-3947032809384601/5592032167',
+    interstitialAdUnitId: 'ca-app-pub-3947032809384601/9295894913',
+    rewardedAdUnitId: 'ca-app-pub-3947032809384601/1994999713'
   },
   ios: {
     bannerAdUnitId: '',

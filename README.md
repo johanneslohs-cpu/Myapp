@@ -191,7 +191,7 @@ Für die neue, einfache AdMob-Integration in der Profilansicht erwartet das Fron
 Plugin-Installation im Cordova-Wrapper:
 
 ```bash
-cordova plugin add admob-plus-cordova --save --variable APP_ID_ANDROID=ca-app-pub-ANDROID_APP_ID --variable APP_ID_IOS=ca-app-pub-IOS_APP_ID
+cordova plugin add admob-plus-cordova --save --variable APP_ID_ANDROID=ca-app-pub-3947032809384601~6467630252 --variable APP_ID_IOS=ca-app-pub-IOS_APP_ID
 ```
 
 Plugin-Version prüfen/aktualisieren:
@@ -199,7 +199,7 @@ Plugin-Version prüfen/aktualisieren:
 ```bash
 cordova plugin list | grep admob-plus
 cordova plugin rm admob-plus-cordova
-cordova plugin add admob-plus-cordova@2.0.0-alpha.19 --save --variable APP_ID_ANDROID=ca-app-pub-ANDROID_APP_ID --variable APP_ID_IOS=ca-app-pub-IOS_APP_ID
+cordova plugin add admob-plus-cordova@2.0.0-alpha.19 --save --variable APP_ID_ANDROID=ca-app-pub-3947032809384601~6467630252 --variable APP_ID_IOS=ca-app-pub-IOS_APP_ID
 ```
 
 Wichtig:
@@ -217,9 +217,9 @@ Wichtig:
 window.MYAPP_ADMOB_CONFIG = {
   allowTestAds: false,
   android: {
-    bannerAdUnitId: 'ca-app-pub-.../...',
-    interstitialAdUnitId: 'ca-app-pub-.../...',
-    rewardedAdUnitId: 'ca-app-pub-.../...'
+    bannerAdUnitId: 'ca-app-pub-3947032809384601/5592032167',
+    interstitialAdUnitId: 'ca-app-pub-3947032809384601/9295894913',
+    rewardedAdUnitId: 'ca-app-pub-3947032809384601/1994999713'
   },
   ios: {
     bannerAdUnitId: 'ca-app-pub-.../...',
