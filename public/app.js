@@ -78,6 +78,7 @@ let admobBanner = null;
 let admobInterstitialAdUnitId = '';
 let admobRewardedAdUnitId = '';
 let admobBannerAdUnitId = '';
+let admobRewardedFlowAdUnitId = '';
 let admobStartPromise = null;
 let admobStarted = false;
 const ADMOB_MIN_RECOMMENDED_PLUGIN_VERSION = '2.0.0-alpha.19';
@@ -908,13 +909,9 @@ function withTimeout(promise, timeoutMs, message) {
 }
 
 async function forceCloseAdInstance(adInstance) {
-  if (!adInstance) return false;
-  const dismissFn = typeof adInstance.hide === 'function'
-    ? adInstance.hide.bind(adInstance)
-    : (typeof adInstance.dismiss === 'function' ? adInstance.dismiss.bind(adInstance) : null);
-  if (!dismissFn) return false;
+  if (!adInstance || typeof adInstance.dismiss !== 'function') return false;
   try {
-    await Promise.resolve(dismissFn());
+    await Promise.resolve(adInstance.dismiss());
     return true;
   } catch (_error) {
     return false;
@@ -1130,6 +1127,12 @@ async function ensureAdMobRewarded() {
   return admobRewarded;
 }
 
+function resetAdMobRewardedInstance() {
+  admobRewarded = null;
+  admobRewardedAdUnitId = '';
+  admobRewardedFlowAdUnitId = '';
+}
+
 async function ensureAdMobBanner() {
   const admob = await ensureAdMobStarted();
   if (typeof admob.BannerAd !== 'function') {
@@ -1276,24 +1279,24 @@ async function showRewardedAdForSwipeCredits() {
     state.adMob.statusMessage = 'Rewarded Ad wird geladen …';
     render();
     rewarded = await ensureAdMobRewarded();
-    logAdMob('rewarded load begin', { adUnitId: maskAdUnitId(admobRewardedAdUnitId) });
+    admobRewardedFlowAdUnitId = admobRewardedAdUnitId;
+    logAdMob('rewarded load begin', { adUnitId: maskAdUnitId(admobRewardedFlowAdUnitId) });
     await withTimeout(
       rewarded.load(),
       15000,
       'Rewarded Ad konnte nicht geladen werden (Timeout). Das AdMob-Plugin hat innerhalb von 15s weder "load" noch "loadfail" geliefert.'
     );
-    logAdMob('rewarded load success', { adUnitId: maskAdUnitId(admobRewardedAdUnitId) });
+    logAdMob('rewarded load success', { adUnitId: maskAdUnitId(admobRewardedFlowAdUnitId) });
     state.adMob.statusMessage = 'Rewarded Ad wird angezeigt …';
     render();
-    await withTimeout(
-      rewarded.show(),
-      15000,
-      'Rewarded Ad konnte nicht angezeigt werden (Timeout). Das AdMob-Plugin hat innerhalb von 15s keine Rückmeldung auf "show" geliefert.'
-    );
-    logAdMob('rewarded show success', { adUnitId: maskAdUnitId(admobRewardedAdUnitId) });
     document.addEventListener('admob.ad.reward', onReward);
     document.addEventListener('admob.ad.dismiss', onDismiss);
     document.addEventListener('admob.ad.showfail', onShowFail);
+    // Rewarded videos can legitimately run longer than the normal "open ad" timeout.
+    // Timing out here would move the app into its error cleanup while the native ad
+    // overlay is still active, which can leave the close button unresponsive.
+    await Promise.resolve(rewarded.show());
+    logAdMob('rewarded show success', { adUnitId: maskAdUnitId(admobRewardedFlowAdUnitId) });
     await withTimeout(
       dismissPromise,
       65000,
@@ -1317,12 +1320,7 @@ async function showRewardedAdForSwipeCredits() {
   } catch (error) {
     console.error('Rewarded-Ad konnte nicht angezeigt werden:', error);
     logAdMob('rewarded show fail', { error: error && error.message ? error.message : error });
-    if (rewarded) {
-      const didForceClose = await forceCloseAdInstance(rewarded);
-      if (didForceClose) {
-        logAdMob('rewarded force close success', { adUnitId: maskAdUnitId(admobRewardedAdUnitId) });
-      }
-    }
+    resetAdMobRewardedInstance();
     state.adMob.lastError = error && error.message ? error.message : 'Rewarded Ad konnte nicht geladen werden.';
     state.adMob.statusMessage = '';
     render();
@@ -1334,6 +1332,7 @@ async function showRewardedAdForSwipeCredits() {
       document.removeEventListener('admob.ad.dismiss', onDismiss);
       document.removeEventListener('admob.ad.showfail', onShowFail);
     }
+    resetAdMobRewardedInstance();
     state.adMob.isBusy = false;
     render();
   }
