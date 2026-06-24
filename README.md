@@ -191,7 +191,7 @@ Für die neue, einfache AdMob-Integration in der Profilansicht erwartet das Fron
 Plugin-Installation im Cordova-Wrapper:
 
 ```bash
-cordova plugin add admob-plus-cordova --save --variable APP_ID_ANDROID=ca-app-pub-ANDROID_APP_ID --variable APP_ID_IOS=ca-app-pub-IOS_APP_ID
+cordova plugin add admob-plus-cordova --save --variable APP_ID_ANDROID=ca-app-pub-3947032809384601~6467630252 --variable APP_ID_IOS=ca-app-pub-IOS_APP_ID
 ```
 
 Plugin-Version prüfen/aktualisieren:
@@ -199,7 +199,7 @@ Plugin-Version prüfen/aktualisieren:
 ```bash
 cordova plugin list | grep admob-plus
 cordova plugin rm admob-plus-cordova
-cordova plugin add admob-plus-cordova@2.0.0-alpha.19 --save --variable APP_ID_ANDROID=ca-app-pub-ANDROID_APP_ID --variable APP_ID_IOS=ca-app-pub-IOS_APP_ID
+cordova plugin add admob-plus-cordova@2.0.0-alpha.19 --save --variable APP_ID_ANDROID=ca-app-pub-3947032809384601~6467630252 --variable APP_ID_IOS=ca-app-pub-IOS_APP_ID
 ```
 
 Wichtig:
@@ -209,17 +209,23 @@ Wichtig:
   - Android: `ca-app-pub-3940256099942544~3347511713`
   - iOS: `ca-app-pub-3940256099942544~1458002511`
 - Wenn das Laden trotz korrekter App-ID hängt, liegt es in der Praxis oft an Consent/Datenschutz-Flow (UMP) oder Netzwerkrestriktionen auf dem Gerät.
-- Das Frontend nutzt aktuell automatisch Googles **Test-Interstitial-ID**, solange keine eigene Ad-Unit gesetzt wurde.
-- Deine echte Interstitial-Ad-Unit kannst du später z. B. per Runtime-Konfiguration setzen:
+- Das Frontend lädt `public/admob-config.js` vor `public/app.js`. Dort müssen echte Ad-Unit-IDs mit `/` eingetragen werden. Ohne echte IDs lädt die App keine Testwerbung mehr.
+- Für Testwerbung kannst du in `public/admob-config.js` bewusst `allowTestAds: true` setzen. Für Produktion muss der Wert `false` bleiben.
+- Beispiel für echte Ad-Units:
 
 ```js
 window.MYAPP_ADMOB_CONFIG = {
+  allowTestAds: false,
   android: {
-    interstitialAdUnitId: 'ca-app-pub-.../...',
+    bannerAdUnitId: 'ca-app-pub-3947032809384601/5592032167',
+    interstitialAdUnitId: 'ca-app-pub-3947032809384601/9295894913',
+    rewardedAdUnitId: 'ca-app-pub-3947032809384601/1994999713'
   },
   ios: {
+    bannerAdUnitId: 'ca-app-pub-.../...',
     interstitialAdUnitId: 'ca-app-pub-.../...',
-  },
+    rewardedAdUnitId: 'ca-app-pub-.../...'
+  }
 };
 ```
 
