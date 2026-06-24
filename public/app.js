@@ -1292,11 +1292,10 @@ async function showRewardedAdForSwipeCredits() {
     document.addEventListener('admob.ad.reward', onReward);
     document.addEventListener('admob.ad.dismiss', onDismiss);
     document.addEventListener('admob.ad.showfail', onShowFail);
-    await withTimeout(
-      rewarded.show(),
-      15000,
-      'Rewarded Ad konnte nicht angezeigt werden (Timeout). Das AdMob-Plugin hat innerhalb von 15s keine Rückmeldung auf "show" geliefert.'
-    );
+    // Rewarded videos can legitimately run longer than the normal "open ad" timeout.
+    // Timing out here would move the app into its error cleanup while the native ad
+    // overlay is still active, which can leave the close button unresponsive.
+    await Promise.resolve(rewarded.show());
     logAdMob('rewarded show success', { adUnitId: maskAdUnitId(admobRewardedFlowAdUnitId) });
     await withTimeout(
       dismissPromise,
